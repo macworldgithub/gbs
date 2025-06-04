@@ -1,21 +1,126 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import * as React from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, View, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import Splash from './src/Screens/Splash';
+import Onboarding from './src/Screens/Onboarding';
+import OnboardingTwo from './src/Screens/OnboardingTwo';
+import Home from './src/Screens/Home';
+import Signup from './src/auth/Signup';
+import Signin from './src/auth/Signin';
+import SearchEvent from './src/Screens/SearchEvent';
+import Notification from './src/Screens/Notification';
+import UpcomingEvent from './src/Screens/UpcomingEvent';
+import PopularEvent from './src/Screens/PopularEvent';
+import DetailEvent from './src/Screens/DetailEvent';
+import MemberLocation from './src/Screens/MemberLocation';
+import Profile from './src/Screens/Profile';
+import EditProfile from "./src/Screens/EditProfile";
+import AccountSecurity from "./src/Screens/AccountSecurity"
+import QRCodeScreen from "./src/Screens/QRCodeScreen";
+import Scanner from "./src/Screens/Scanner";
+import PaymentSettings from './src/Screens/PaymentSettings';
+import PaymentMethod from "./src/Screens/PaymentMethod";
+import AddPaymentMethod from "./src/Screens/AddPaymentMethod";
+import PaymentSuccess from "./src/Screens/PaymentSuccess";
+import GeneralSetting from "./src/Screens/GeneralSetting";
+import Theme from './src/Screens/Theme';
+import LanguageSetting from "./src/Screens/LanguageSetting";
+import AllChat from "./src/Screens/AllChat"; 
+import Chat from "./src/Screens/Chat"; 
+import CreateGroup from './src/Screens/CreateGroup';
+import GroupInfo from "./src/Screens/GroupInfo";
+import GroupChat from './src/Screens/GroupChat';
+import Gallery from "./src/Screens/Gallery";
+import MuteGroup from "./src/Screens/MuteGroup";
+import FavoriteEmpty from './src/Screens/FavoriteEmpty';
+import Favorite from "./src/Screens/Favorite";
+import ForgotPass from './src/Screens/ForgotPass';
+import InboxOTP from './src/Screens/InboxOTP';
+import CreateNewPass from './src/Screens/CreateNewPass';
+import ResetPass from './src/Screens/ResetPass';
+import OTPVerification from './src/auth/OTPVerification';
+import AuthTabs from './src/navigation/AuthTabNavigation';
+
+const Stack = createStackNavigator();
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+  const splashOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      Animated.timing(splashOpacity, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }).start(() => {
+        setShowSplash(false);
+      });
+    }, 4000); // 4 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showSplash) {
+    return (
+      <Animated.View style={[styles.splashContainer, { opacity: splashOpacity }]}>
+        <Splash />
+      </Animated.View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Onboarding">
+        <Stack.Screen name="Onboarding" component={Onboarding} />
+        <Stack.Screen name="OnboardingTwo" component={OnboardingTwo} />
+        <Stack.Screen name="Tabs" component={AuthTabs} />
+        <Stack.Screen name="Signup" component={Signup}/>
+        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name='Signin' component={Signin}/>
+        <Stack.Screen name="SearchEvent" component={SearchEvent} />
+        <Stack.Screen name="Notification" component={Notification} />
+        <Stack.Screen name="UpcomingEvent" component={UpcomingEvent} />
+        <Stack.Screen name="PopularEvent" component={PopularEvent} />
+        <Stack.Screen name="DetailEvent" component={DetailEvent} />
+        <Stack.Screen name="MemberLocation" component={MemberLocation} />
+        <Stack.Screen name='Profile' component={Profile}/>
+        <Stack.Screen name='EditProfile' component={EditProfile}/>
+        <Stack.Screen name='AccountSecurity' component={AccountSecurity}/>
+        <Stack.Screen name='QRCodeScreen' component={QRCodeScreen}/>
+        <Stack.Screen name='Scanner' component={Scanner}/>
+        <Stack.Screen name='PaymentSettings' component={PaymentSettings}/>
+        <Stack.Screen name='AddPaymentMethod' component={AddPaymentMethod}/>
+        <Stack.Screen name="PaymentMethod" component={PaymentMethod} /> 
+        <Stack.Screen name='PaymentSuccess' component={PaymentSuccess}/>
+        <Stack.Screen name='GeneralSetting' component={GeneralSetting}/>
+        <Stack.Screen name='Theme' component={Theme}/>
+        <Stack.Screen name='LanguageSetting'component={LanguageSetting}/>
+        <Stack.Screen name='AllChat' component={AllChat}/>
+        <Stack.Screen name='Chat' component={Chat}/>
+        <Stack.Screen name='CreateGroup' component={CreateGroup}/>
+        <Stack.Screen name='GroupChat' component={GroupChat}/>
+        <Stack.Screen name='GroupInfo' component={GroupInfo}/>
+        <Stack.Screen name="Gallery" component={Gallery} />
+        <Stack.Screen name="MuteGroup" component={MuteGroup} />
+        <Stack.Screen name='FavoriteEmpty' component={FavoriteEmpty}/>
+        <Stack.Screen name='Favorite' component={Favorite}/>
+        <Stack.Screen name='ForgotPass' component={ForgotPass}/>
+        <Stack.Screen name='InboxOTP' component={InboxOTP}/>
+        <Stack.Screen name='CreateNewPass' component={CreateNewPass}/>
+        <Stack.Screen name='ResetPass' component={ResetPass}/>
+        <Stack.Screen name='OTPVerification' component={OTPVerification}/>
+        <Stack.Screen name='AuthTabs' component={AuthTabs}/>
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  splashContainer: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
+
