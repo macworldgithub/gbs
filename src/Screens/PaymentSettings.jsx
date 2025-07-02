@@ -73,7 +73,7 @@ export default function PaymentSettings() {
   );
 
   return (
-    <View style={tw`flex-1 bg-gray-100 pt-8`}>
+    <View style={tw`flex-1 bg-gray-100 mt-10`}>
       {/* Header */}
       <View style={tw`px-4 pt-6 flex-row items-center mb-4`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>

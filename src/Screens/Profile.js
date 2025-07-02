@@ -66,7 +66,7 @@ const Profile = () => {
   );
 
   return (
-    <View style={tw`flex-1 bg-gray-100 pt-4`}>
+    <View style={tw`flex-1 bg-gray-100  mt-10`}>
       {/* Header */}
       <View style={tw`px-4 pt-6 flex-row justify-between items-center`}>
         <Text style={tw`text-lg font-bold text-gray-800`}>Profile</Text>

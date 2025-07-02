@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function CustomTabBar({ state, descriptors, navigation }) {
   return (
-    <View style={tw`flex-row bg-white border-t border-gray-200 px-2 pb-2 pt-2`}>
+    <View style={tw`flex-row bg-white border-t border-gray-200 px-2 pb-2 pt-2 mb-4`}>
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;
 

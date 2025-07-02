@@ -20,7 +20,7 @@ export default function QRCodeScreen({ navigation }) {
   };
 
   return (
-    <View style={tw`flex-1 bg-gray-100 px-4 pt-10`}>
+    <View style={tw`flex-1 bg-gray-100 px-4 mt-16`}>
       {/* Top bar */}
       <View style={tw`flex-row items-center mb-6`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>

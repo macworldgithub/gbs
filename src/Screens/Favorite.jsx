@@ -21,7 +21,7 @@ const Favorite = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   return (
-    <View style={tw`bg-white pt-4 px-4`}>
+    <View style={tw`bg-white pt-4 px-4 mt-10`}>
       {/* Title */}
       <Text style={tw`text-lg font-semibold mb-4`}>Favorite</Text>
 

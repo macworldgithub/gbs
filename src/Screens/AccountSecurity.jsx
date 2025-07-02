@@ -23,7 +23,7 @@ const AccountSecurity = () => {
   };
 
   return (
-    <ScrollView style={tw`flex-1 bg-white pt-6`}>
+    <ScrollView style={tw`flex-1 bg-white mt-10`}>
       {/* Header */}
       <View style={tw`px-4 pt-6 flex-row items-center`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>

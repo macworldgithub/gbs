@@ -21,7 +21,7 @@ export default function UpcomingEvent() {
     <SafeAreaView style={tw`pt-4 px-2`}>
       {/* Header */}
       <View style={tw`flex-row items-center px-4 py-2 `}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={20} color="#000" />
         </TouchableOpacity>
         <Text style={tw`text-lg font-semibold ml-4 `}>Upcoming Event</Text>

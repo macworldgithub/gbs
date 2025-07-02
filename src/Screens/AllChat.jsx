@@ -75,7 +75,7 @@ export default function AllChat() {
   );
 
   return (
-    <View style={tw`flex-1 bg-white `}>
+    <View style={tw`flex-1 bg-white mt-10`}>
       <View style={tw`p-4 flex-row justify-between items-center`}>
         <Text style={tw`text-lg font-bold`}>Chat</Text>
         <TouchableOpacity
