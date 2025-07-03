@@ -1,16 +1,17 @@
+
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, view } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import tw from 'tailwind-react-native-classnames';
 import Cards from '../../components/Cards';
 
-const tabs = [  
-  { key: 'all', label: 'All', icon: 'th-large' },
-  { key: 'upcoming', label: 'Upcoming events', icon: 'calendar-alt' },
-  { key: 'popular', label: 'Popular events', icon: 'star' },
-  { key: 'live', label: 'Live events', icon: 'broadcast-tower' },
+const tabs = [
+  { key: 'all', label: 'All', icon: 'th-large', screen: ' Home' },
+  { key: 'upcoming', label: 'Upcoming events', icon: 'calendar-alt', screen: 'UpcomingEvent' },
+  { key: 'popular', label: 'Popular events', icon: 'star', screen: 'PopularEvent' },
+  { key: 'live', label: 'Live events', icon: 'broadcast-tower', screen: 'LiveEvent' },
 ];
 
 export default function UpcomingEvent() {
@@ -20,11 +21,11 @@ export default function UpcomingEvent() {
   return (
     <SafeAreaView style={tw`pt-4 px-2`}>
       {/* Header */}
-      <View style={tw`flex-row items-center px-4 py-2 `}>
+      <View style={tw`flex-row items-center px-4 py-2`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={20} color="#000" />
         </TouchableOpacity>
-        <Text style={tw`text-lg font-semibold ml-4 `}>Upcoming Event</Text>
+        <Text style={tw`text-lg font-semibold ml-4`}>Upcoming Event</Text>
       </View>
 
       {/* Tabs */}
@@ -36,7 +37,10 @@ export default function UpcomingEvent() {
         {tabs.map((tab) => (
           <TouchableOpacity
             key={tab.key}
-            onPress={() => setActiveTab(tab.key)}
+            onPress={() => {
+              setActiveTab(tab.key);
+              navigation.navigate(tab.screen);
+            }}
             style={tw.style(
               `flex-row items-center px-4 py-2 rounded-full mr-2`,
               activeTab === tab.key ? `bg-red-400` : `bg-gray-100`
@@ -59,8 +63,10 @@ export default function UpcomingEvent() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {/* Content */}
       <View style={tw`mt-6`}>
-      <Cards/>
+        <Cards />
       </View>
     </SafeAreaView>
   );
