@@ -28,18 +28,18 @@ export default function Onboarding({ navigation }) {
         }}
       >
         {/* Top navigation */}
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <TouchableOpacity
-            style={{ backgroundColor: "rgba(255,255,255,0.7)", borderRadius: 999, padding: 15 }}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="arrow-back" size={20} color="#000" />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.navigate("Home")}>
-            <Text style={{ color: "#fff", fontSize: 14 }}>Skip</Text>
-          </TouchableOpacity>
-        </View>
+       <View style={styles.topNav}>
+               <TouchableOpacity
+                 style={styles.backButton}
+                 onPress={() => navigation.goBack()}
+               >
+                 <Ionicons name="arrow-back" size={25} color="#000" />
+               </TouchableOpacity>
+       
+               <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+                 <Text style={styles.skipText}>Skip</Text>
+               </TouchableOpacity>
+             </View>
 
         {/* Bottom content */}
         <View style={{ marginBottom: 48 }}>
@@ -77,3 +77,24 @@ export default function Onboarding({ navigation }) {
     </ImageBackground>
   );
 }
+
+
+const styles = StyleSheet.create({
+
+  topNav: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+    paddingHorizontal: 24,
+    alignItems: "center",
+  },
+  backButton: {
+    backgroundColor: "rgba(255,255,255,0.7)",
+    borderRadius: 999,
+    padding: 10,
+  },
+  skipText: {
+    color: "white",
+    fontSize: 14,
+  },
+  });
