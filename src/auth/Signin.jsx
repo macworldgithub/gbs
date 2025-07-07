@@ -8,18 +8,55 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { FontAwesome, Feather } from '@expo/vector-icons';
 import tw from 'tailwind-react-native-classnames';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SigninUser } from '../utils/api';
+// import { useDispatch } from 'react-redux'; // if Redux is implemented
+
 export default function Signin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigation = useNavigation();
-  const handleLogin = () => {
+  // const dispatch = useDispatch();
+
+  const handleSignin = async () => {
     console.log('Logging in with:', email, password);
+    if (!email || !password) {
+      Alert.alert('Validation Error', 'Please fill in all fields');
+      return;
+    }
+
+    try {
+      // Optional: dispatch({ type: 'LOGIN_START' });
+
+      const res = await SigninUser(email, password);
+
+      if (res?.success || res?.token) {
+        console.log('Login success:', res);
+        
+        // Redux update if needed
+        // dispatch({ type: 'LOGIN_SUCCESS', payload: res.user });
+
+        // Store token and user info in AsyncStorage
+        await AsyncStorage.setItem('userToken', res.token);
+        await AsyncStorage.setItem('userInfo', JSON.stringify(res.user));
+
+        navigation.replace('Tabs');
+      } else {
+        Alert.alert('Login Failed', res.message || 'Invalid credentials');
+        // dispatch({ type: 'LOGIN_FAILURE' });
+      }
+    } catch (error) {
+      console.error('Login Error:', error);
+      Alert.alert('Error', error?.response?.data?.message || 'Network error. Please try again.');
+      // dispatch({ type: 'LOGIN_FAILURE' });
+    }
   };
 
   return (
@@ -28,14 +65,14 @@ export default function Signin() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={tw`flex-grow justify-start px-6 pt-10`}>
-
-        {/* Title */}
         <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>Sign in to</Text>
         <Text style={tw`text-2xl font-bold text-gray-900 mb-4`}>your account</Text>
 
         <Text style={tw`text-sm text-gray-600 mb-6`}>
-          Don’t have an account? <Text style={tw`text-red-500 font-semibold`}
-            onPress={() => navigation.navigate("Signup")}>Sign Up</Text>
+          Don’t have an account?{' '}
+          <Text style={tw`text-red-500 font-semibold`} onPress={() => navigation.navigate('Signup')}>
+            Sign Up
+          </Text>
         </Text>
 
         {/* Email Input */}
@@ -74,28 +111,20 @@ export default function Signin() {
             style={tw`flex-row items-center`}
           >
             <View style={tw`w-4 h-4 mr-2 border border-gray-400 rounded items-center justify-center`}>
-              {rememberMe && (
-                <FontAwesome name="check" size={10} color="#EF4444" />
-              )}
+              {rememberMe && <FontAwesome name="check" size={10} color="#EF4444" />}
             </View>
             <Text style={tw`text-sm text-gray-700`}>Remember me</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity>
-            <Text style={tw`text-sm text-red-500 font-semibold`}
-              onPress={() => navigation.navigate("ForgotPass")}>
-              Forgot Password</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('ForgotPass')}>
+            <Text style={tw`text-sm text-red-500 font-semibold`}>Forgot Password</Text>
           </TouchableOpacity>
         </View>
 
         {/* Sign In Button */}
-        <TouchableOpacity
-        style={tw`bg-red-500 py-3 rounded-xl mb-6`}
-        // onPress={() => navigation.navigate('Home')}>
-                    onPress={() => navigation.replace('Tabs')}>
-
-        <Text style={tw`text-white text-center font-semibold`}>Sign in</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={tw`bg-red-500 py-3 rounded-xl mb-6`} onPress={handleSignin}>
+          <Text style={tw`text-white text-center font-semibold`}>Sign in</Text>
+        </TouchableOpacity>
 
         {/* Divider */}
         <View style={tw`flex-row items-center mb-6`}>
