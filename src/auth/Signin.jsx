@@ -53,9 +53,10 @@ export default function Signin() {
         // dispatch({ type: 'LOGIN_FAILURE' });
       }
     } catch (error) {
-      console.error('Login Error:', error);
+      console.error('Login Error:', 'Error', error?.response?.data?.message);
       Alert.alert('Error', error?.response?.data?.message || 'Network error. Please try again.');
       // dispatch({ type: 'LOGIN_FAILURE' });
+      
     }
   };
 
