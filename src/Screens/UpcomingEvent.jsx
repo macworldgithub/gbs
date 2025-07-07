@@ -8,7 +8,7 @@ import tw from 'tailwind-react-native-classnames';
 import Cards from '../../components/Cards';
 
 const tabs = [
-  { key: 'all', label: 'All', icon: 'th-large', screen: ' Home' },
+  { key: 'all', label: 'All', icon: 'th-large', screen: 'Home' },
   { key: 'upcoming', label: 'Upcoming events', icon: 'calendar-alt', screen: 'UpcomingEvent' },
   { key: 'popular', label: 'Popular events', icon: 'star', screen: 'PopularEvent' },
   { key: 'live', label: 'Live events', icon: 'broadcast-tower', screen: 'LiveEvent' },

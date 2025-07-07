@@ -23,7 +23,6 @@ export default function Signin() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigation = useNavigation();
-  // const dispatch = useDispatch();
 
   const handleSignin = async () => {
     console.log('Logging in with:', email, password);
