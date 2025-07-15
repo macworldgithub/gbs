@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import tw from 'tailwind-react-native-classnames';
 import { useNavigation } from '@react-navigation/native'; 
 
@@ -86,12 +87,12 @@ export default function NotificationScreen() {
   );
 
   return (
-    <ScrollView style={tw`flex-1 bg-white pt-4`}>
+    <ScrollView style={tw`flex-1 bg-white mt-14`}>
       {/* Header with back icon */}
       <View style={tw`flex-row justify-between items-center px-4 py-4 border-b border-gray-100`}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <FontAwesome name="angle-left" size={24} color="black" />
-        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <Icon name="arrow-left" size={20} color="#000" />
+                </TouchableOpacity>
         <Text style={tw`text-lg font-semibold text-black ml-2 flex-1`}>Notification</Text>
         <TouchableOpacity style={tw`bg-red-500 rounded-full px-3 py-0.5`}>
           <Text style={tw`text-white text-xs font-medium`}>1 NEW</Text>
