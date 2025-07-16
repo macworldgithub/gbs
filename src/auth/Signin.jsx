@@ -76,7 +76,7 @@ export default function Signin() {
         </Text>
 
         {/* Email Input */}
-        <View style={tw`flex-row items-center border rounded-lg px-3 py-1 mb-4 bg-gray-100`}>
+        <View style={tw`flex-row items-center border border-red-300 rounded-lg px-3 py-1 mb-4 bg-gray-100`}>
           <FontAwesome name="envelope" size={16} color="#6B7280" />
           <TextInput
             style={tw`flex-1 ml-2 text-sm text-gray-900`}
