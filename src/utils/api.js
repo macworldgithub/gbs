@@ -32,7 +32,7 @@ export const SignupUser = async (userData) => {
         name: userData.name,
         email: userData.email,
         password: userData.password,
-        phone: userData.phone, 
+        phone: userData.phone,
       },
       {
         headers: {

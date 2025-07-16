@@ -12,7 +12,7 @@ import {
 import tw from 'tailwind-react-native-classnames';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
-import { resetForgotPassword } from '../utils/api'; // ✅ Make sure the path is correct
+import { resetForgotPassword } from '../utils/api'; 
 
 const CreateNewPass = () => {
   const [email, setEmail] = useState('');
@@ -31,7 +31,7 @@ const CreateNewPass = () => {
     try {
       await resetForgotPassword({ email, otp, newPassword });
       Alert.alert('Success', 'Password reset successfully.');
-      navigation.navigate('Tabs'); // or 'Home'
+      navigation.navigate('Tabs'); 
     } catch (error) {
       console.error('Reset failed:', error);
       Alert.alert('Error', error?.response?.data?.message || 'Failed to reset password.');
