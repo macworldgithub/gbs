@@ -47,3 +47,19 @@ export const SignupUser = async (userData) => {
     throw error;
   }
 };
+
+
+export const sendForgotPasswordOtp = async (email) => {
+  const res = await axios.post(`${API_BASE_URL}/user/forgot-password/send-otp`, { email });
+  return res.data;
+};
+
+
+export const resetForgotPassword = async ({ email, otp, newPassword }) => {
+  const res = await axios.post(`${API_BASE_URL}/user/forgot-password/reset`, {
+    email,
+    otp,
+    newPassword,
+  });
+  return res.data;
+};

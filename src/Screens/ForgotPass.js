@@ -8,15 +8,31 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import tw from 'tailwind-react-native-classnames';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
+import { sendForgotPasswordOtp } from '../utils/api'; 
+
 const ForgotPass = () => {
   const [email, setEmail] = useState('');
-const navigation = useNavigation();
-  const handleConfirm = () => {
-    console.log('OTP sent to:', email);
+  const navigation = useNavigation();
+
+  const handleConfirm = async () => {
+    if (!email) {
+      Alert.alert('Validation Error', 'Please enter your email address');
+      return;
+    }
+
+    try {
+      const res = await sendForgotPasswordOtp(email);
+      Alert.alert('Success', 'OTP has been sent to your email');
+      navigation.navigate('InboxOTP', { email }); // ✅ Navigate with email
+    } catch (error) {
+      console.error('Send OTP failed:', error);
+      Alert.alert('Error', error?.response?.data?.message || 'Failed to send OTP');
+    }
   };
 
   return (
@@ -27,8 +43,8 @@ const navigation = useNavigation();
       {/* Back Arrow */}
       <TouchableOpacity
         style={tw`absolute top-10 left-4 z-10`}
-                              onPress={() => navigation.navigate("Signin")}>
-
+        onPress={() => navigation.navigate('Signin')}
+      >
         <Icon name="arrow-left" size={24} color="#000" />
       </TouchableOpacity>
 
@@ -36,8 +52,8 @@ const navigation = useNavigation();
         {/* Top Image */}
         <View style={tw`items-center mb-4`}>
           <Image
-            source={require('../../assets/Forgot.png')} // filename lowercase
-            style={{ width: 60, height: 60 }} // Adjust size as needed
+            source={require('../../assets/Forgot.png')}
+            style={{ width: 60, height: 60 }}
             resizeMode="contain"
           />
         </View>
@@ -68,14 +84,8 @@ const navigation = useNavigation();
 
       {/* Confirm Button Fixed Bottom */}
       <View style={tw`px-6 pb-6`}>
-        <TouchableOpacity
-          style={tw`bg-red-500 py-3 rounded-lg`}
-          onPress={handleConfirm}
-        >
-          <Text style={tw`text-white text-center font-semibold`}
-          onPress={() => navigation.navigate("InboxOTP")}>
-            Confirm
-          </Text>
+        <TouchableOpacity style={tw`bg-red-500 py-3 rounded-lg`} onPress={handleConfirm}>
+          <Text style={tw`text-white text-center font-semibold`}>Confirm</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

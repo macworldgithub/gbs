@@ -42,7 +42,6 @@ import CreateNewPass from './src/Screens/CreateNewPass';
 import ResetPass from './src/Screens/ResetPass';
 import OTPVerification from './src/auth/OTPVerification';
 import AuthTabs from './src/navigation/AuthTabNavigation';
-
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -113,6 +112,7 @@ export default function App() {
         <Stack.Screen name='ResetPass' component={ResetPass}/>
         <Stack.Screen name='OTPVerification' component={OTPVerification}/>
         <Stack.Screen name='AuthTabs' component={AuthTabs}/>
+        <Stack.Screen name='OTPSuccess' component={ResetPass}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

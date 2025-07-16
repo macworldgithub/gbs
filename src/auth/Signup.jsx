@@ -1,139 +1,3 @@
-// import React, { useState } from 'react';
-// import {
-//   View,
-//   Text,
-//   TextInput,
-//   TouchableOpacity,
-//   Image,
-//   ScrollView,
-// } from 'react-native';
-// import tw from 'tailwind-react-native-classnames';
-// import { Ionicons } from '@expo/vector-icons';
-// import { useNavigation } from '@react-navigation/native';
-
-// export default function Signup() {
-//   const [rememberMe, setRememberMe] = useState(false);
-//   const [email, setEmail] = useState('');
-//   const [password, setPassword] = useState('');
-//   const [showPassword, setShowPassword] = useState(false);
-//   const navigation = useNavigation();
-
-//   return (
-//     <ScrollView contentContainerStyle={tw`flex-1 justify-center px-6 bg-white`}>
-//       {/* Header */}
-//       <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>Create new</Text>
-//       <Text style={tw`text-2xl font-bold text-gray-900 mb-4`}>account</Text>
-//       <Text style={tw`text-sm text-gray-500 mb-6`}>
-//         Already have an account?{' '}
-//         <Text 
-//           style={tw`text-red-500 font-semibold`}
-//           onPress={() => navigation.navigate('Signin')}
-//         >
-//           Sign In
-//         </Text>
-//       </Text>
-
-//       {/* Email Input */}
-//       <View style={tw`flex-row items-center bg-white border rounded-xl px-4 py-1 mb-4`}>
-//         <Ionicons name="mail-outline" size={20} color="gray" />
-//         <TextInput
-//           placeholder="Enter your email"
-//           style={tw`ml-2 flex-1 text-sm text-gray-700`}
-//           value={email}
-//           onChangeText={setEmail}
-//           keyboardType="email-address"
-//         />
-//       </View>
-
-//       {/* Password Input */}
-//       <View style={tw`flex-row items-center border rounded-xl px-4 py-1 mb-2`}>
-//         <Ionicons name="lock-closed-outline" size={20} color="gray" />
-//         <TextInput
-//           placeholder="Enter your password"
-//           style={tw`ml-2 flex-1 text-sm text-gray-700`}
-//           secureTextEntry={!showPassword}
-//           value={password}
-//           onChangeText={setPassword}
-//         />
-//         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-//           <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="gray" />
-//         </TouchableOpacity>
-//       </View>
-
-//       {/* Remember Me */}
-//       <View style={tw`flex-row items-center mb-6`}>
-//         <TouchableOpacity onPress={() => setRememberMe(!rememberMe)} style={tw`mr-2`}>
-//           <Ionicons
-//             name={rememberMe ? 'checkbox-outline' : 'square-outline'}
-//             size={24}
-//             color={rememberMe ? '#EF4444' : 'gray'}
-//           />
-//         </TouchableOpacity>
-//         <Text style={tw`text-sm text-gray-700`}>Remember me</Text>
-//       </View>
-
-//       {/* Sign Up Button */}
-//       <TouchableOpacity
-//         style={tw`bg-red-500 py-3 rounded-xl mb-6`}
-//         onPress={() => navigation.navigate('OTPVerification')}
-//       >
-//         <Text style={tw`text-white text-center font-semibold`}>Sign Up</Text>
-//       </TouchableOpacity>
-
-//       {/* Divider */}
-//       <View style={tw`flex-row items-center mb-6`}>
-//         <View style={tw`flex-1 h-px bg-gray-300`} />
-//         <Text style={tw`mx-2 text-gray-400 text-xs`}>or sign up with</Text>
-//         <View style={tw`flex-1 h-px bg-gray-300`} />
-//       </View>
-
-//       {/* Social Buttons */}
-//       <View style={tw`mb-8`}>
-//         <TouchableOpacity
-//           style={tw`flex-row items-center justify-center border rounded-xl py-3 bg-white mb-3`}
-//           onPress={() => navigation.navigate('OTPVerification')}
-//         >
-//           <Image
-//             source={{ uri: 'https://img.icons8.com/color/48/google-logo.png' }}
-//             style={{ width: 20, height: 20, marginRight: 10 }}
-//           />
-//           <Text style={tw`text-sm`}>Sign up with Google</Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity
-//           style={tw`flex-row items-center justify-center border rounded-xl py-3 bg-white mb-3`}
-//           onPress={() => navigation.navigate('OTPVerification')}
-//         >
-//           <Image
-//             source={{ uri: 'https://img.icons8.com/color/48/facebook-new.png' }}
-//             style={{ width: 20, height: 20, marginRight: 10 }}
-//           />
-//           <Text style={tw`text-sm`}>Sign up with Facebook</Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity
-//           style={tw`flex-row items-center justify-center border rounded-xl py-3 bg-white`}
-//           onPress={() => navigation.navigate('OTPVerification')}
-//         >
-//           <Image
-//             source={{ uri: 'https://img.icons8.com/ios-filled/50/mac-os.png' }}
-//             style={{ width: 20, height: 20, marginRight: 10 }}
-//           />
-//           <Text style={tw`text-sm`}>Sign up with Apple</Text>
-//         </TouchableOpacity>
-//       </View>
-
-//       {/* Terms & Conditions */}
-//       <Text style={tw`text-xs text-gray-400 text-center px-6 mb-6`}>
-//         By clicking “Sign Up” you agree to Recognote's{' '}
-//         <Text style={tw`text-red-500`}>Term of Use</Text> and{' '}
-//         <Text style={tw`text-red-500`}>Privacy Policy</Text>
-//       </Text>
-//     </ScrollView>
-//   );
-// }
-
-
 import React, { useState } from 'react';
 import {
   View,
@@ -148,16 +12,17 @@ import tw from 'tailwind-react-native-classnames';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SignupUser } from '../utils/api'; 
+import { SignupUser } from '../utils/api';
+
 export default function Signup() {
-  const navigation = useNavigation(); 
+  const navigation = useNavigation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
- 
+
   const handleSignup = async () => {
     try {
       if (!name || !email || !password || !phone) {
@@ -166,9 +31,7 @@ export default function Signup() {
       }
       const response = await SignupUser({ name, email, password, phone });
       await AsyncStorage.setItem('user', JSON.stringify(response));
-      
-      navigation.navigate('OTPVerification');
-      
+      navigation.navigate('Tabs', { email });
     } catch (error) {
       console.error('Signup failed:', error);
       Alert.alert('Signup Failed', error?.response?.data?.message || 'Something went wrong');
@@ -177,21 +40,16 @@ export default function Signup() {
 
   return (
     <ScrollView contentContainerStyle={tw`flex-1 justify-center px-6 bg-white`}>
-      {/* Header */}
       <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>Create new</Text>
       <Text style={tw`text-2xl font-bold text-gray-900 mb-4`}>account</Text>
       <Text style={tw`text-sm text-gray-500 mb-6`}>
         Already have an account?{' '}
-        <Text 
-          style={tw`text-red-500 font-semibold`}
-          onPress={() => navigation.navigate('Signin')}
-        >
+        <Text style={tw`text-red-500 font-semibold`} onPress={() => navigation.navigate('Signin')}>
           Sign In
         </Text>
       </Text>
 
-      {/* Name Input */}
-      <View style={tw`flex-row items-center border rounded-xl px-4 py-1 mb-4`}>
+      <View style={tw`flex-row items-center border rounded-xl px-4 py-1 mb-2`}>
         <Ionicons name="person-outline" size={20} color="gray" />
         <TextInput
           placeholder="Enter your name"
@@ -201,8 +59,7 @@ export default function Signup() {
         />
       </View>
 
-      {/* Email Input */}
-      <View style={tw`flex-row items-center bg-white border rounded-xl px-4 py-1 mb-4`}>
+      <View style={tw`flex-row items-center bg-white border rounded-xl px-4 py-1 mb-2`}>
         <Ionicons name="mail-outline" size={20} color="gray" />
         <TextInput
           placeholder="Enter your email"
@@ -213,7 +70,6 @@ export default function Signup() {
         />
       </View>
 
-      {/* Password Input */}
       <View style={tw`flex-row items-center border rounded-xl px-4 py-1 mb-2`}>
         <Ionicons name="lock-closed-outline" size={20} color="gray" />
         <TextInput
@@ -229,7 +85,7 @@ export default function Signup() {
       </View>
 
       <View style={tw`flex-row items-center border rounded-xl px-4 py-1 mb-2`}>
-        <Ionicons name="lock-closed-outline" size={20} color="gray" />
+        <Ionicons name="call-outline" size={20} color="gray" />
         <TextInput
           placeholder="Enter your phone number"
           style={tw`ml-2 flex-1 text-sm text-gray-700`}
@@ -238,7 +94,6 @@ export default function Signup() {
         />
       </View>
 
-      {/* Remember Me */}
       <View style={tw`flex-row items-center mb-6`}>
         <TouchableOpacity onPress={() => setRememberMe(!rememberMe)} style={tw`mr-2`}>
           <Ionicons
@@ -250,55 +105,10 @@ export default function Signup() {
         <Text style={tw`text-sm text-gray-700`}>Remember me</Text>
       </View>
 
-      {/* Sign Up Button */}
-      <TouchableOpacity
-        style={tw`bg-red-500 py-3 rounded-xl mb-6`}
-        onPress={handleSignup}
-      >
+      <TouchableOpacity style={tw`bg-red-500 py-3 rounded-xl mb-6`} onPress={handleSignup}>
         <Text style={tw`text-white text-center font-semibold`}>Sign Up</Text>
       </TouchableOpacity>
 
-      {/* Divider */}
-      {/* <View style={tw`flex-row items-center mb-6`}>
-        <View style={tw`flex-1 h-px bg-gray-300`} />
-        <Text style={tw`mx-2 text-gray-400 text-xs`}>or sign up with</Text>
-        <View style={tw`flex-1 h-px bg-gray-300`} />
-      </View> */}
-
-      {/* Social Buttons (placeholders) */}
-      {/* <View style={tw`mb-8`}>
-        <TouchableOpacity
-          style={tw`flex-row items-center justify-center border rounded-xl py-3 bg-white mb-3`}
-        >
-          <Image
-            source={{ uri: 'https://img.icons8.com/color/48/google-logo.png' }}
-            style={{ width: 20, height: 20, marginRight: 10 }}
-          />
-          <Text style={tw`text-sm`}>Sign up with Google</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={tw`flex-row items-center justify-center border rounded-xl py-3 bg-white mb-3`}
-        >
-          <Image
-            source={{ uri: 'https://img.icons8.com/color/48/facebook-new.png' }}
-            style={{ width: 20, height: 20, marginRight: 10 }}
-          />
-          <Text style={tw`text-sm`}>Sign up with Facebook</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={tw`flex-row items-center justify-center border rounded-xl py-3 bg-white`}
-        >
-          <Image
-            source={{ uri: 'https://img.icons8.com/ios-filled/50/mac-os.png' }}
-            style={{ width: 20, height: 20, marginRight: 10 }}
-          />
-          <Text style={tw`text-sm`}>Sign up with Apple</Text>
-        </TouchableOpacity>
-      </View> */}
-
-      {/* Terms & Conditions */}
       <Text style={tw`text-xs text-gray-400 text-center px-6 mb-6`}>
         By clicking “Sign Up” you agree to Recognote's{' '}
         <Text style={tw`text-red-500`}>Term of Use</Text> and{' '}
