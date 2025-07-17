@@ -54,7 +54,6 @@ export const sendForgotPasswordOtp = async (email) => {
   return res.data;
 };
 
-
 export const resetForgotPassword = async ({ email, otp, newPassword }) => {
   const res = await axios.post(`${API_BASE_URL}/user/forgot-password/reset`, {
     email,
@@ -63,3 +62,21 @@ export const resetForgotPassword = async ({ email, otp, newPassword }) => {
   });
   return res.data;
 };
+
+export const PreLogin = async (email, password, deviceId) => {
+  try {
+    const res = await axios.post(`${API_BASE_URL}/user/auth/pre-login`, {
+      email,
+      password,
+      deviceId,
+    });
+    console.log('Pre-login response:', res.data);
+    return res.data;
+    
+  } catch (error) {
+    throw error.response?.data || { message: 'Unknown error' };
+  }
+};
+
+
+
