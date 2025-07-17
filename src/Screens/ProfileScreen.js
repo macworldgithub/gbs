@@ -1,6 +1,11 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
-import { Ionicons, MaterialIcons, FontAwesome5, Feather } from '@expo/vector-icons'; // use vector icons
+import React from "react";
+import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
+import {
+  Ionicons,
+  MaterialIcons,
+  FontAwesome5,
+  Feather,
+} from "@expo/vector-icons"; // use vector icons
 
 export default function ProfileScreen() {
   return (
@@ -16,7 +21,7 @@ export default function ProfileScreen() {
       {/* Profile Section */}
       <View className="items-center mb-8">
         <View className="w-20 h-20 bg-red-500 rounded-full items-center justify-center mb-3">
-          <Ionicons name="person" size={40} color="white" />
+          <Ionicons name="person" size={40} color="white     " />
         </View>
         <Text className="text-lg font-bold text-black">Franklin Clinton</Text>
         <Text className="text-sm text-gray-500">franklinclinton@gmail.com</Text>
@@ -80,7 +85,9 @@ export default function ProfileScreen() {
       </View>
 
       {/* App Version */}
-      <Text className="text-center text-gray-400 text-xs mt-4 mb-8">App version 1.0.0.1</Text>
+      <Text className="text-center text-gray-400 text-xs mt-4 mb-8">
+        App version 1.0.0.1
+      </Text>
     </ScrollView>
   );
 }
