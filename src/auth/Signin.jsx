@@ -1,3 +1,67 @@
+// import React, { useState } from 'react';
+// import {
+//   View,
+//   Text,
+//   TextInput,
+//   TouchableOpacity,
+//   Image,
+//   ScrollView,
+//   KeyboardAvoidingView,
+//   Platform,
+//   Alert,
+// } from 'react-native';
+// import { PreLogin } from '../utils/api';
+// import * as Device from 'expo-device';
+// import { FontAwesome, Feather } from '@expo/vector-icons';
+// import tw from 'tailwind-react-native-classnames';
+// import { useNavigation } from '@react-navigation/native';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { SigninUser } from '../utils/api';
+// import { useDispatch } from 'react-redux'; // if Redux is implemented
+// import { API_BASE_URL } from "./../utils/config";
+// import axios from 'axios';
+
+// export default function Signin() {
+//   const [email, setEmail] = useState('');
+//   const [password, setPassword] = useState('');
+//   const [showPassword, setShowPassword] = useState(false);
+//   const [rememberMe, setRememberMe] = useState(false);
+//   const navigation = useNavigation();
+
+  // const handleSignin = async () => {
+  //   console.log('Logging in with:', email, password);
+  //   if (!email || !password) {
+  //     Alert.alert('Validation Error', 'Please fill in all fields');
+  //     return;
+  //   }
+
+  //   try {
+  //     // Optional: dispatch({ type: 'LOGIN_START' });
+
+  //     const res = await SigninUser(email, password);
+
+  //     if (res?.success || res?.token) {
+  //       console.log('Login success:', res);
+        
+  //       // Redux update if needed
+  //       // dispatch({ type: 'LOGIN_SUCCESS', payload: res.user });
+
+  //       // Store token and user info in AsyncStorage
+  //       await AsyncStorage.setItem('userToken', res.token);
+  //       await AsyncStorage.setItem('userInfo', JSON.stringify(res.user));
+
+  //       navigation.replace('Tabs');
+  //     } else {
+  //       Alert.alert('Login Failed', res.message || 'Invalid credentials');
+  //       // dispatch({ type: 'LOGIN_FAILURE' });
+  //     }
+  //   } catch (error) {
+  //     console.error('Login Error:', 'Error', error?.response?.data?.message);
+  //     Alert.alert('Error', error?.response?.data?.message || 'Network error. Please try again.');
+  //     // dispatch({ type: 'LOGIN_FAILURE' });
+      
+  //   }
+  // };
 import React, { useState } from 'react';
 import {
   View,
@@ -10,54 +74,66 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import * as Device from 'expo-device';
 import { FontAwesome, Feather } from '@expo/vector-icons';
 import tw from 'tailwind-react-native-classnames';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SigninUser } from '../utils/api';
-// import { useDispatch } from 'react-redux'; // if Redux is implemented
+import axios from 'axios';
 
-export default function Signin() {
+// 🔁 Replace with your actual backend API base URL
+export const API_BASE_URL = 'http://192.168.0.106:9000'; 
+
+const Signin = () => {
+  const navigation = useNavigation();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const navigation = useNavigation();
 
-  const handleSignin = async () => {
-    console.log('Logging in with:', email, password);
-    if (!email || !password) {
-      Alert.alert('Validation Error', 'Please fill in all fields');
-      return;
-    }
+ const handleSignin = async () => {
+  if (!email || !password) {
+    Alert.alert('Missing Fields', 'Please enter both email and password.');
+    return;
+  }
 
-    try {
-      // Optional: dispatch({ type: 'LOGIN_START' });
+  const deviceId = Device.osInternalBuildId || 'dummy-device-id';
+  const platform = Platform.OS;
+  const deviceName = Device.deviceName || 'Unknown Device';
 
-      const res = await SigninUser(email, password);
+ const payload = {
+  email: email.trim(),
+  password: password,
+  deviceId: deviceId,  // MUST be included
+};
 
-      if (res?.success || res?.token) {
-        console.log('Login success:', res);
-        
-        // Redux update if needed
-        // dispatch({ type: 'LOGIN_SUCCESS', payload: res.user });
+  console.log('📤 Sending PreLogin Payload:', payload);
 
-        // Store token and user info in AsyncStorage
-        await AsyncStorage.setItem('userToken', res.token);
-        await AsyncStorage.setItem('userInfo', JSON.stringify(res.user));
+  try {
+    await axios.post(`${API_BASE_URL}/user/auth/pre-login`, payload);
 
-        navigation.replace('Tabs');
-      } else {
-        Alert.alert('Login Failed', res.message || 'Invalid credentials');
-        // dispatch({ type: 'LOGIN_FAILURE' });
-      }
-    } catch (error) {
-      console.error('Login Error:', 'Error', error?.response?.data?.message);
-      Alert.alert('Error', error?.response?.data?.message || 'Network error. Please try again.');
-      // dispatch({ type: 'LOGIN_FAILURE' });
-      
-    }
-  };
+    // ✅ Force navigate to OTP screen regardless of response
+    navigation.navigate('OTPVerification', {
+      email,
+      deviceId,
+      deviceName,
+      platform,
+      rememberDevice,
+    });
+
+  } catch (err) {
+    console.log('❌ Pre-login Error:', err.response?.data || err.message);
+    
+    // ⚠️ Still allow navigating to OTP even if backend fails (for dev/test only)
+    navigation.navigate('OTPVerification', {
+      email,
+      deviceId,
+      deviceName,
+      platform,
+      rememberDevice,
+    });
+  }
+};
 
   return (
     <KeyboardAvoidingView
@@ -85,6 +161,7 @@ export default function Signin() {
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
+            autoCapitalize="none"
           />
         </View>
 
@@ -106,10 +183,7 @@ export default function Signin() {
 
         {/* Remember Me & Forgot Password */}
         <View style={tw`flex-row justify-between items-center mb-6`}>
-          <TouchableOpacity
-            onPress={() => setRememberMe(!rememberMe)}
-            style={tw`flex-row items-center`}
-          >
+          <TouchableOpacity onPress={() => setRememberMe(!rememberMe)} style={tw`flex-row items-center`}>
             <View style={tw`w-4 h-4 mr-2 border border-gray-400 rounded items-center justify-center`}>
               {rememberMe && <FontAwesome name="check" size={10} color="#EF4444" />}
             </View>
@@ -153,4 +227,6 @@ export default function Signin() {
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
+};
+
+export default Signin;
