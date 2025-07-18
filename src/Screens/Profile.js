@@ -157,7 +157,7 @@ const Profile = () => {
         fileUrl: fileUrl,
       });
 
-      setProfilePicUri(file.uri); // update local preview
+      setProfilePicUri(file.uri); 
       Alert.alert("Success", "Profile picture uploaded successfully!");
     } catch (error) {
       console.error("Upload error:", error);
