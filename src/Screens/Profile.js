@@ -115,7 +115,7 @@ const Profile = () => {
 
     try {
       const res = await axios.get(
-        "http://localhost:9000/user/profile-picture/upload-url",
+        "http://192.168.100.53:9000/user/profile-picture/upload-url",
         {
           params: {
             fileName,
@@ -149,9 +149,11 @@ const Profile = () => {
       };
 
       await fetch(uploadUrl, fileBlob);
+      console.log("Upload URL:", uploadUrl);
+
 
       // STEP 3: Inform backend of uploaded file
-      await axios.post(`http://localhost:9000/user/${userId}/profile-picture`, {
+      await axios.post(`http://192.168.100.53:9000/user/${userId}/profile-picture`, {
         fileUrl: fileUrl,
       });
 
