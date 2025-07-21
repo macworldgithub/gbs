@@ -13,10 +13,9 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import * as Device from 'expo-device'; // For device name (if using Expo)
+import * as Device from 'expo-device';
 
-// Backend URL
-const API_BASE_URL = 'http://192.168.100.197:9000';
+export const API_BASE_URL = 'http://192.168.100.197:9000';
 
 const OTPVerification = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -25,7 +24,8 @@ const OTPVerification = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
-  const { email, deviceId } = route.params || {};
+  const { email, deviceId, platform = Platform.OS, deviceName = Device.deviceName || 'Unknown Device' } =
+    route.params || {};
 
   const handleChange = (text, index) => {
     const newOtp = [...otp];
@@ -36,7 +36,7 @@ const OTPVerification = () => {
     }
   };
 
-  // ----------------- Verify OTP -----------------
+  // Verify OTP
   const handleVerify = async () => {
     const enteredOtp = otp.join('');
     if (enteredOtp.length < 6) {
@@ -49,8 +49,8 @@ const OTPVerification = () => {
       otp: enteredOtp,
       deviceId,
       rememberDevice: true,
-      platform: Platform.OS,
-      deviceName: Device.deviceName || 'Unknown Device',
+      platform,
+      deviceName,
     };
 
     console.log('📤 Sending Verify OTP Payload:', payload);
@@ -65,12 +65,12 @@ const OTPVerification = () => {
 
       console.log('✅ OTP Verify Response:', res.data);
 
-      // Save token & user
+      // Save token & user to AsyncStorage
       await AsyncStorage.setItem('token', res.data.token);
       await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
 
-      Alert.alert('Success', 'Login successful');
-      navigation.replace('Tabs'); // Redirect to main tabs or home screen
+      // Navigate to OTPSuccess
+      navigation.replace('Tabs' );
     } catch (error) {
       console.error('❌ OTP Verification Error:', error.response?.data || error.message);
       Alert.alert(
@@ -82,12 +82,11 @@ const OTPVerification = () => {
     }
   };
 
-  // ----------------- Resend OTP -----------------
   const handleResend = async () => {
     try {
       await axios.post(`${API_BASE_URL}/user/auth/pre-login`, {
         email,
-        password: '', // Password required if backend enforces
+        // password,
         deviceId,
       });
       Alert.alert('Success', 'OTP sent again to your email');
@@ -106,14 +105,13 @@ const OTPVerification = () => {
         <Icon name="arrow-left" size={24} color="#000" />
       </TouchableOpacity>
 
-      <View style={tw`flex-1 justify-start items-center mt-20 px-6`}>
+      <View style={tw`flex-1 justify-start items-center mt-20 px-6 mt-12`}>
         <Text style={tw`text-xl font-bold mb-2`}>OTP Verification</Text>
         <Text style={tw`text-center text-gray-600 mb-6`}>
           Enter the 6-digit code sent to your email
         </Text>
 
-        {/* OTP Input Boxes */}
-        <View style={tw`flex-row justify-between w-full px-2 mb-6`}>
+        <View style={tw`flex-row justify-between w-full px-2 mb-6 mr-10`}>
           {otp.map((digit, index) => (
             <TextInput
               key={index}
@@ -130,7 +128,6 @@ const OTPVerification = () => {
           ))}
         </View>
 
-        {/* Verify Button */}
         <TouchableOpacity
           style={tw`bg-red-500 w-full py-3 rounded-xl mb-4`}
           onPress={handleVerify}
@@ -141,7 +138,6 @@ const OTPVerification = () => {
           </Text>
         </TouchableOpacity>
 
-        {/* Resend OTP */}
         <TouchableOpacity
           style={tw`border border-black w-full py-3 rounded-xl`}
           onPress={handleResend}
