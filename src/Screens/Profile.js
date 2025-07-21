@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import axios from "axios";
+import { useEffect } from "react";
 
 const menuItems = [
   {
@@ -70,7 +71,18 @@ const requestCameraPermission = async () => {
 const Profile = () => {
   const navigation = useNavigation();
   const [profilePicUri, setProfilePicUri] = useState(null);
-  const userId = "4535"; 
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const userData = await AsyncStorage.getItem("user");
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        setUserId(parsed._id || parsed.id);
+      }
+    };
+    fetchUserId();
+  }, []);
 
   const handleImagePick = () => {
     Alert.alert(
@@ -114,6 +126,8 @@ const Profile = () => {
     const fileType = file.type || "image/jpeg";
 
     try {
+      console.log("user id", userId);
+      // STEP 1: Get S3 upload URL from backend
       const res = await axios.get(
         "http://192.168.100.53:9000/user/profile-picture/upload-url",
         {
@@ -125,39 +139,33 @@ const Profile = () => {
         }
       );
 
-      const { uploadUrl, fileUrl } = res.data;
+      // ✅ Fix: Extract correct values from API response
+      const { url: uploadUrl, key: fileKey } = res.data;
+      console.log("GET API Response:", res.data);
+      console.log("Upload URL:", uploadUrl);
 
-      // STEP 2: Upload image to uploadUrl via PUT
-      const imageData = {
-        uri: file.uri,
-        type: fileType,
-        name: fileName,
-      };
+      // STEP 2: Convert local image file to blob
+      const fileData = await (await fetch(file.uri)).blob();
 
-      const photo = {
-        uri: file.uri,
-        type: file.type,
-        name: file.fileName,
-      };
-
-      const fileBlob = {
-        method: "PUT",
+      // ✅ Fix: Use axios.put to upload to S3
+      await axios.put(uploadUrl, fileData, {
         headers: {
           "Content-Type": fileType,
         },
-        body: await (await fetch(file.uri)).blob(),
-      };
-
-      await fetch(uploadUrl, fileBlob);
-      console.log("Upload URL:", uploadUrl);
-
-
-      // STEP 3: Inform backend of uploaded file
-      await axios.post(`http://192.168.100.53:9000/user/${userId}/profile-picture`, {
-        fileUrl: fileUrl,
       });
 
-      setProfilePicUri(file.uri); 
+      console.log("PUT Upload Successful!");
+      console.log("user id ", userId);
+
+      // STEP 3: Notify backend after successful upload
+      await axios.post(
+        `http://192.168.100.53:9000/user/${userId}/profile-picture`,
+        {
+          fileUrl: uploadUrl.split("?")[0],
+        }
+      );
+
+      setProfilePicUri(file.uri);
       Alert.alert("Success", "Profile picture uploaded successfully!");
     } catch (error) {
       console.error("Upload error:", error);
