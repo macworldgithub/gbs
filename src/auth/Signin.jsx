@@ -34,7 +34,8 @@ const Signin = () => {
     return;
   }
 
-  const deviceId = Device.osInternalBuildId || "dummy-device-id";
+  // Force unique deviceId to trigger OTP every time
+  const deviceId = `${Device.osInternalBuildId || 'dummy'}-${Date.now()}`;
   const platform = Platform.OS;
   const deviceName = Device.deviceName || "Unknown Device";
 
@@ -49,14 +50,13 @@ const Signin = () => {
 
   try {
     const res = await axios.post(`${API_BASE_URL}/user/auth/pre-login`, payload);
-
     console.log("✅ PreLogin Response:", res.data);
 
     if (res.status === 200) {
+      // Force navigate to OTPVerification regardless of otpRequired
       Alert.alert("Success", "OTP sent to your email.");
       navigation.navigate("OTPVerification", {
         email,
-        // password,
         deviceId,
         platform,
         deviceName,
