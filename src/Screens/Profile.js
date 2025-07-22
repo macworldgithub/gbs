@@ -52,7 +52,7 @@ const requestCameraPermission = async () => {
         PermissionsAndroid.PERMISSIONS.CAMERA,
         {
           title: "Camera Permission",
-          message: "App needs camera access to take pictures",
+          message: "App needs camera access to take pictures", 
           buttonNeutral: "Ask Me Later",
           buttonNegative: "Cancel",
           buttonPositive: "OK",
