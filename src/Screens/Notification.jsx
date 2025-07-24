@@ -87,7 +87,7 @@ export default function NotificationScreen() {
   );
 
   return (
-    <ScrollView style={tw`flex-1 bg-white mt-14`}>
+    <ScrollView style={tw`flex-1 bg-white mt-10`}>
       {/* Header with back icon */}
       <View style={tw`flex-row justify-between items-center px-4 py-4 border-b border-gray-100`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
