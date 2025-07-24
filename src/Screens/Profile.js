@@ -15,6 +15,7 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import axios from "axios";
 import { useEffect } from "react";
+import { AsyncStorage } from "@react-native-async-storage/async-storage";
 
 const menuItems = [
   {
@@ -120,7 +121,6 @@ const Profile = () => {
       }
     });
   };
-
   const uploadImage = async (file) => {
     const fileName = file.fileName || "profile.jpg";
     const fileType = file.type || "image/jpeg";
