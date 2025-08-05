@@ -21,7 +21,7 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
           }
         };
 
-        const getIcon = () => {
+      const getIcon = () => {
           switch (route.name) {
             case 'Home':
               return isFocused ? 'home' : 'home-outline';
@@ -31,6 +31,16 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
               return isFocused ? 'chatbubble' : 'chatbubble-outline';
             case 'Profile':
               return isFocused ? 'person' : 'person-outline';
+            case 'Directory':
+              return isFocused ? 'people' : 'people-outline';
+            case 'Business': 
+              return isFocused ? 'briefcase' : 'briefcase-outline';
+            case 'Social':
+              return isFocused ? 'chatbubbles' : 'chatbubbles-outline';
+            case 'Wellbeing':
+              return isFocused ? 'heart' : 'heart-outline';
+            case 'Offers':
+              return isFocused ? 'pricetag' : 'pricetag-outline';
             default:
               return 'ellipse-outline';
           }

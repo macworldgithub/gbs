@@ -18,7 +18,7 @@ import * as Audio from 'expo-audio';
 export default function Chat() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { user } = route.params;
+  const user = route.params?.user ?? { name: "Guest" };
 
   const [messages, setMessages] = useState([
     { id: '1', text: 'Hey! I’m finally on vacation! 🌴❄️', fromMe: false },

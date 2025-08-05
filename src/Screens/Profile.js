@@ -129,7 +129,7 @@ const Profile = () => {
       console.log("user id", userId);
       // STEP 1: Get S3 upload URL from backend
       const res = await axios.get(
-        "http://192.168.100.53:9000/user/profile-picture/upload-url",
+        `${API_BASE_URL}/user/profile-picture/upload-url`,
         {
           params: {
             fileName,
@@ -159,7 +159,7 @@ const Profile = () => {
 
       // STEP 3: Notify backend after successful upload
       await axios.post(
-        `http://192.168.100.53:9000/user/${userId}/profile-picture`,
+        `${API_BASE_URL}/user/${userId}/profile-picture`,
         {
           fileUrl: uploadUrl.split("?")[0],
         }
