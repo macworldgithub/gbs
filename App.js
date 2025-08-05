@@ -42,6 +42,8 @@ import CreateNewPass from './src/Screens/CreateNewPass';
 import ResetPass from './src/Screens/ResetPass';
 import OTPVerification from './src/auth/OTPVerification';
 import AuthTabs from './src/navigation/AuthTabNavigation';
+import MembersDirectory from './src/Screens/Directory';
+import BusinessPage from './src/Screens/BusinessPage';
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -73,6 +75,8 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Onboarding">
+        <Stack.Screen name='BusinessPage' component={BusinessPage} />
+        <Stack.Screen name="Directory" component={MembersDirectory} />
         <Stack.Screen name="Onboarding" component={Onboarding} />
         <Stack.Screen name="OnboardingTwo" component={OnboardingTwo} />
         <Stack.Screen name="Tabs" component={AuthTabs} />
