@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   },
   signInContainer: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 45,
     alignSelf: 'center',
   },
   signInText: {
