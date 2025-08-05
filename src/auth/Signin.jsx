@@ -14,6 +14,7 @@ import * as Device from "expo-device";
 import { FontAwesome, Feather } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
+// import { Image } from "react-native-svg";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/config";
 

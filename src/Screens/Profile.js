@@ -13,7 +13,7 @@ import tw from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
-import axios from "axios";
+import axios from "axios"
 import { useEffect } from "react";
 import { AsyncStorage } from "@react-native-async-storage/async-storage";
 
