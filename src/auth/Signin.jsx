@@ -15,9 +15,10 @@ import { FontAwesome, Feather } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
+import { API_BASE_URL } from "../utils/config";
 
 // 🔁 Replace with your actual backend API base URL
-export const API_BASE_URL = "http://192.168.100.197:9000";
+// export const API_BASE_URL = "http://192.168.100.197:9000";
 
 const Signin = () => {
   const navigation = useNavigation();
