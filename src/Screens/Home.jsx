@@ -32,10 +32,11 @@ const upcomingEvents = [
 ];
 
 const tabs = [
-  { key: 'all', label: 'All', icon: 'th-large' },
-  { key: 'upcoming', label: 'Upcoming events', icon: 'calendar' },
-  { key: 'popular', label: 'Popular events', icon: 'fire' },
-  { key: 'live', label: 'Live events', icon: 'broadcast-tower' },
+  { key: 'all', label: 'All'},
+  { key: 'upcoming', label: 'VIC'},
+  { key: 'popular', label: 'NSW'},
+  { key: 'live', label: 'QLD' },
+  { key: 'past', label: 'SA'},
 ];
 
 export default function Home() {
@@ -82,7 +83,7 @@ export default function Home() {
       </View>
 
       {/* Search Input */}
-      <View style={tw`flex-row items-center bg-gray-100 rounded-lg px-2 mb-3`}>
+      <View style={tw`flex-row items-center bg-gray-100 rounded-lg px-2 mb-3 border border-gray-300`}>
         <Ionicons name="search" size={18} color="#9CA3AF" />
         <TextInput
           style={tw`ml-2 flex-1 text-sm`}
@@ -101,7 +102,7 @@ export default function Home() {
           <TouchableOpacity
             onPress={() => handleTabPress(item.key)}
             style={tw.style(
-              `flex-row items-center px-4 py-2 rounded-full mr-2`,
+              `flex-row items-center px-4 py-2 rounded-md mt-4 mr-2 mb-2 border-gray-400 border`,
               activeTab === item.key ? `bg-red-100` : `bg-gray-100`
             )}
           >
