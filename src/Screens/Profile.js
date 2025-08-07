@@ -16,6 +16,7 @@ import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import axios from "axios"
 import { useEffect } from "react";
 import { AsyncStorage } from "@react-native-async-storage/async-storage";
+import { API_BASE_URL } from "../utils/config";
 
 const menuItems = [
   {
@@ -130,6 +131,7 @@ const Profile = () => {
       // STEP 1: Get S3 upload URL from backend
       const res = await axios.get(
         `${API_BASE_URL}/user/profile-picture/upload-url`,
+      
         {
           params: {
             fileName,
