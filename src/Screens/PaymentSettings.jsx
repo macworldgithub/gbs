@@ -73,9 +73,9 @@ export default function PaymentSettings() {
   );
 
   return (
-    <View style={tw`flex-1 bg-gray-100 mt-10`}>
+    <View style={tw`flex-1 bg-gray-100 `}>
       {/* Header */}
-      <View style={tw`px-4 pt-6 flex-row items-center mb-4`}>
+      <View style={tw`px-4 pt-6 flex-row items-center mb-4 mt-4`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <FontAwesome5 name="arrow-left" size={16} color="black" />
         </TouchableOpacity>

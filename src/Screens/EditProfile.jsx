@@ -39,10 +39,10 @@ const EditProfile = () => {
   };
 
   return (
-    <View style={tw`flex-1 bg-white mt-10`}>
+    <View style={tw`flex-1 bg-white `}>
       <ScrollView contentContainerStyle={tw`pb-20`}>
         {/* Header */}
-        <View style={tw`px-4 pt-6 flex-row items-center`}>
+        <View style={tw`px-4 pt-6 flex-row items-center mt-4`}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <FontAwesome5 name="arrow-left" size={16} color="black" />
           </TouchableOpacity>

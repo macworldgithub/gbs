@@ -20,9 +20,9 @@ export default function QRCodeScreen({ navigation }) {
   };
 
   return (
-    <View style={tw`flex-1 bg-gray-100 px-4 mt-16`}>
+    <View style={tw`flex-1 bg-gray-100 px-4 `}>
       {/* Top bar */}
-      <View style={tw`flex-row items-center mb-6`}>
+      <View style={tw`flex-row items-center mb-6 mt-8`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
