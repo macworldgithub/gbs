@@ -87,13 +87,13 @@ export default function NotificationScreen() {
   );
 
   return (
-    <ScrollView style={tw`flex-1 bg-white mnt-2`}>
+    <ScrollView style={tw`flex-1 bg-white mt-10`}>
       {/* Header with back icon */}
       <View style={tw`flex-row justify-between items-center px-4 py-4 border-b border-gray-100`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
                   <Icon name="arrow-left" size={20} color="#000" />
                 </TouchableOpacity>
-        <Text style={tw`text-lg font-semibold text-black ml-4 flex-1`}>Notification</Text>
+        <Text style={tw`text-lg font-semibold text-black ml-2 flex-1`}>Notification</Text>
         <TouchableOpacity style={tw`bg-red-500 rounded-full px-3 py-0.5`}>
           <Text style={tw`text-white text-xs font-medium p-2`}>1 NEW</Text>
         </TouchableOpacity>

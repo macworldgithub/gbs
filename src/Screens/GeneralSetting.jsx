@@ -17,9 +17,9 @@ const GeneralSetting = () => {
   ];
 
   return (
-    <View style={tw`flex-1 bg-white`}>
+    <View style={tw`flex-1 bg-white pt-10`}>
       {/* Header */}
-      <View style={tw`flex-row items-center px-4 py-3 border-b border-gray-200 mt-4`}>
+      <View style={tw`flex-row items-center px-4 py-3 border-b border-gray-200`}>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
           <Icon name="arrow-left" size={20} color="#000" />
         </TouchableOpacity>

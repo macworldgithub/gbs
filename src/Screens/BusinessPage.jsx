@@ -32,7 +32,7 @@ const BusinessPage = () => {
       <Text style={tw`text-xs font-bold text-gray-800 mb-2`}>
         Business Metrics
       </Text>
-      <View style={tw`flex-row gap-4 mb-4`}>
+      <View style={tw`flex-row mb-4`}>
         {businessMetrics.map((metric) => (
           <View
             key={metric.id}

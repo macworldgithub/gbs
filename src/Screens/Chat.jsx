@@ -92,9 +92,9 @@ export default function Chat() {
 
 
   return (
-    <View style={tw`flex-1 bg-white`}>
+    <View style={tw`flex-1 bg-white pt-8 pb-2 mt-4`}>
       {/* Header */}
-      <View style={tw`flex-row items-center justify-between px-4 py-3 border-b mt-4`}>
+      <View style={tw`flex-row items-center justify-between px-4 py-3 border-b`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>

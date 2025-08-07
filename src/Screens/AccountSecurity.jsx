@@ -23,9 +23,9 @@ const AccountSecurity = () => {
   };
 
   return (
-    <ScrollView style={tw`flex-1 bg-white`}>
+    <ScrollView style={tw`flex-1 bg-white mt-10`}>
       {/* Header */}
-      <View style={tw`px-4 pt-6 flex-row items-center mt-4`}>
+      <View style={tw`px-4 pt-6 flex-row items-center`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <FontAwesome5 name="arrow-left" size={16} color="black" />
         </TouchableOpacity>

@@ -195,9 +195,9 @@ const Profile = () => {
   );
 
   return (
-    <View style={tw`flex-1 bg-gray-100`}>
+    <View style={tw`flex-1 bg-gray-100 pt-4 mt-8`}>
       {/* Header */}
-      <View style={tw`px-4 pt-6 flex-row justify-between items-center mt-6`}>
+      <View style={tw`px-4 pt-6 flex-row justify-between items-center`}>
         <Text style={tw`text-lg font-bold text-gray-800`}>Profile</Text>
         <TouchableOpacity style={tw`bg-red-100 px-3 py-1 rounded-full`}>
           <Text style={tw`text-red-500`}>Logout</Text>
