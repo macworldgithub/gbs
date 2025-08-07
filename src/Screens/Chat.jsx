@@ -13,7 +13,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import * as Audio from 'expo-audio';
 
 export default function Chat() {
   const navigation = useNavigation();
@@ -42,7 +41,7 @@ export default function Chat() {
   ]);
 
   const [newMessage, setNewMessage] = useState('');
-  const recordingRef = useRef(null); // Ref to hold the recording instance
+
 
   const sendMessage = () => {
     if (newMessage.trim() === '') return;
@@ -91,38 +90,6 @@ export default function Chat() {
     }
   };
 
-  const handleMic = async () => {
-    const { status } = await Audio.requestPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Microphone access is required.');
-      return;
-    }
-
-    try {
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      const recording = new Audio.Recording();
-      await recording.prepareToRecordAsync(
-        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
-      );
-      await recording.startAsync();
-      recordingRef.current = recording;
-
-      Alert.alert('Recording Started', 'Voice recording started (5s demo)...');
-
-      setTimeout(async () => {
-        await recording.stopAndUnloadAsync();
-        const uri = recording.getURI();
-        Alert.alert('Recording Finished', `Audio saved at: ${uri}`);
-        recordingRef.current = null;
-      }, 5000);
-    } catch (err) {
-      Alert.alert('Error', err.message);
-    }
-  };
 
   return (
     <View style={tw`flex-1 bg-white mt-6 pb-6`}>
@@ -222,9 +189,7 @@ export default function Chat() {
         <TouchableOpacity onPress={handleCamera}>
           <Ionicons name="camera" size={20} style={tw`mx-2`} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleMic}>
-          <Ionicons name="mic" size={20} style={tw`mx-2`} />
-        </TouchableOpacity>
+   
         <TextInput
           placeholder="Type Here..."
           value={newMessage}

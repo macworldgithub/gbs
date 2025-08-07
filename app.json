@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "owner": "ayla02",
     "projectId": "304fda12-9953-45cc-be82-e7eac2ae6f00",
-    "plugins": ["expo-audio", "expo-video"],
+    "plugins": ["expo-video"],
     "extra": {
       "eas": {
         "projectId": "304fda12-9953-45cc-be82-e7eac2ae6f00"
