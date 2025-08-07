@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,13 +13,11 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { Audio } from 'expo-av'; // use expo-av for audio
 
 export default function GroupChat() {
   const navigation = useNavigation();
-const route = useRoute();
-const user = route?.params?.user || { name: 'Unknown User' };
-
+  const route = useRoute();
+  const user = route?.params?.user || { name: 'Unknown User' };
 
   const [messages, setMessages] = useState([
     { id: '1', text: 'Hey! I’m finally on vacation! 🌴❄️\nJust wanted to share some pictures with you.', fromMe: false, time: '10.24 PM' },
@@ -47,7 +45,6 @@ const user = route?.params?.user || { name: 'Unknown User' };
   ]);
 
   const [newMessage, setNewMessage] = useState('');
-  const recordingRef = useRef(null);
 
   const sendMessage = () => {
     if (newMessage.trim() === '') return;
@@ -84,37 +81,6 @@ const user = route?.params?.user || { name: 'Unknown User' };
     const result = await ImagePicker.launchCameraAsync({ quality: 1 });
     if (!result.canceled) {
       Alert.alert('Photo Taken', 'Image captured successfully.');
-    }
-  };
-
-  const handleMic = async () => {
-    const { status } = await Audio.requestPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Microphone access is required.');
-      return;
-    }
-
-    try {
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
-      const recording = new Audio.Recording();
-      await recording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
-      await recording.startAsync();
-      recordingRef.current = recording;
-
-      Alert.alert('Recording Started', 'Voice recording started (5s demo)...');
-
-      setTimeout(async () => {
-        await recording.stopAndUnloadAsync();
-        const uri = recording.getURI();
-        Alert.alert('Recording Finished', `Audio saved at: ${uri}`);
-        recordingRef.current = null;
-      }, 5000);
-    } catch (err) {
-      Alert.alert('Error', err.message);
     }
   };
 
@@ -204,9 +170,7 @@ const user = route?.params?.user || { name: 'Unknown User' };
         <TouchableOpacity onPress={handleCamera}>
           <Ionicons name="camera" size={20} style={tw`mx-2`} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleMic}>
-          <Ionicons name="mic" size={20} style={tw`mx-2`} />
-        </TouchableOpacity>
+        {/* Removed mic button */}
         <TextInput
           placeholder="Type Here..."
           value={newMessage}
