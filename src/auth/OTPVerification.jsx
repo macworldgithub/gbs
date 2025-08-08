@@ -38,51 +38,55 @@ const OTPVerification = () => {
   };
 
   // Verify OTP
-  const handleVerify = async () => {
-    const enteredOtp = otp.join('');
-    if (enteredOtp.length < 6) {
-      Alert.alert('Error', 'Please enter all 6 digits');
-      return;
-    }
+const handleVerify = async () => {
+  const enteredOtp = otp.join('');
+  if (enteredOtp.length < 6) {
+    Alert.alert('Error', 'Please enter all 6 digits');
+    return;
+  }
 
-    const payload = {
-      email,
-      otp: enteredOtp,
-      deviceId,
-      rememberDevice: true,
-      platform,
-      deviceName,
-    };
-
-    console.log('📤 Sending Verify OTP Payload:', payload);
-    setLoading(true);
-
-    try {
-      const res = await axios.post(
-        `${API_BASE_URL}/user/auth/verify-otp-login`,
-        payload,
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-
-      console.log('✅ OTP Verify Response:', res.data);
-
-      // Save token & user to AsyncStorage
-      await AsyncStorage.setItem('token', res.data.token);
-      await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
-
-      // Navigate to OTPSuccess
-      navigation.replace('Tabs' );
-    } catch (error) {
-      console.error('❌ OTP Verification Error:', error.response?.data || error.message);
-      Alert.alert(
-        'Failed',
-        error.response?.data?.message || 'Invalid or expired OTP'
-      );
-    } finally {
-      setLoading(false);
-    }
+  const payload = {
+    email,
+    otp: enteredOtp,
+    deviceId,
+    rememberDevice: true,
+    platform,
+    deviceName,
   };
 
+  console.log('📤 Sending Verify OTP Payload:', payload);
+  setLoading(true);
+
+  try {
+    const res = await axios.post(
+      `${API_BASE_URL}/user/auth/verify-otp-login`,
+      payload,
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+
+    console.log('✅ OTP Verify Response:', res.data);
+
+    // Store full token & user data in AsyncStorage via helper function
+    await storeUserData({ token: res.data.token, ...res.data.user });
+
+    // Alert success
+    Alert.alert('Success', 'OTP Verified Successfully');
+
+    // Delay navigation by 2 seconds
+    setTimeout(() => {
+      navigation.replace('Tabs');
+    }, 2000);
+
+  } catch (error) {
+    console.error('❌ OTP Verification Error:', error.response?.data || error.message);
+    Alert.alert(
+      'Failed',
+      error.response?.data?.message || 'Invalid or expired OTP'
+    );
+  } finally {
+    setLoading(false);
+  }
+};
   const handleResend = async () => {
     try {
       await axios.post(`${API_BASE_URL}/user/auth/pre-login`, {
