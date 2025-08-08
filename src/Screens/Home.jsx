@@ -128,8 +128,8 @@ export default function Home() {
       {/* Upcoming Events Section */}
       <View style={tw`mb-2`}>
         <View style={tw`flex-row justify-between mb-2`}>
-          <Text style={tw`font-semibold`}>Upcoming Events</Text>
-          <Text style={tw`text-red-500 text-sm`}>See all events</Text>
+          <Text style={tw`font-semibold`}>Latest News</Text>
+          <Text style={tw`text-red-500 text-sm`}>See all News</Text>
         </View>
 
         <FlatList
@@ -160,8 +160,8 @@ export default function Home() {
       renderItem={() => (
         <View style={tw`px-4 `}>
           <View style={tw`flex-row justify-between mb-2`}>
-            <Text style={tw`font-semibold`}>Popular Events</Text>
-            <Text style={tw`text-red-500 text-sm`}>See all events</Text>
+            <Text style={tw`font-semibold`}>Chairman's Partners</Text>
+            <Text style={tw`text-red-500 text-sm`}>See all partners</Text>
           </View>
           <Cards />
         </View>
