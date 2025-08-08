@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, TextInput, ScrollView } from "react-native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
+
 const businessListings = [
   {
     id: 1,
@@ -37,11 +38,15 @@ const BusinessPage = () => {
 
       {/* Search Bar */}
       <View style={tw`bg-gray-100 rounded-lg px-4 py-2 mb-4 border border-red-500`}>
+         {/* <Ionicons name="search" size={18} color="#999" /> */}
         <TextInput
           placeholder="Search business...."
           style={tw`text-gray-700`}
         />
       </View>
+
+
+
 
       {/* Location Filters */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`mb-4`}>
@@ -65,13 +70,12 @@ const BusinessPage = () => {
               <Text style={tw`text-lg font-bold text-gray-800`}>{business.name}</Text>
               <Text style={tw`text-xs text-gray-500`}>by {business.by}</Text>
             </View>
-            <View style={tw`flex-row items-center`}>
+          </View>
+           <View style={tw`flex-row items-center`}>
               <MaterialIcons name="star" size={16} color="#F59E0B" />
               <Text style={tw`text-xs text-gray-700 ml-1`}>{business.rating}</Text>
               <Text style={tw`text-xs text-gray-500 ml-2`}>{business.location}</Text>
             </View>
-          </View>
-          
           <Text style={tw`text-sm text-gray-600 mb-3`}>{business.description}</Text>
           <View style={tw`flex-row flex-wrap mb-4`}>
             {business.services.map((service, index) => (
