@@ -92,7 +92,7 @@ export default function Chat() {
 
 
   return (
-    <View style={tw`flex-1 bg-white mt-6 pb-6`}>
+    <View style={tw`flex-1 bg-white pt-8 pb-2 `}>
       {/* Header */}
       <View style={tw`flex-row items-center justify-between px-4 py-3 border-b`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>

@@ -17,9 +17,9 @@ import { useNavigation } from "@react-navigation/native";
 // import { Image } from "react-native-svg";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/config";
+import Toast from "react-native-toast-message";
 
-// 🔁 Replace with your actual backend API base URL
-// export const API_BASE_URL = "http://192.168.100.197:9000";
+
 
 const Signin = () => {
   const navigation = useNavigation();
@@ -30,52 +30,89 @@ const Signin = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
- const handleSignin = async () => {
-  if (!email || !password) {
+ const isValidEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const handleSignin = async () => {
+  const trimmedEmail = email.trim();
+
+  if (!trimmedEmail || !password) {
     Alert.alert("Missing Fields", "Please enter both email and password.");
     return;
   }
 
-  // Force unique deviceId to trigger OTP every time
-  const deviceId = `${Device.osInternalBuildId || 'dummy'}-${Date.now()}`;
-  const platform = Platform.OS;
-  const deviceName = Device.deviceName || "Unknown Device";
+  if (!isValidEmail(trimmedEmail)) {
+    Alert.alert("Invalid Email", "Please enter a valid email address.");
+    return;
+  }
 
-  const payload = {
-    email: email.trim(),
-    password: password,
-    deviceId: deviceId,
-  };
-
-  console.log("📤 Sending PreLogin Payload:", payload);
   setLoading(true);
 
   try {
-    const res = await axios.post(`${API_BASE_URL}/user/auth/pre-login`, payload);
-    console.log("✅ PreLogin Response:", res.data);
+    // Get device info
+    const deviceId = Device.osInternalBuildId || Device.modelId || "unknown-device-id";
+    const platform = Platform.OS;
+    const deviceName = Device.deviceName || "Unknown Device";
 
-    if (res.status === 200) {
-      // Force navigate to OTPVerification regardless of otpRequired
-      Alert.alert("Success", "OTP sent to your email.");
+    const payload = {
+      email: trimmedEmail,
+      password,
+      deviceId,
+    };
+
+    // Log for debug
+    console.log("📦 Payload for /pre-login API:");
+    console.log("Email:", trimmedEmail);
+    console.log("Password:", password);
+    console.log("Device ID:", deviceId);
+    console.log("Device Name:", deviceName);
+    console.log("Platform:", platform);
+    console.log("Payload:", JSON.stringify(payload));
+
+    const res = await axios.post(`${API_BASE_URL}/user/auth/pre-login`, payload);
+
+    console.log("✅ Response Status:", res.status);
+    console.log("✅ Response Data:", res.data);
+
+    const { message, otpRequired } = res.data || {};
+
+    if (!message || otpRequired === undefined) {
+      Alert.alert("Unexpected Response", "Server response is incomplete.");
+      return;
+    }
+
+    Alert.alert("Success", message);
+
+    if (otpRequired) {
       navigation.navigate("OTPVerification", {
-        email,
+        email: trimmedEmail,
         deviceId,
         platform,
         deviceName,
       });
     } else {
-      Alert.alert("Login Failed", res.data?.message || "Invalid credentials");
+      navigation.replace("Main"); // Replace "Main" with your actual screen name
     }
+
   } catch (err) {
-    console.log("❌ Pre-login Error:", err.response?.data || err.message);
-    Alert.alert(
-      "Error",
-      err.response?.data?.message || err.message || "Network error. Please try again."
-    );
+    console.log("❌ Error during sign-in:", err.response?.data || err.message);
+
+    const status = err.response?.status;
+    const errorMsg = err.response?.data?.message || "Something went wrong. Please try again.";
+
+    if (status === 401) {
+      Alert.alert("Invalid Credentials", errorMsg);
+    } else {
+      Alert.alert("Login Error", errorMsg);
+    }
+
   } finally {
     setLoading(false);
   }
 };
+
 
   return (
     <KeyboardAvoidingView

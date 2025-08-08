@@ -16,9 +16,9 @@ export default function Scanner() {
   };
 
   return (
-    <View style={tw`flex-1 bg-white mt-6`}>
+    <View style={tw`flex-1 bg-white `}>
       {/* Header */}
-      <View style={tw`flex-row items-center px-4 py-4`}>
+      <View style={tw`flex-row items-center px-4 py-4 mt-4`}>
         <TouchableOpacity onPress={() => navigation.goBack('QRScanScreen')}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
