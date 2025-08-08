@@ -76,18 +76,26 @@ const Profile = () => {
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    const fetchUserId = async () => {
+    const fetchUserIdAndProfilePic = async () => {
       const userData = await getUserData();
-      console.log("Fetched userData from storage:", userData); // <--- Add this
       if (userData && userData._id) {
         setUserId(userData._id);
-        console.log("Set userId:", userData._id); // <--- Add this
-      } else {
-        setUserId(null);
-        console.log("No userId found!"); // <--- Add this
+
+        // Fetch profile picture URL
+        try {
+          const res = await axios.get(
+            `${API_BASE_URL}/user/${userData._id}/profile-picture`
+          );
+          if (res.data && res.data.url) {
+            setProfilePicUri(res.data.url);
+            console.log("Fetched profile picture URL:", res.data.url); // <-- Log the URL here
+          }
+        } catch (err) {
+          console.log("Error fetching profile picture:", err);
+        }
       }
     };
-    fetchUserId();
+    fetchUserIdAndProfilePic();
   }, []);
 
   const handleImagePick = () => {
@@ -144,7 +152,7 @@ const Profile = () => {
           },
         }
       );
-
+      console.log(res.data, "file name");
       // ✅ Fix: Extract correct values from API response
       const { url: uploadUrl, key: fileKey } = res.data;
       console.log("GET API Response:", res.data);
@@ -165,7 +173,7 @@ const Profile = () => {
 
       // STEP 3: Notify backend after successful upload
       await axios.post(`${API_BASE_URL}/user/${userId}/profile-picture`, {
-        fileKey, // <-- this is what your backend expects
+        fileKey,
       });
 
       setProfilePicUri(file.uri);
