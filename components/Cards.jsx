@@ -117,6 +117,19 @@ const popularEvents = [
         profileImage: require('../assets/profile.png'),
         map: require('../assets/map.png'),
     },
+    {
+        id: '4',
+        title: 'Moshing Metal Fest 2024',
+        location: 'Sleman, Yogyakarta',
+        price: '$15.00 - $30.00',
+        date: 'Oct 10',
+        time: '6:00 PM',
+        organizer: 'MetalHeads Club',
+        description: 'The ultimate mosh pit experience awaits...',
+        image: require('../assets/popular2.png'),
+        profileImage: require('../assets/profile.png'),
+        map: require('../assets/map.png'),
+    },
 ];
 
 const Cards = () => {
