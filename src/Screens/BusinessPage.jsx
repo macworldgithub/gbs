@@ -75,7 +75,7 @@ const BusinessPage = () => {
           <Text style={tw`text-sm text-gray-600 mb-3`}>{business.description}</Text>
           <View style={tw`flex-row flex-wrap mb-4`}>
             {business.services.map((service, index) => (
-              <View key={index} style={tw`bg-gray-200 rounded-full px-3 py-1 mr-2 mb-2`}>
+              <View key={index} style={tw`bg-gray-200 rounded-full px-3 py-1 mr-2 mb-2 `}>
                 <Text style={tw`text-xs text-gray-700`}>{service}</Text>
               </View>
             ))}
