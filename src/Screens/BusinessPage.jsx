@@ -22,7 +22,7 @@ const BusinessPage = () => {
   return (
     <View style={tw`flex-1 bg-white px-4 py-4`}>
       {/* Section Title */}
-      <Text style={tw`text-xs font-bold text-gray-800 mb-1 mt-4`}>Business</Text>
+      <Text style={tw`text-xs font-bold text-gray-800 mb-1 mt-16`}>Business</Text>
       <Text style={tw`text-sm text-gray-600 mb-4`}>
         Connect with business professionals, access industry insights, and
         explore partnership opportunities.
