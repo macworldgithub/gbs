@@ -15,15 +15,6 @@ import { useRoute } from '@react-navigation/native';
 export default function EventDetailsScreen({ navigation }) {
     const route = useRoute();
     const { event } = route.params;
-
-    const handleBuyTicket = () => {
-        Linking.openURL('https://your-ticket-url.com');
-    };
-
-    const handleBrochure = () => {
-        Linking.openURL('https://your-brochure-url.com');
-    };
-
     return (
         <SafeAreaView style={tw`flex-1 bg-white`}>
             <ScrollView contentContainerStyle={tw`pb-14`}>
@@ -63,7 +54,7 @@ export default function EventDetailsScreen({ navigation }) {
                     ].map((item, index) => (
                         <View key={index} style={tw`flex-1 items-center`}>
                             <View style={tw`flex-row items-center mb-1`}>
-                                <Icon name={item.icon} size={12} color="gray" />
+                                <Icon name={item.icon} size={12} color="red" />
                                 <Text style={tw`text-xs text-gray-400 ml-1`}>{item.title}</Text>
                             </View>
                             <Text style={tw`text-sm font-semibold text-red-500`}>{item.value}</Text>
@@ -108,11 +99,11 @@ export default function EventDetailsScreen({ navigation }) {
                         resizeMode="cover"
                     />
                 </View>
-            </ScrollView>
+          
 
             {/* Footer Buttons */}
             <View
-                style={tw`absolute bottom-4 left-0 right-0 px-4 flex-row justify-between `}
+                style={tw`left-0 right-0 px-4 flex-row justify-between mt-2`}
             >
                 <TouchableOpacity
                     style={tw`flex-1 bg-white border border-red-400 rounded-full py-3 mr-2 items-center`}
@@ -121,19 +112,18 @@ export default function EventDetailsScreen({ navigation }) {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    onPress={handleBuyTicket}
                     style={tw`flex-1 bg-red-500 rounded-full py-3 mx-2 items-center`}
                 >
                     <Text style={tw`text-white font-semibold`}>Buy Ticket</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    onPress={handleBrochure}
                     style={tw`flex-1 bg-red-500 rounded-full py-3 ml-2 items-center`}
                 >
                     <Text style={tw`text-white font-semibold`}>Brochure</Text>
                 </TouchableOpacity>
             </View>
+              </ScrollView>
         </SafeAreaView>
     );
 }

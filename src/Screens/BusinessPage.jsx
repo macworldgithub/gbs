@@ -2,22 +2,6 @@ import React from "react";
 import { View, Text, TouchableOpacity, TextInput, ScrollView } from "react-native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
-
-const businessMetrics = [
-  {
-    id: 1,
-    icon: <MaterialIcons name="trending-up" size={18} color="#DC2626" />,
-    value: "127%",
-    label: "Growth Rate",
-  },
-  {
-    id: 2,
-    icon: <FontAwesome5 name="users" size={18} color="#DC2626" />,
-    value: "450+",
-    label: "Business Members",
-  },
-];
-
 const businessListings = [
   {
     id: 1,
