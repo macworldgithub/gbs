@@ -1,21 +1,21 @@
-import * as React from "react";
-import { useEffect, useRef, useState } from "react";
-import { Animated, View, StyleSheet } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-import Splash from "./src/Screens/Splash";
-import Onboarding from "./src/Screens/Onboarding";
-import OnboardingTwo from "./src/Screens/OnboardingTwo";
-import Home from "./src/Screens/Home";
-import Signup from "./src/auth/Signup";
-import Signin from "./src/auth/Signin";
-import SearchEvent from "./src/Screens/SearchEvent";
-import Notification from "./src/Screens/Notification";
-import UpcomingEvent from "./src/Screens/UpcomingEvent";
-import PopularEvent from "./src/Screens/PopularEvent";
-import DetailEvent from "./src/Screens/DetailEvent";
-import MemberLocation from "./src/Screens/MemberLocation";
-import Profile from "./src/Screens/Profile";
+import * as React from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, View, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import Splash from './src/Screens/Splash';
+import Onboarding from './src/Screens/Onboarding';
+import OnboardingTwo from './src/Screens/OnboardingTwo';
+import Home from './src/Screens/Home';
+import Signup from './src/auth/Signup';
+import Signin from './src/auth/Signin';
+import SearchEvent from './src/Screens/SearchEvent';
+import Notification from './src/Screens/Notification';
+import UpcomingEvent from './src/Screens/UpcomingEvent';
+import PopularEvent from './src/Screens/PopularEvent';
+import DetailEvent from './src/Screens/DetailEvent';
+import MemberLocation from './src/Screens/MemberLocation';
+import Profile from './src/Screens/Profile';
 import EditProfile from "./src/Screens/EditProfile";
 import AccountSecurity from "./src/Screens/AccountSecurity";
 import QRCodeScreen from "./src/Screens/QRCodeScreen";
@@ -136,3 +136,4 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+

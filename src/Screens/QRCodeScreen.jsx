@@ -12,11 +12,11 @@ export default function QRCodeScreen({ navigation }) {
   };
 
   const handleOpenScanner = () => {
-    navigation.navigate('Scanner'); // Navigate to scanner screen
+    navigation.navigate('Scanner'); 
   };
 
   const handleBack = () => {
-    navigation.navigate('Profile'); // Navigate to profile screen
+    navigation.navigate('Profile'); 
   };
 
   return (

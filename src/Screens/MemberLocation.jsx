@@ -45,7 +45,7 @@ const navigation = useNavigation();
   return (
     <View style={tw`flex-1 bg-white`}>
       {/* Header */}
-      <View style={tw`flex-row items-center justify-between px-4 pt-14 pb-4`}>
+      <View style={tw`flex-row items-center justify-between px-4 pt-4  mt-4 mb-4`}>
         <TouchableOpacity 
         onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="black" />
@@ -76,7 +76,9 @@ const navigation = useNavigation();
                   setFilterOpen(false);
                 }}
               >
+                <TouchableOpacity onPress={() => navigation.navigate("SearchEvent")}>
                 <Text style={tw`text-sm text-red-500`}>Events</Text>
+                </TouchableOpacity>
               </TouchableOpacity>
             </View>
           )}

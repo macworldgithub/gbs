@@ -44,12 +44,6 @@ const paymentMethods = [
 const SelectPaymentMethod = () => {
   const navigation = useNavigation();
   const [selectedMethod, setSelectedMethod] = useState("2"); // default selected
-
-//   const handleConfirm = () => {
-//     // You can pass the selectedMethod to another screen or perform payment logic
-//     alert(`Confirmed Payment with ${selectedMethod}`);
-//   };
-
   const handleConfirm = () => {
   navigation.navigate("PaymentSuccess");
 };
@@ -85,9 +79,9 @@ const SelectPaymentMethod = () => {
   };
 
   return (
-    <View style={tw`flex-1 bg-white px-5 pt-8`}>
+    <View style={tw`flex-1 bg-white px-4 py-4 `}>
       {/* Header */}
-      <View style={tw`flex-row items-center mb-4`}>
+      <View style={tw`flex-row items-center mb-4 `}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={20} style={tw`text-black mr-3`} />
         </TouchableOpacity>

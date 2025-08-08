@@ -28,7 +28,7 @@ const ForgotPass = () => {
     try {
       const res = await sendForgotPasswordOtp(email);
       Alert.alert('Success', 'OTP has been sent to your email');
-      navigation.navigate('InboxOTP', { email }); // ✅ Navigate with email
+      navigation.navigate('InboxOTP', { email });
     } catch (error) {
       console.error('Send OTP failed:', error);
       Alert.alert('Error', error?.response?.data?.message || 'Failed to send OTP');

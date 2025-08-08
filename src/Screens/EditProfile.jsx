@@ -39,7 +39,7 @@ const EditProfile = () => {
   };
 
   return (
-    <View style={tw`flex-1 bg-white mt-10`}>
+    <View style={tw`flex-1 bg-white pt-10`}>
       <ScrollView contentContainerStyle={tw`pb-20`}>
         {/* Header */}
         <View style={tw`px-4 pt-6 flex-row items-center`}>
