@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,10 +13,10 @@ import tw from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
-import axios from "axios"
-import { useEffect } from "react";
+import axios from "axios";
 import { AsyncStorage } from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../utils/config";
+import { getUserData } from "../utils/storage";
 
 const menuItems = [
   {
@@ -54,7 +54,7 @@ const requestCameraPermission = async () => {
         PermissionsAndroid.PERMISSIONS.CAMERA,
         {
           title: "Camera Permission",
-          message: "App needs camera access to take pictures", 
+          message: "App needs camera access to take pictures",
           buttonNeutral: "Ask Me Later",
           buttonNegative: "Cancel",
           buttonPositive: "OK",
@@ -77,10 +77,14 @@ const Profile = () => {
 
   useEffect(() => {
     const fetchUserId = async () => {
-      const userData = await AsyncStorage.getItem("user");
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        setUserId(parsed._id || parsed.id);
+      const userData = await getUserData();
+      console.log("Fetched userData from storage:", userData); // <--- Add this
+      if (userData && userData._id) {
+        setUserId(userData._id);
+        console.log("Set userId:", userData._id); // <--- Add this
+      } else {
+        setUserId(null);
+        console.log("No userId found!"); // <--- Add this
       }
     };
     fetchUserId();
@@ -131,7 +135,7 @@ const Profile = () => {
       // STEP 1: Get S3 upload URL from backend
       const res = await axios.get(
         `${API_BASE_URL}/user/profile-picture/upload-url`,
-      
+
         {
           params: {
             fileName,
@@ -160,12 +164,9 @@ const Profile = () => {
       console.log("user id ", userId);
 
       // STEP 3: Notify backend after successful upload
-      await axios.post(
-        `${API_BASE_URL}/user/${userId}/profile-picture`,
-        {
-          fileUrl: uploadUrl.split("?")[0],
-        }
-      );
+      await axios.post(`${API_BASE_URL}/user/${userId}/profile-picture`, {
+        fileKey, // <-- this is what your backend expects
+      });
 
       setProfilePicUri(file.uri);
       Alert.alert("Success", "Profile picture uploaded successfully!");
