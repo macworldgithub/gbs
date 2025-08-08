@@ -93,7 +93,7 @@ const handleSignin = async () => {
         deviceName,
       });
     } else {
-      navigation.replace("Main"); // Replace "Main" with your actual screen name
+      navigation.replace("Home"); // Replace "Main" with your actual screen name
     }
 
   } catch (err) {
