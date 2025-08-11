@@ -950,14 +950,7 @@ const menuItems = [
       },
     ],
   },
-  // {
-  //   title: 'Settings',
-  //   subItems: [
-  //     { title: 'Profile' },
-  //     { title: 'Notifications' },
-  //     { title: 'Privacy' },
-  //   ],
-  // },
+  
 ];
 
 const upcomingEvents = [
@@ -1112,7 +1105,7 @@ export default function Home() {
       {/* Search Input */}
       <View
         style={tw`flex-row items-center bg-gray-100 rounded-lg px-2 mb-3 border border-gray-300`}
-        // style={tw`flex-row items-center bg-gray-100 rounded-lg px-2 mb-3 border border-gray-300`}
+       
       >
         <Ionicons name="search" size={18} color="#9CA3AF" />
         <TextInput
