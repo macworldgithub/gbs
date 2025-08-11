@@ -18,6 +18,7 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/config";
 import Toast from "react-native-toast-message";
+import { storeUserData } from "../utils/storage";
 
 
 
@@ -93,7 +94,23 @@ const handleSignin = async () => {
         deviceName,
       });
     } else {
-      navigation.replace("Home"); // Replace "Main" with your actual screen name
+      // Trusted device: skip OTP, call /signin
+      try {
+        const signinRes = await axios.post(
+          `${API_BASE_URL}/user/auth/signin`,
+          { email: trimmedEmail, password }
+        );
+        // Store token & user data in AsyncStorage (same as OTPVerification)
+        await storeUserData({ token: signinRes.data.token, ...signinRes.data.user });
+        Alert.alert("Success", "Login successful!");
+        navigation.replace("Tabs"); // or your main screen
+      } catch (signinErr) {
+        console.error("❌ Error during trusted signin:", signinErr.response?.data || signinErr.message);
+        Alert.alert(
+          "Login Error",
+          signinErr.response?.data?.message || "Could not complete login."
+        );
+      }
     }
 
   } catch (err) {

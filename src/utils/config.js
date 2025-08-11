@@ -1,1 +1,1 @@
-export const API_BASE_URL = "http://192.168.100.45:9000";
+export const API_BASE_URL = "https://gbs.westsidecarcare.com.au";
