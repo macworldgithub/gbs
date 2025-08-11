@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 const popularEvents = [
     {
         id: '1',
-        title: 'BMTH Tour 2024',
+        title: 'Partner Crop',
         location: 'Mandala Krida, Yogyakarta',
         price: '$60.00 - $300.00',
         date: 'Sep 12',
