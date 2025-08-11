@@ -9,6 +9,7 @@ import AllChat from "../Screens/AllChat";
 import MembersDirectory from "../Screens/Directory";
 import BusinessPage from "../Screens/BusinessPage";
 import Chat from "../Screens/Chat";
+import Offers from "../Screens/Offers";
 
 const Tab = createBottomTabNavigator();
 
@@ -24,7 +25,7 @@ export default function AuthTabs() {
       <Tab.Screen name="Business" component={BusinessPage} />
       <Tab.Screen name="Social" component={Chat} />
       <Tab.Screen name="Wellbeing" component={Profile} />
-      <Tab.Screen name="Offers" component={Home} />
+      <Tab.Screen name="Offers" component={Offers} />
 
     </Tab.Navigator>
   );
