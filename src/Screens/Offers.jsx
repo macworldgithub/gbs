@@ -280,8 +280,6 @@ const Offers = () => {
           )}
         </View>
       ))}
-    {/* </ScrollView> */}
-
     </ScrollView>
   );
 };
