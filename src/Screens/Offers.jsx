@@ -209,6 +209,10 @@ const Offers = () => {
 
       {/* Offers List */}
       {filteredOffers.map((offer) => (
+        <TouchableOpacity key={offer._id}
+          onPress={() =>
+            navigation.navigate("OfferDetails", { id: offer._id })
+          } >
         <View
           key={offer._id}
           style={tw`bg-white border border-gray-200 rounded-lg p-4 mb-4`}
@@ -264,7 +268,7 @@ const Offers = () => {
           {/* Terms & Conditions */}
           {offer.termsAndConditions && offer.termsAndConditions.length > 0 && (
             <View style={tw`bg-gray-100 p-2 rounded mt-3`}>
-              <Text style={tw`text-xs text-gray-500 font-bold mb-1`}>Terms & Conditions:</Text>
+              {/* <Text style={tw`text-xs text-gray-500 font-bold mb-1`}>Terms & Conditions:</Text> */}
               {offer.termsAndConditions.map((term, idx) => (
                 <Text key={idx} style={tw`text-xs text-gray-500`}>• {term}</Text>
               ))}
@@ -272,13 +276,14 @@ const Offers = () => {
           )}
 
           {/* How to Redeem */}
-          {offer.howToRedeem && (
+          {/* {offer.howToRedeem && (
             <View style={tw`bg-gray-100 p-2 rounded mt-2`}>
               <Text style={tw`text-xs text-gray-500 font-bold mb-1`}>How to Redeem:</Text>
               <Text style={tw`text-xs text-gray-500`}>{offer.howToRedeem}</Text>
             </View>
-          )}
+          )} */}
         </View>
+        </TouchableOpacity>
       ))}
     {/* </ScrollView> */}
 
