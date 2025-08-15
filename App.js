@@ -44,6 +44,7 @@ import OTPVerification from "./src/auth/OTPVerification";
 import AuthTabs from "./src/navigation/AuthTabNavigation";
 import MembersDirectory from "./src/Screens/Directory";
 import BusinessPage from "./src/Screens/BusinessPage";
+import BusinessDetail from "./src/Screens/BusinessDetail";
 import Wellbeing from "./src/Screens/Wellbeing";
 import Toast from "react-native-toast-message";
 import OfferDetails from "./src/Screens/OfferDetails";
@@ -85,6 +86,7 @@ export default function App() {
           initialRouteName="Onboarding"
         >
           <Stack.Screen name="BusinessPage" component={BusinessPage} />
+          <Stack.Screen name="BusinessDetail" component={BusinessDetail} />
           <Stack.Screen name="Wellbeing" component={Wellbeing} />
           <Stack.Screen name="Directory" component={MembersDirectory} />
           <Stack.Screen name="Onboarding" component={Onboarding} />

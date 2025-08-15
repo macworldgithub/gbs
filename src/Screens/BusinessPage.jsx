@@ -400,7 +400,7 @@ import { View, Text, TouchableOpacity, TextInput, ScrollView, Linking, Alert } f
 import tw from "tailwind-react-native-classnames";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 
-const BusinessPage = () => {
+const BusinessPage = ({ navigation }) => {
   const [businessListings, setBusinessListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -482,7 +482,11 @@ const BusinessPage = () => {
 
       {/* Business Listings */}
       {businessListings.map((business) => (
-        <View key={business._id} style={tw`bg-gray-50 rounded-lg p-4 mb-4`}>
+        <TouchableOpacity 
+          key={business._id} 
+          style={tw`bg-gray-50 rounded-lg p-4 mb-4`}
+          onPress={() => navigation.navigate('BusinessDetail', { id: business._id })}
+        >
           {/* Company Info */}
           <View style={tw`flex-row justify-between items-start mb-2`}>
             <View>
@@ -499,6 +503,8 @@ const BusinessPage = () => {
           <View style={tw`flex-row items-center`}>
             <MaterialIcons name="star" size={16} color="#F59E0B" />
             <Text style={tw`text-xs text-gray-700 ml-1`}>{business.rating}</Text>
+         
+
             <Text style={tw`text-xs text-gray-500 ml-2`}>
               {business.city}, {business.state}
             </Text>
@@ -573,7 +579,8 @@ const BusinessPage = () => {
           <View style={tw`flex-row justify-between`}>
             <TouchableOpacity
               style={tw`flex-1 bg-red-500 rounded-lg py-2 mr-2 items-center`}
-              onPress={() => {
+              onPress={(e) => {
+                e.stopPropagation();
                 if (business.phone) {
                   Linking.openURL(`tel:${business.phone}`);
                 } else {
@@ -586,7 +593,8 @@ const BusinessPage = () => {
 
             <TouchableOpacity
               style={tw`flex-1 bg-red-500 border border-gray-300 rounded-lg py-2 mr-2 items-center`}
-              onPress={() => {
+              onPress={(e) => {
+                e.stopPropagation();
                 if (business.email) {
                   Linking.openURL(`mailto:${business.email}`);
                 } else {
@@ -596,11 +604,23 @@ const BusinessPage = () => {
             >
               <Text style={tw`text-white font-medium`}>Email</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={tw`flex-1 bg-red-500 border border-gray-300 rounded-lg py-2 items-center`}
+              onPress={(e) => {
+                e.stopPropagation();
+                navigation.navigate('BusinessDetail', { id: business._id });
+              }}
+            >
+              <Text style={tw`text-white font-medium`}>View Details</Text>
+            </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
       ))}
     </ScrollView>
   );
 };
 
 export default BusinessPage;
+
+

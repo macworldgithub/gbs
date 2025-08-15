@@ -285,8 +285,6 @@ const Offers = () => {
         </View>
         </TouchableOpacity>
       ))}
-    {/* </ScrollView> */}
-
     </ScrollView>
   );
 };
