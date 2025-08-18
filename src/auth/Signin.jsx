@@ -10,6 +10,8 @@ import {
   Alert,
   Image,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import * as Device from "expo-device";
 import { FontAwesome, Feather } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
@@ -20,8 +22,6 @@ import { API_BASE_URL } from "../utils/config";
 import Toast from "react-native-toast-message";
 import { storeUserData } from "../utils/storage";
 
-
-
 const Signin = () => {
   const navigation = useNavigation();
 
@@ -31,105 +31,122 @@ const Signin = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
- const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
-const handleSignin = async () => {
-  const trimmedEmail = email.trim();
+  const handleSignin = async () => {
+    const trimmedEmail = email.trim();
 
-  if (!trimmedEmail || !password) {
-    Alert.alert("Missing Fields", "Please enter both email and password.");
-    return;
-  }
-
-  if (!isValidEmail(trimmedEmail)) {
-    Alert.alert("Invalid Email", "Please enter a valid email address.");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    // Get device info
-    const deviceId = Device.osInternalBuildId || Device.modelId || "unknown-device-id";
-    const platform = Platform.OS;
-    const deviceName = Device.deviceName || "Unknown Device";
-
-    const payload = {
-      email: trimmedEmail,
-      password,
-      deviceId,
-    };
-
-    // Log for debug
-    console.log("📦 Payload for /pre-login API:");
-    console.log("Email:", trimmedEmail);
-    console.log("Password:", password);
-    console.log("Device ID:", deviceId);
-    console.log("Device Name:", deviceName);
-    console.log("Platform:", platform);
-    console.log("Payload:", JSON.stringify(payload));
-
-    const res = await axios.post(`${API_BASE_URL}/user/auth/pre-login`, payload);
-
-    console.log("✅ Response Status:", res.status);
-    console.log("✅ Response Data:", res.data);
-
-    const { message, otpRequired } = res.data || {};
-
-    if (!message || otpRequired === undefined) {
-      Alert.alert("Unexpected Response", "Server response is incomplete.");
+    if (!trimmedEmail || !password) {
+      Alert.alert("Missing Fields", "Please enter both email and password.");
       return;
     }
 
-    Alert.alert("Success", message);
+    if (!isValidEmail(trimmedEmail)) {
+      Alert.alert("Invalid Email", "Please enter a valid email address.");
+      return;
+    }
 
-    if (otpRequired) {
-      navigation.navigate("OTPVerification", {
+    setLoading(true);
+
+    try {
+      // Get device info
+      const deviceId =
+        Device.osInternalBuildId || Device.modelId || "unknown-device-id";
+      const platform = Platform.OS;
+      const deviceName = Device.deviceName || "Unknown Device";
+
+      const payload = {
         email: trimmedEmail,
+        password,
         deviceId,
-        platform,
-        deviceName,
-      });
-    } else {
-      // Trusted device: skip OTP, call /signin
-      try {
-        const signinRes = await axios.post(
-          `${API_BASE_URL}/user/auth/signin`,
-          { email: trimmedEmail, password }
-        );
-        // Store token & user data in AsyncStorage (same as OTPVerification)
-        await storeUserData({ token: signinRes.data.token, ...signinRes.data.user });
-        Alert.alert("Success", "Login successful!");
-        navigation.replace("Tabs"); // or your main screen
-      } catch (signinErr) {
-        console.error("❌ Error during trusted signin:", signinErr.response?.data || signinErr.message);
-        Alert.alert(
-          "Login Error",
-          signinErr.response?.data?.message || "Could not complete login."
-        );
+      };
+
+      // Log for debug
+      console.log("📦 Payload for /pre-login API:");
+      console.log("Email:", trimmedEmail);
+      console.log("Password:", password);
+      console.log("Device ID:", deviceId);
+      console.log("Device Name:", deviceName);
+      console.log("Platform:", platform);
+      console.log("Payload:", JSON.stringify(payload));
+
+      const res = await axios.post(
+        `${API_BASE_URL}/user/auth/pre-login`,
+        payload
+      );
+
+      console.log("✅ Response Status:", res.status);
+      console.log("✅ Response Data:", res.data);
+
+      const { message, otpRequired } = res.data || {};
+
+      if (!message || otpRequired === undefined) {
+        Alert.alert("Unexpected Response", "Server response is incomplete.");
+        return;
       }
+
+      Alert.alert("Success", message);
+
+      if (otpRequired) {
+        navigation.navigate("OTPVerification", {
+          email: trimmedEmail,
+          deviceId,
+          platform,
+          deviceName,
+        });
+      } else {
+        // Trusted device: skip OTP, call /signin
+        try {
+          const signinRes = await axios.post(
+            `${API_BASE_URL}/user/auth/signin`,
+            { email: trimmedEmail, password }
+          );
+          const userData = {
+            token: signinRes.data.token,
+            ...signinRes.data.user,
+          };
+          // Store token & user data in AsyncStorage (same as OTPVerification)
+          await storeUserData(userData);
+
+          // ✅ Debug: check if stored properly
+          const stored = await AsyncStorage.getItem("userData");
+          console.log("🔐 Stored User Data in AsyncStorage:", stored);
+          Alert.alert("Success", "Login successful!");
+          navigation.replace("Tabs"); // or your main screen
+        } catch (signinErr) {
+          console.error(
+            "❌ Error during trusted signin:",
+            signinErr.response?.data || signinErr.message
+          );
+          Alert.alert(
+            "Login Error",
+            signinErr.response?.data?.message || "Could not complete login."
+          );
+        }
+      }
+    } catch (err) {
+      console.log(
+        "❌ Error during sign-in:",
+        err.response?.data || err.message
+      );
+
+      const status = err.response?.status;
+      const errorMsg =
+        err.response?.data?.message ||
+        "Something went wrong. Please try again.";
+
+      if (status === 401) {
+        Alert.alert("Invalid Credentials", errorMsg);
+      } else {
+        Alert.alert("Login Error", errorMsg);
+      }
+    } finally {
+      setLoading(false);
     }
-
-  } catch (err) {
-    console.log("❌ Error during sign-in:", err.response?.data || err.message);
-
-    const status = err.response?.status;
-    const errorMsg = err.response?.data?.message || "Something went wrong. Please try again.";
-
-    if (status === 401) {
-      Alert.alert("Invalid Credentials", errorMsg);
-    } else {
-      Alert.alert("Login Error", errorMsg);
-    }
-
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <KeyboardAvoidingView
@@ -224,7 +241,7 @@ const handleSignin = async () => {
           disabled={loading}
         >
           <Text style={tw`text-white text-center font-semibold`}>
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? "Signing in..." : "Sign in"}
           </Text>
         </TouchableOpacity>
 
@@ -249,13 +266,27 @@ const handleSignin = async () => {
             <Text style={tw`text-sm`}>Sign in with Google</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={tw`flex-row items-center justify-center border rounded-xl py-3 bg-white mb-3`}>
-            <Image source={{ uri: 'https://img.icons8.com/color/48/facebook-new.png' }} style={{ width: 20, height: 20, marginRight: 10 }} />
+          <TouchableOpacity
+            style={tw`flex-row items-center justify-center border rounded-xl py-3 bg-white mb-3`}
+          >
+            <Image
+              source={{
+                uri: "https://img.icons8.com/color/48/facebook-new.png",
+              }}
+              style={{ width: 20, height: 20, marginRight: 10 }}
+            />
             <Text style={tw`text-sm`}>Sign in with Facebook</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={tw`flex-row items-center justify-center border rounded-xl py-3 bg-white`}>
-            <Image source={{ uri: 'https://img.icons8.com/ios-filled/50/mac-os.png' }} style={{ width: 20, height: 20, marginRight: 10 }} />
+          <TouchableOpacity
+            style={tw`flex-row items-center justify-center border rounded-xl py-3 bg-white`}
+          >
+            <Image
+              source={{
+                uri: "https://img.icons8.com/ios-filled/50/mac-os.png",
+              }}
+              style={{ width: 20, height: 20, marginRight: 10 }}
+            />
             <Text style={tw`text-sm`}>Sign in with Apple</Text>
           </TouchableOpacity>
         </View>

@@ -157,7 +157,6 @@
 //   },
 // });
 
-
 import React from "react";
 import {
   View,
@@ -170,7 +169,11 @@ import {
 export default function OnboardingTwo({ navigation }) {
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
 
       {/* Main content */}
       <View style={styles.content}>
@@ -192,7 +195,7 @@ export default function OnboardingTwo({ navigation }) {
         {/* Join Now Button */}
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.replace('Tabs')}
+          onPress={() => navigation.replace("Tabs")}
         >
           <Text style={styles.buttonText}>Join Now</Text>
         </TouchableOpacity>
@@ -200,11 +203,12 @@ export default function OnboardingTwo({ navigation }) {
 
       {/* Sign In Link at the bottom */}
       <TouchableOpacity
-        onPress={() => navigation.navigate('Signin')}
+        onPress={() => navigation.navigate("Signin")}
         style={styles.signInContainer}
       >
         <Text style={styles.signInText}>
-          Already have an account? <Text style={styles.signInBold}>Sign In</Text>
+          Already have an account?{" "}
+          <Text style={styles.signInBold}>Sign In</Text>
         </Text>
       </TouchableOpacity>
     </View>
@@ -274,9 +278,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   signInContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 45,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   signInText: {
     color: "#ccc",

@@ -20,7 +20,6 @@ export default function AuthTabs() {
       tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tab.Screen name="Home" component={Home} />
-    
       <Tab.Screen name="Directory" component={MembersDirectory} />
       <Tab.Screen name="Business" component={BusinessPage} />
       <Tab.Screen name="Social" component={Chat} />

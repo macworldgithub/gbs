@@ -48,13 +48,34 @@ import BusinessDetail from "./src/Screens/BusinessDetail";
 import Wellbeing from "./src/Screens/Wellbeing";
 import Toast from "react-native-toast-message";
 import OfferDetails from "./src/Screens/OfferDetails";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const Stack = createStackNavigator();
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const [initialRoute, setInitialRoute] = useState(null); // <-- dynamic initial route
   const splashOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const userData = await AsyncStorage.getItem("userData");
+        console.log("🚀 Existing user data at startup:", userData);
+
+        if (userData) {
+          setInitialRoute("Tabs");
+        } else {
+          setInitialRoute("Onboarding");
+        }
+      } catch (err) {
+        console.log("Error checking login:", err);
+        setInitialRoute("Onboarding");
+      }
+    };
+
+    checkLoginStatus();
+
     const timer = setTimeout(() => {
       Animated.timing(splashOpacity, {
         toValue: 0,
@@ -63,7 +84,7 @@ export default function App() {
       }).start(() => {
         setShowSplash(false);
       });
-    }, 4000); // 4 seconds
+    }, 4000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -83,7 +104,7 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{ headerShown: false }}
-          initialRouteName="Onboarding"
+          initialRouteName={initialRoute}
         >
           <Stack.Screen name="BusinessPage" component={BusinessPage} />
           <Stack.Screen name="BusinessDetail" component={BusinessDetail} />
