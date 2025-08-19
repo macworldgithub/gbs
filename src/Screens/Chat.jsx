@@ -52,10 +52,10 @@ export default function Chat({ navigation }) {
   };
   const fetchMessages = async () => {
     if (!token || !myUserId) return; // wait for data
-
+console.log(chatUser, 'getting chat user  in fetch')
     try {
       const res = await fetch(
-        `${API_BASE_URL}/messages/conversation/${chatUser._id}`,
+        `${API_BASE_URL}/messages/conversation/${chatUser.id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
