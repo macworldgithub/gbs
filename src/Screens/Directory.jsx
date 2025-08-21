@@ -135,16 +135,30 @@ import { Ionicons } from "@expo/vector-icons";
 
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function MembersDirectory({ navigation }) {
   const [search, setSearch] = useState("");
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chatStatus, setChatStatus] = useState({}); // store chat status by userId
+  const [token, setToken] = useState(null);
+  const [myUserId, setMyUserId] = useState(null);
   // ✅ Fetch members from API
   // ✅ Fetch members
   useEffect(() => {
-    const fetchMembers = async () => {
+    const init = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("userData");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setToken(parsed.token);
+          setMyUserId(parsed._id);
+        }
+      } catch (e) {
+        console.error("❌ Error loading userData:", e);
+      }
+
       try {
         const response = await fetch(`${API_BASE_URL}/user`);
         const data = await response.json();
@@ -162,40 +176,68 @@ export default function MembersDirectory({ navigation }) {
         }));
 
         setMembers(formattedData);
-
-        // Fetch chat status for each user
-        formattedData.forEach((member) => checkChatStatus(member.id));
       } catch (error) {
         console.error("❌ Error fetching members:", error);
       } finally {
         setLoading(false);
       }
+
+      // After token is set, try to prefetch conversation statuses
+      try {
+        if (!token) return;
+        const res = await fetch(`${API_BASE_URL}/messages/conversations?page=1&limit=100`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && data?.conversations) {
+          const statusMap = {};
+          data.conversations.forEach((conv) => {
+            const other = (conv.participants || []).find((p) => p._id !== myUserId);
+            if (other?._id) statusMap[other._id] = "continue";
+          });
+          setChatStatus(statusMap);
+        }
+      } catch (e) {
+        console.error("❌ Error prefetching conversations:", e);
+      }
     };
 
-    fetchMembers();
-  }, []);
+    init();
+  }, [token, myUserId]);
 
-  // ✅ Check if conversation exists with user
-  const checkChatStatus = async (userId) => {
+  // ✅ Ensure conversation exists, then open Chat
+  const openChat = async (user) => {
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/messages/conversation/${userId}`
-      );
-      const data = await res.json();
+      if (!token) {
+        console.warn("Missing token; navigating anyway");
+        navigation.navigate("Chat", { user });
+        return;
+      }
 
-      setChatStatus((prev) => ({
-        ...prev,
-        [userId]: data.length > 0 ? "continue" : "start",
-      }));
+      const res = await fetch(`${API_BASE_URL}/messages/conversation`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ recipientId: user.id }),
+      });
+      const conv = await res.json();
+      if (!res.ok) {
+        console.error("❌ startConversation error:", conv);
+        navigation.navigate("Chat", { user });
+        return;
+      }
+
+      setChatStatus((prev) => ({ ...prev, [user.id]: "continue" }));
+      navigation.navigate("Chat", { user, conversationId: conv._id });
     } catch (err) {
-      console.error("❌ Error checking chat:", err);
+      console.error("❌ Error starting conversation:", err);
+      navigation.navigate("Chat", { user });
     }
   };
 
-  // ✅ Navigate to Chat screen
-  const openChat = (user) => {
-    navigation.navigate("Chat", { user });
-  };
+  // (openChat moved above to ensure/create conversation)
 
   const filteredMembers = members.filter((member) =>
     member.name.toLowerCase().includes(search.toLowerCase())

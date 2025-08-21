@@ -29,6 +29,7 @@ import Theme from "./src/Screens/Theme";
 import LanguageSetting from "./src/Screens/LanguageSetting";
 import AllChat from "./src/Screens/AllChat";
 import Chat from "./src/Screens/Chat";
+import Conversations from "./src/Screens/Conversations";
 import CreateGroup from "./src/Screens/CreateGroup";
 import GroupInfo from "./src/Screens/GroupInfo";
 import GroupChat from "./src/Screens/GroupChat";
@@ -49,6 +50,8 @@ import Wellbeing from "./src/Screens/Wellbeing";
 import Toast from "react-native-toast-message";
 import OfferDetails from "./src/Screens/OfferDetails";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import SocialPage from "./src/Screens/SocialPage";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const Stack = createStackNavigator();
 
@@ -101,8 +104,9 @@ export default function App() {
 
   return (
     <>
-      <NavigationContainer>
-        <Stack.Navigator
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <Stack.Navigator
           screenOptions={{ headerShown: false }}
           initialRouteName={initialRoute}
         >
@@ -135,6 +139,7 @@ export default function App() {
           <Stack.Screen name="Theme" component={Theme} />
           <Stack.Screen name="LanguageSetting" component={LanguageSetting} />
           <Stack.Screen name="AllChat" component={AllChat} />
+          <Stack.Screen name="Conversations" component={Conversations} />
           <Stack.Screen name="Chat" component={Chat} />
           <Stack.Screen name="CreateGroup" component={CreateGroup} />
           <Stack.Screen name="GroupChat" component={GroupChat} />
@@ -151,8 +156,10 @@ export default function App() {
           <Stack.Screen name="AuthTabs" component={AuthTabs} />
           <Stack.Screen name="OTPSuccess" component={ResetPass} />
           <Stack.Screen name="OfferDetails" component={OfferDetails} />
-        </Stack.Navigator>
-      </NavigationContainer>
+          <Stack.Screen name="socialPage" component={SocialPage} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaProvider>
       <Toast />
     </>
   );
