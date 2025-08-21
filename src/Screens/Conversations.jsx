@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../utils/config";
+import axios from "axios";
 
 export default function Conversations({ navigation }) {
   const [token, setToken] = useState(null);
@@ -29,14 +30,11 @@ export default function Conversations({ navigation }) {
       if (!token || !myUserId) return;
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/messages/conversations?page=1&limit=50`, {
+        const { data } = await axios.get(`${API_BASE_URL}/messages/conversations`, {
+          params: { page: 1, limit: 50 },
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await res.json();
-        if (!res.ok) {
-          setItems([]);
-          return;
-        }
+        console.log("✅ Conversations GET response:", data);
 
         const conversations = Array.isArray(data?.conversations) ? data.conversations : [];
         const mapped = conversations.map((c) => {
@@ -48,8 +46,10 @@ export default function Conversations({ navigation }) {
             lastText: last?.content || "",
           };
         });
+        console.log("✅ Conversations mapped for UI:", mapped);
         setItems(mapped);
       } catch (e) {
+        console.log("❌ Conversations GET error:", e?.response?.data || e.message);
         setItems([]);
       } finally {
         setLoading(false);
@@ -59,6 +59,7 @@ export default function Conversations({ navigation }) {
   }, [token, myUserId]);
 
   const openChat = (item) => {
+    console.log("➡️ Open chat: ", item);
     navigation.navigate("Chat", {
       user: { id: item.otherUser.id, name: item.otherUser.name },
       conversationId: item.id,
