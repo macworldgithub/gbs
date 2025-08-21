@@ -157,6 +157,7 @@ export default function App() {
           <Stack.Screen name="OTPSuccess" component={ResetPass} />
           <Stack.Screen name="OfferDetails" component={OfferDetails} />
           <Stack.Screen name="socialPage" component={SocialPage} />
+          <Stack.Screen name="conversation" component={Conversations} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

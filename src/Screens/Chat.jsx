@@ -12,7 +12,7 @@ import {
   Platform,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
 import { Ionicons, MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -119,6 +119,13 @@ export default function Chat({ navigation }) {
   useEffect(() => {
     fetchMessages();
   }, [conversationId, token, myUserId]);
+
+  // Also refetch whenever screen gains focus to avoid race conditions from Directory navigation
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchMessages();
+    }, [conversationId, token, myUserId])
+  );
 
   // Socket.io setup for realtime updates
   useEffect(() => {
