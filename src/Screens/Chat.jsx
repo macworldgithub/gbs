@@ -25,8 +25,17 @@ export default function Chat({ navigation }) {
   const route = useRoute();
   const insets = useSafeAreaInsets();
 
-  // ✅ normalize user param
+  // ✅ normalize user param - handle both id and _id fields
   const chatUser = route.params?.user ?? { _id: "guest", name: "Guest" };
+  // Ensure chatUser has _id field for consistency
+  if (chatUser && !chatUser._id && chatUser.id) {
+    chatUser._id = chatUser.id;
+  }
+  
+  // Debug: Log the chatUser object to see its structure
+  console.log("🔍 Chat screen loaded with user:", chatUser);
+  console.log("🔍 chatUser._id:", chatUser._id);
+  console.log("🔍 chatUser.id:", chatUser.id);
 
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -48,6 +57,9 @@ export default function Chat({ navigation }) {
           const parsed = JSON.parse(stored);
           setToken(parsed.token);
           setMyUserId(parsed._id); // ✅ use _id not id
+          console.log("🔍 Loaded user data:", { token: parsed.token ? "present" : "missing", userId: parsed._id });
+        } else {
+          console.log("❌ No user data found in AsyncStorage");
         }
       } catch (err) {
         console.error("❌ Error reading userData:", err);
@@ -161,6 +173,24 @@ export default function Chat({ navigation }) {
   // ✅ Send message
   const sendMessage = async () => {
     if (newMessage.trim() === "" || !token || !myUserId) return;
+
+    // Debug: Log the user data being sent
+    console.log("🔍 Debug - Sending message:");
+    console.log("chatUser:", chatUser);
+    console.log("chatUser._id:", chatUser._id);
+    console.log("myUserId:", myUserId);
+    console.log("token:", token ? "present" : "missing");
+
+    // Validate user IDs
+    if (!chatUser._id || chatUser._id === "guest") {
+      Alert.alert("Error", "Invalid recipient user ID");
+      return;
+    }
+
+    if (!myUserId) {
+      Alert.alert("Error", "Your user ID is missing");
+      return;
+    }
 
     try {
       const tempId = `local-${Date.now()}`;
