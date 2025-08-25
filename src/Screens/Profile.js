@@ -74,27 +74,47 @@ const Profile = () => {
   const navigation = useNavigation();
   const [profilePicUri, setProfilePicUri] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await getUserData();
+        if (userData) {
+          if (userData.name) setUserName(userData.name);
+          if (userData.email) setUserEmail(userData.email);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const fetchUserIdAndProfilePic = async () => {
-      const userData = await getUserData();
-      if (userData && userData._id) {
+      try {
+        const userData = await getUserData();
+
+        if (!userData?._id) return;
+
         setUserId(userData._id);
 
-        // Fetch profile picture URL
-        try {
-          const res = await axios.get(
-            `${API_BASE_URL}/user/${userData._id}/profile-picture`
-          );
-          if (res.data && res.data.url) {
-            setProfilePicUri(res.data.url);
-            console.log("Fetched profile picture URL:", res.data.url); // <-- Log the URL here
-          }
-        } catch (err) {
-          console.log("Error fetching profile picture:", err);
+        const { data } = await axios.get(
+          `${API_BASE_URL}/user/${userData._id}/profile-picture`
+        );
+
+        if (data?.url) {
+          setProfilePicUri(data.url);
+          console.log("Fetched profile picture URL:", data.url);
         }
+      } catch (error) {
+        console.error("Error fetching user data or profile picture:", error);
       }
     };
+
     fetchUserIdAndProfilePic();
   }, []);
 
@@ -140,10 +160,10 @@ const Profile = () => {
 
     try {
       console.log("user id", userId);
-      // STEP 1: Get S3 upload URL from backend
+
+      // STEP 1: Get presigned S3 upload URL + fileKey
       const res = await axios.get(
         `${API_BASE_URL}/user/profile-picture/upload-url`,
-
         {
           params: {
             fileName,
@@ -152,37 +172,101 @@ const Profile = () => {
           },
         }
       );
-      console.log(res.data, "file name");
-      // ✅ Fix: Extract correct values from API response
+
       const { url: uploadUrl, key: fileKey } = res.data;
-      console.log("GET API Response:", res.data);
-      console.log("Upload URL:", uploadUrl);
+      console.log("Presign Response:", res.data);
 
       // STEP 2: Convert local image file to blob
-      const fileData = await (await fetch(file.uri)).blob();
+      // const fileData = await (await fetch(file.uri)).blob();
+      const fileData = {
+        uri: file.uri,
+        type: fileType,
+        name: fileName,
+      };
 
-      // ✅ Fix: Use axios.put to upload to S3
-      await axios.put(uploadUrl, fileData, {
+      // STEP 3: Upload to S3 using presigned PUT URL
+      // STEP 3: Upload to S3 using fetch (not axios, since axios + RN blob = problems)
+      await fetch(uploadUrl, {
+        method: "PUT",
         headers: {
           "Content-Type": fileType,
         },
+        body: await (await fetch(file.uri)).blob(), // if this fails, replace with fileData
       });
 
-      console.log("PUT Upload Successful!");
-      console.log("user id ", userId);
+      console.log("✅ PUT Upload Successful");
 
-      // STEP 3: Notify backend after successful upload
+      // STEP 4: Notify backend (save fileKey in DB)
       await axios.post(`${API_BASE_URL}/user/${userId}/profile-picture`, {
         fileKey,
       });
 
-      setProfilePicUri(file.uri);
+      // STEP 5: Get fresh signed GET URL from backend for display
+      const res2 = await axios.get(
+        `${API_BASE_URL}/user/${userId}/profile-picture`
+      );
+      if (res2.data && res2.data.url) {
+        setProfilePicUri(res2.data.url); // ✅ always use signed GET url
+        console.log("✅ Signed GET URL for display:", res2.data.url);
+      }
+
       Alert.alert("Success", "Profile picture uploaded successfully!");
     } catch (error) {
-      console.error("Upload error:", error);
+      console.error("Upload error:", error.response || error.message || error);
       Alert.alert("Error", "Failed to upload image");
     }
   };
+
+  //   const fileName = file.fileName || "profile.jpg";
+  //   const fileType = file.type || "image/jpeg";
+
+  //   try {
+  //     console.log("user id", userId);
+  //     // STEP 1: Get S3 upload URL from backend
+  //     const res = await axios.get(
+  //       `${API_BASE_URL}/user/profile-picture/upload-url`,
+
+  //       {
+  //         params: {
+  //           fileName,
+  //           fileType,
+  //           userId,
+  //         },
+  //       }
+  //     );
+  //     console.log(res.data, "file name");
+  //     // ✅ Fix: Extract correct values from API response
+  //     const { url: uploadUrl, key: fileKey } = res.data;
+  //     console.log("GET API Response:", res.data);
+  //     console.log("Upload URL:", uploadUrl);
+
+  //     // STEP 2: Convert local image file to blob
+  //     const fileData = await (await fetch(file.uri)).blob();
+
+  //     // ✅ Fix: Use axios.put to upload to S3
+  //     await axios.put(uploadUrl, fileData, {
+  //       headers: {
+  //         "Content-Type": fileType,
+  //       },
+  //     });
+
+  //     console.log("PUT Upload Successful!");
+  //     console.log("user id ", userId);
+
+  //     // STEP 3: Notify backend after successful upload
+  //     await axios.post(`${API_BASE_URL}/user/${userId}/profile-picture`, {
+  //       fileKey,
+  //     });
+
+  //     setProfilePicUri(file.uri);
+  //     Alert.alert("Success", "Profile picture uploaded successfully!");
+  //   } catch (error) {
+  //     console.error("Upload error:", error);
+  //     Alert.alert("Error", "Failed to upload image");
+  //   }
+  // };
+
+  console.log(profilePicUri, "profile pic uri");
 
   const renderCard = ({ item }) => (
     <TouchableOpacity
@@ -239,9 +323,12 @@ const Profile = () => {
           </TouchableOpacity>
         </View>
         <Text style={tw`text-lg font-bold text-gray-900 mt-1`}>
-          Franklin Clinton
+          {userName || "Guest User"}
         </Text>
-        <Text style={tw`text-sm text-gray-500`}>franklinclinton@gmail.com</Text>
+
+        <Text style={tw`text-sm text-gray-500`}>
+          {userEmail || "guest@example.com"}
+        </Text>
       </View>
 
       {/* Menu List */}
