@@ -13,6 +13,7 @@ import WellbeingScreen from "../Screens/Wellbeing";
 import Offers from "../Screens/Offers";
 import SocialPage from "../Screens/SocialPage";
 import Conversations from "../Screens/Conversations";
+
 const Tab = createBottomTabNavigator();
 
 export default function AuthTabs() {
@@ -27,6 +28,7 @@ export default function AuthTabs() {
       <Tab.Screen name="Social" component={Conversations} />
       <Tab.Screen name="Wellbeing" component={WellbeingScreen} />
       <Tab.Screen name="Offers" component={Offers} />
+     
 
     </Tab.Navigator>
   );

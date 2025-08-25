@@ -392,11 +392,29 @@
 
 // export default BusinessPage;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../../src/utils/config";
 const API_URL = `${API_BASE_URL}/business/search`;
-import { View, Text, TouchableOpacity, TextInput, ScrollView, Linking, Alert } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, ScrollView, Linking, Alert, Button } from "react-native";
+import AddBusinessModal from "../../components/AddBusinessModal";
 import tw from "tailwind-react-native-classnames";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 
@@ -408,6 +426,7 @@ const BusinessPage = ({ navigation }) => {
   const [selectedState, setSelectedState] = useState("All");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const fetchBusinesses = () => {
     setLoading(true);
@@ -438,7 +457,24 @@ const BusinessPage = ({ navigation }) => {
     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
       {/* Section Title */}
       <View style={tw`pt-14`}>
-        <Text style={tw`text-xl font-bold text-gray-800 mb-1`}>Business</Text>
+          <View style={tw`flex-row justify-between items-center`}>
+          <Text style={tw`text-xl font-bold text-gray-800 mb-1`}>Business</Text>
+
+          {/* Button to open modal */}
+          <TouchableOpacity
+            style={tw`bg-red-500 px-4 py-2 rounded-lg`}
+            onPress={() => setModalVisible(true)}
+          >
+            <Text style={tw`text-white font-bold`}>Add Business</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Modal */}
+        <AddBusinessModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+        />
+
         <Text style={tw`text-sm text-gray-600 mb-4`}>
           Connect with business professionals, access industry insights, and
           explore partnership opportunities.
@@ -622,5 +658,7 @@ const BusinessPage = ({ navigation }) => {
 };
 
 export default BusinessPage;
+
+
 
 

@@ -16,7 +16,6 @@ export default function Onboarding({ navigation }) {
       resizeMode="cover"
       style={{ flex: 1 }}
     >
-      {/* Overlay to dim background */}
       <View
         style={{
           backgroundColor: "rgba(0,0,0,0.4)",
