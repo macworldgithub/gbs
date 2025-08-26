@@ -217,6 +217,19 @@ const Profile = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("userData"); // clear storage
+    } catch (e) {
+      console.log("Error removing user data:", e);
+    }
+    // Reset navigation to Signin
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Signin" }],
+    });
+  };
+
   //   const fileName = file.fileName || "profile.jpg";
   //   const fileType = file.type || "image/jpeg";
 
@@ -292,7 +305,10 @@ const Profile = () => {
       {/* Header */}
       <View style={tw`px-4 pt-6 flex-row justify-between items-center`}>
         <Text style={tw`text-lg font-bold text-gray-800`}>Profile</Text>
-        <TouchableOpacity style={tw`bg-red-100 px-3 py-1 rounded-full`}>
+        <TouchableOpacity
+          style={tw`bg-red-100 px-3 py-1 rounded-full`}
+          onPress={handleLogout}
+        >
           <Text style={tw`text-red-500`}>Logout</Text>
         </TouchableOpacity>
       </View>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,29 +8,44 @@ import {
   ScrollView,
   Alert,
   Modal,
-  FlatList,
-} from 'react-native';
-import tw from 'tailwind-react-native-classnames';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import { useNavigation } from '@react-navigation/native';
+} from "react-native";
+import tw from "tailwind-react-native-classnames";
+import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
+import { useNavigation } from "@react-navigation/native";
+import { getUserData } from "../utils/storage";
 
 const countries = [
-  { code: '+1', name: 'USA' },
-  { code: '+92', name: 'Pakistan' },
-  { code: '+91', name: 'India' },
+  { code: "+1", name: "USA" },
+  { code: "+92", name: "Pakistan" },
+  { code: "+91", name: "India" },
 ];
 
 const EditProfile = () => {
   const navigation = useNavigation();
 
-  const [fullName, setFullName] = useState('Franklin Clinton');
-  const [email, setEmail] = useState('franklinclinton@gmail.com');
-  const [phoneNumber, setPhoneNumber] = useState('123456789');
-  const [selectedCode, setSelectedCode] = useState('+92');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [selectedCode, setSelectedCode] = useState("+92");
   const [countryModalVisible, setCountryModalVisible] = useState(false);
 
+  useEffect(() => {
+    const loadUserData = async () => {
+      const userData = await getUserData();
+      if (userData) {
+        setFullName(userData.name || "");
+        setEmail(userData.email || "");
+        setPhoneNumber(userData.phone || "");
+      }
+    };
+    loadUserData();
+  }, []);
+
   const handleEditIconPress = () => {
-    Alert.alert('Change Profile Picture', 'Add image picker functionality here.');
+    Alert.alert(
+      "Change Profile Picture",
+      "Add image picker functionality here."
+    );
   };
 
   const handleCountrySelect = (code) => {
@@ -46,16 +61,21 @@ const EditProfile = () => {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <FontAwesome5 name="arrow-left" size={16} color="black" />
           </TouchableOpacity>
-          <Text style={tw`text-lg font-semibold text-black ml-4`}>Edit Profile</Text>
+          <Text style={tw`text-lg font-semibold text-black ml-4`}>
+            Edit Profile
+          </Text>
         </View>
 
         {/* Profile Image */}
         <View style={tw`items-center mt-6 mb-4 relative`}>
-          <Image
-            source={require('../../assets/profile.png')}
-            style={[{ width: 80, height: 80, borderRadius: 40 }, tw`bg-red-100`]}
-          />
-          <TouchableOpacity
+          {/* <Image
+            source={require("../../assets/profile.png")} // TODO: replace with real profilePicUri if needed
+            style={[
+              { width: 80, height: 80, borderRadius: 40 },
+              tw`bg-red-100`,
+            ]}
+          /> */}
+          {/* <TouchableOpacity
             style={[
               tw`absolute bg-red-500 rounded-full p-1`,
               { bottom: 0, right: 110 },
@@ -63,21 +83,23 @@ const EditProfile = () => {
             onPress={handleEditIconPress}
           >
             <FontAwesome5 name="lock" size={12} color="white" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Input Fields */}
         <View style={tw`px-4`}>
+          {/* Full name */}
           <Text style={tw`text-sm text-gray-600 mb-1`}>Full name</Text>
           <TextInput
             value={fullName}
             onChangeText={setFullName}
             style={[
               tw`border px-4 py-2 rounded-lg mb-4`,
-              { borderColor: 'red' },
+              { borderColor: "red" },
             ]}
           />
 
+          {/* Email (readonly) */}
           <Text style={tw`text-sm text-gray-600 mb-1`}>Email</Text>
           <TextInput
             value={email}
@@ -85,6 +107,7 @@ const EditProfile = () => {
             style={tw`border border-gray-300 bg-gray-100 px-4 py-2 rounded-lg mb-4`}
           />
 
+          {/* Phone */}
           <Text style={tw`text-sm text-gray-600 mb-1`}>Phone number</Text>
           <View
             style={tw`flex-row items-center border border-gray-300 rounded-lg px-4 mb-4`}
@@ -113,10 +136,12 @@ const EditProfile = () => {
         </View>
       </ScrollView>
 
-      {/* Save Button - fixed at bottom */}
+      {/* Save Button */}
       <View style={tw`px-4 pb-4 absolute bottom-0 left-0 right-0`}>
         <TouchableOpacity style={tw`bg-red-500 py-3 rounded-full`}>
-          <Text style={tw`text-center text-white font-semibold`}>Save Changes</Text>
+          <Text style={tw`text-center text-white font-semibold`}>
+            Save Changes
+          </Text>
         </TouchableOpacity>
       </View>
 
