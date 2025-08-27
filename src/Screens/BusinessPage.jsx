@@ -50,6 +50,7 @@ const BusinessPage = ({ navigation }) => {
           limit,
         },
       });
+      
 
       console.log("Business list response:", response.data);
 
