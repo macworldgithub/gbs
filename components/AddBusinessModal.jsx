@@ -1,18 +1,12 @@
-import React, { useState } from "react";
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-  Alert,
-} from "react-native";
-import { Picker } from "@react-native-picker/picker"; // 👈 import Picker
-import tw from "twrnc";
+import React, { useState, useEffect } from "react";
+import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { Picker } from '@react-native-picker/picker';
+import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import { API_BASE_URL } from "../src/utils/config";
+import { getUserData } from "../src/utils/storage";
 
+// Predefined options
 const states = ["VIC", "NSW", "QLD", "SA", "WA"];
 const industries = [
   "Professional Services",
@@ -28,226 +22,266 @@ const industries = [
   "Other Services",
 ];
 
-const AddBusinessModal = ({ visible, onClose, fetchBusinesses }) => {
-  const [business, setBusiness] = useState({
-    companyName: "",
-    title: "",
-    industry: "",
-    state: "",
-    city: "",
-    about: "",
-    services: "",
-    industriesServed: "",
-    lookingFor: "",
-    phone: "",
-    email: "",
-    website: "",
-    rating: "",
-    socialLinks: "",
-  });
+const AddBusinessModal = ({ visible, onClose, onBusinessAdded }) => {
+  const [companyName, setCompanyName] = useState("");
+  const [title, setTitle] = useState("");
+  const [industry, setIndustry] = useState(null);
+  const [state, setState] = useState(null);
+  const [city, setCity] = useState("");
+  const [about, setAbout] = useState("");
+  const [services, setServices] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [website, setWebsite] = useState("");
+  const [industriesServed, setIndustriesServed] = useState("");
+  const [lookingFor, setLookingFor] = useState("");
+  const [rating, setRating] = useState("0");
+  const [socialLinks, setSocialLinks] = useState([{ platform: "", url: "" }]);
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (key, value) => {
-    setBusiness((prev) => ({ ...prev, [key]: value }));
+  useEffect(() => {
+    if (visible) {
+      resetForm();
+    }
+  }, [visible]);
+
+  const resetForm = () => {
+    setCompanyName("");
+    setTitle("");
+    setIndustry(null);
+    setState(null);
+    setCity("");
+    setAbout("");
+    setServices("");
+    setPhone("");
+    setEmail("");
+    setWebsite("");
+    setIndustriesServed("");
+    setLookingFor("");
+    setRating("0");
+    setSocialLinks([{ platform: "", url: "" }]);
   };
 
-  const handleSubmit = async () => {
-    try {
-      const ratingValue = business.rating ? parseFloat(business.rating) : 0;
-
-      const payload = {
-        companyName: business.companyName,
-        title: business.title,
-        industry: business.industry,
-        state: business.state,
-        city: business.city,
-        about: business.about,
-        services: business.services
-          ? business.services.split(",").map((s) => s.trim())
-          : [],
-        industriesServed: business.industriesServed
-          ? business.industriesServed.split(",").map((s) => s.trim())
-          : [],
-        lookingFor: business.lookingFor,
-        phone: business.phone,
-        email: business.email,
-        website: business.website,
-        rating: ratingValue,
-        socialLinks: business.socialLinks
-          ? business.socialLinks.split(",").map((link) => ({ url: link.trim() }))
-          : [],
-        gallery: [],
-        testimonials: [],
-        memberSince: new Date().toISOString(),
-        specialOffers: [],
-        isFeatured: false,
-      };
-
-      console.log("Submitting payload:", payload);
-
-      const response = await axios.post(`${API_BASE_URL}/business`, payload, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("Response:", response.data);
-      if (fetchBusinesses) fetchBusinesses();
-      Alert.alert("Success", "Business created successfully!");
-      onClose();
-
-      setBusiness({
-        companyName: "",
-        title: "",
-        industry: "",
-        state: "",
-        city: "",
-        about: "",
-        services: "",
-        industriesServed: "",
-        lookingFor: "",
-        phone: "",
-        email: "",
-        website: "",
-        rating: "",
-        socialLinks: "",
-      });
-    } catch (error) {
-      console.error(
-        "Error adding business:",
-        error.response?.data || error.message
-      );
-      Alert.alert("Error", "Failed to add business");
+  const submitBusiness = async () => {
+    if (!companyName || !title || !industry || !city || !about) {
+      Alert.alert("Error", "Please fill all required fields");
+      return;
     }
+
+    setLoading(true);
+    try {
+      const userData = await getUserData();
+      const token = userData?.token;
+      if (!token) {
+        Alert.alert("Error", "User not authenticated. Please log in again.");
+        return;
+      }
+
+      const response = await axios.post(
+        `${API_BASE_URL}/business`,
+        {
+          companyName,
+          title,
+          industry,
+          state,
+          city,
+          about,
+          services: services.split(",").map((s) => s.trim()),
+          phone,
+          email,
+          website,
+          industriesServed: industriesServed ? industriesServed.split(",").map((s) => s.trim()) : [],
+          lookingFor,
+          rating: parseFloat(rating) || 0,
+          socialLinks: socialLinks.filter((link) => link.platform && link.url),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      Alert.alert("Success", "Business added successfully!", [
+        {
+          text: "OK",
+          onPress: () => {
+            if (onBusinessAdded) onBusinessAdded(true);
+            resetForm();
+            onClose();
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("Error adding business:", error.response?.data || error.message);
+      Alert.alert("Error", `Failed to add business: ${error.response?.statusText || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSocialLinkChange = (index, field, value) => {
+    const updatedLinks = [...socialLinks];
+    updatedLinks[index][field] = value;
+    setSocialLinks(updatedLinks);
+  };
+
+  const addSocialLinkField = () => {
+    setSocialLinks([...socialLinks, { platform: "", url: "" }]);
   };
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={tw`flex-1 justify-center items-center bg-black/50`}>
-        <View style={tw`bg-white w-11/12 max-h-[90%] rounded-2xl p-5`}>
+      <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+        <ScrollView
+          style={[tw`bg-white w-11/12 rounded-2xl p-5`, { maxHeight: "85%" }]}
+          keyboardShouldPersistTaps="handled"
+        >
           <Text style={tw`text-lg font-bold mb-4`}>Add Business</Text>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <TextInput
-              placeholder="Company Name"
-              style={tw`border p-2 rounded mb-3`}
-              value={business.companyName}
-              onChangeText={(val) => handleChange("companyName", val)}
-            />
-            <TextInput
-              placeholder="Owner/Title"
-              style={tw`border p-2 rounded mb-3`}
-              value={business.title}
-              onChangeText={(val) => handleChange("title", val)}
-            />
+          <TextInput
+            placeholder="Company Name"
+            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            value={companyName}
+            onChangeText={setCompanyName}
+          />
+          <TextInput
+            placeholder="Title"
+            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            value={title}
+            onChangeText={setTitle}
+          />
 
-            {/* Industry Dropdown */}
-            <View style={tw`border rounded mb-3`}>
-              <Picker
-                selectedValue={business.industry}
-                onValueChange={(val) => handleChange("industry", val)}
-              >
-                <Picker.Item label="Select Industry" value="" />
-                {industries.map((ind, idx) => (
-                  <Picker.Item key={idx} label={ind} value={ind} />
-                ))}
-              </Picker>
-            </View>
-
-            {/* State Dropdown */}
-            <View style={tw`border rounded mb-3`}>
-              <Picker
-                selectedValue={business.state}
-                onValueChange={(val) => handleChange("state", val)}
-              >
-                <Picker.Item label="Select State" value="" />
-                {states.map((st, idx) => (
-                  <Picker.Item key={idx} label={st} value={st} />
-                ))}
-              </Picker>
-            </View>
-
-            <TextInput
-              placeholder="City"
-              style={tw`border p-2 rounded mb-3`}
-              value={business.city}
-              onChangeText={(val) => handleChange("city", val)}
-            />
-            <TextInput
-              placeholder="About"
-              style={tw`border p-2 rounded mb-3`}
-              value={business.about}
-              onChangeText={(val) => handleChange("about", val)}
-              multiline
-            />
-            <TextInput
-              placeholder="Services (comma separated)"
-              style={tw`border p-2 rounded mb-3`}
-              value={business.services}
-              onChangeText={(val) => handleChange("services", val)}
-            />
-            <TextInput
-              placeholder="Industries Served (comma separated)"
-              style={tw`border p-2 rounded mb-3`}
-              value={business.industriesServed}
-              onChangeText={(val) => handleChange("industriesServed", val)}
-            />
-            <TextInput
-              placeholder="Looking For"
-              style={tw`border p-2 rounded mb-3`}
-              value={business.lookingFor}
-              onChangeText={(val) => handleChange("lookingFor", val)}
-            />
-            <TextInput
-              placeholder="Phone"
-              style={tw`border p-2 rounded mb-3`}
-              value={business.phone}
-              onChangeText={(val) => handleChange("phone", val)}
-              keyboardType="phone-pad"
-            />
-            <TextInput
-              placeholder="Email"
-              style={tw`border p-2 rounded mb-3`}
-              value={business.email}
-              onChangeText={(val) => handleChange("email", val)}
-              keyboardType="email-address"
-            />
-            <TextInput
-              placeholder="Website"
-              style={tw`border p-2 rounded mb-3`}
-              value={business.website}
-              onChangeText={(val) => handleChange("website", val)}
-            />
-            <TextInput
-              placeholder="Rating (0-5)"
-              style={tw`border p-2 rounded mb-3`}
-              value={business.rating}
-              onChangeText={(val) => handleChange("rating", val)}
-              keyboardType="numeric"
-            />
-            <TextInput
-              placeholder="Social Links (comma separated URLs)"
-              style={tw`border p-2 rounded mb-5`}
-              value={business.socialLinks}
-              onChangeText={(val) => handleChange("socialLinks", val)}
-            />
-
-            {/* Submit Button */}
-            <TouchableOpacity
-              style={tw`bg-green-600 p-3 rounded-xl mb-3`}
-              onPress={handleSubmit}
+          <View style={tw`border border-gray-300 rounded-lg mb-3`}>
+            <Picker
+              selectedValue={industry}
+              onValueChange={(itemValue) => setIndustry(itemValue)}
+              style={tw`p-3`}
+              dropdownIconColor="#000"
             >
-              <Text style={tw`text-white text-center font-bold`}>Submit</Text>
-            </TouchableOpacity>
+              <Picker.Item label="Select Industry" value={null} />
+              {industries.map((ind) => (
+                <Picker.Item key={ind} label={ind} value={ind} />
+              ))}
+            </Picker>
+          </View>
 
-            {/* Close Button */}
-            <TouchableOpacity
-              style={tw`bg-gray-500 p-3 rounded-xl`}
-              onPress={onClose}
+          <View style={tw`border border-gray-300 rounded-lg mb-3`}>
+            <Picker
+              selectedValue={state}
+              onValueChange={(itemValue) => setState(itemValue)}
+              style={tw`p-3`}
+              dropdownIconColor="#000"
             >
-              <Text style={tw`text-white text-center font-bold`}>Close</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
+              <Picker.Item label="Select State" value={null} />
+              {states.map((st) => (
+                <Picker.Item key={st} label={st} value={st} />
+              ))}
+            </Picker>
+          </View>
+
+          <TextInput
+            placeholder="City"
+            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            value={city}
+            onChangeText={setCity}
+          />
+          <TextInput
+            placeholder="About"
+            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            value={about}
+            onChangeText={setAbout}
+          />
+          <TextInput
+            placeholder="Services (comma separated)"
+            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            value={services}
+            onChangeText={setServices}
+          />
+          <TextInput
+            placeholder="Phone"
+            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            value={phone}
+            onChangeText={setPhone}
+          />
+          <TextInput
+            placeholder="Email"
+            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            value={email}
+            onChangeText={setEmail}
+          />
+          <TextInput
+            placeholder="Website"
+            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            value={website}
+            onChangeText={setWebsite}
+          />
+
+          <TextInput
+            placeholder="Industries Served (comma separated)"
+            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            value={industriesServed}
+            onChangeText={setIndustriesServed}
+          />
+          <TextInput
+            placeholder="Looking For"
+            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            value={lookingFor}
+            onChangeText={setLookingFor}
+          />
+          <TextInput
+            placeholder="Rating (0-5)"
+            keyboardType="numeric"
+            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            value={rating}
+            onChangeText={setRating}
+          />
+
+          <Text style={tw`font-bold mb-2`}>Social Links</Text>
+          {socialLinks.map((link, index) => (
+            <View key={index} style={tw`mb-2`}>
+              <TextInput
+                placeholder="Platform (e.g. LinkedIn)"
+                style={tw`border border-gray-300 rounded-lg p-3 mb-1 text-gray-500`}
+                value={link.platform}
+                onChangeText={(text) => handleSocialLinkChange(index, "platform", text)}
+              />
+              <TextInput
+                placeholder="URL"
+                style={tw`border border-gray-300 rounded-lg p-3 text-gray-500`}
+                value={link.url}
+                onChangeText={(text) => handleSocialLinkChange(index, "url", text)}
+              />
+            </View>
+          ))}
+          <TouchableOpacity
+            style={tw`bg-blue-500 py-2 px-4 rounded-lg mb-3`}
+            onPress={addSocialLinkField}
+          >
+            <Text style={tw`text-white text-center`}>+ Add Social Link</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={tw`bg-red-500 py-2 rounded-lg mb-2`}
+            onPress={submitBusiness}
+            disabled={loading}
+          >
+            <Text style={tw`text-white text-center font-bold`}>
+              {loading ? "Submitting..." : "Submit"}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={tw`bg-gray-300 py-2 rounded-lg`}
+            onPress={() => {
+              resetForm();
+              onClose();
+            }}
+          >
+            <Text style={tw`text-center font-bold`}>Cancel</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
     </Modal>
   );
