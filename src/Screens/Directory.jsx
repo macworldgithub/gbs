@@ -169,8 +169,8 @@ export default function MembersDirectory({ navigation }) {
           email: user.email,
           phone: user.phone,
           role: user?.activatedPackage?.role?.label || "Member",
-          image: user.avatarUrl
-            ? user.avatarUrl
+          image: user?.avatarUrl
+            ? { uri: user.avatarUrl }
             : require("../../assets/user.jpg"),
           liked: false,
         }));
@@ -185,14 +185,19 @@ export default function MembersDirectory({ navigation }) {
       // After token is set, try to prefetch conversation statuses
       try {
         if (!token) return;
-        const res = await fetch(`${API_BASE_URL}/messages/conversations?page=1&limit=100`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${API_BASE_URL}/messages/conversations?page=1&limit=100`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const data = await res.json();
         if (res.ok && data?.conversations) {
           const statusMap = {};
           data.conversations.forEach((conv) => {
-            const other = (conv.participants || []).find((p) => p._id !== myUserId);
+            const other = (conv.participants || []).find(
+              (p) => p._id !== myUserId
+            );
             if (other?._id) statusMap[other._id] = "continue";
           });
           setChatStatus(statusMap);
