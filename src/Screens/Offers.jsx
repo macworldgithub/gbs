@@ -139,6 +139,7 @@ import axios from "axios";
 import { API_BASE_URL } from "../../src/utils/config";
 import { Image } from "react-native";
 import gift1 from "../../assets/gift1.png";
+// AddOffer screen is registered in a stack; navigate by route name
 
 const tabs = ["All", "Member Offers", "Partner Deals"];
 
@@ -177,12 +178,27 @@ const Offers = ({ navigation }) => {
   return (
     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
       {/* Header */}
-      <Text style={tw`text-xl font-bold text-gray-800 mb-1 mt-14`}>
+      {/* <Text style={tw`text-xl font-bold text-gray-800 mb-1 mt-14`}>
         Exclusive offers
       </Text>
       <Text style={tw`text-sm text-gray-600 mb-4`}>
         Member Benefits & Partner Deals
-      </Text>
+      </Text> */}
+
+    <View style={tw`flex-row justify-between items-center mt-14 mb-1`}>
+  <Text style={tw`text-xl font-bold text-gray-800`}>
+    Exclusive offers
+  </Text>
+  <TouchableOpacity style={tw`bg-red-500 py-2 px-4 rounded-lg`}
+  onPress={() => navigation.navigate("AddOffer")}
+    >
+    <Text style={tw`text-white text-base font-semibold`}>+ Add Offer</Text>
+  </TouchableOpacity>
+</View>
+
+<Text style={tw`text-sm text-gray-600 mb-4`}>
+  Member Benefits & Partner Deals
+</Text>
 
       {/* Tabs */}
       <View style={tw`flex-row mb-4`}>

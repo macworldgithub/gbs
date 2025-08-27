@@ -47,14 +47,14 @@ const OfferDetails = ({ route, navigation }) => {
   if (!offer) return null;
 
   return (
-    <View style={tw`flex-1 bg-white`}>
+    <View style={tw`flex-1 bg-white mt-8`}>
       {/* Top Header */}
-      <View style={tw`flex-row items-center bg-red-500 px-4 py-3`} className="">
+      <View style={tw`flex-row items-center bg-white px-4 py-3`} className="">
         <TouchableOpacity onPress={() => navigation.goBack()} style={tw`mr-3`}>
-          <MaterialIcons name="arrow-back" size={24} color="white" />
+          <MaterialIcons name="arrow-back" size={24} color="red" />
 
         </TouchableOpacity>
-        <Text style={tw`text-white text-lg font-bold`} className="">Offer Details</Text>
+        <Text style={tw`text-black text-lg font-bold `} className="">Offer Details</Text>
       </View>
 
       <ScrollView style={tw`flex-1 p-4`}>
@@ -124,7 +124,7 @@ const OfferDetails = ({ route, navigation }) => {
             >
               <Text style={tw`text-white text-center font-bold`}>Visit</Text>
             </TouchableOpacity>
-          )}
+ )}
         </View>
       </ScrollView>
     </View>
