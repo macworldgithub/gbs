@@ -255,11 +255,12 @@ export default function MyBusiness() {
                     navigation.navigate("BusinessDetail", { id: item._id });
                   }}
                 >
-                  
+
                   <Text style={tw`text-white font-medium`}>View Details</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
+            
           )}
         />
       )}
