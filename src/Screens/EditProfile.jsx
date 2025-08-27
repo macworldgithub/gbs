@@ -4,15 +4,17 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   ScrollView,
-  Alert,
   Modal,
+  Alert,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
 import { getUserData } from "../utils/storage";
+import { API_BASE_URL } from "../utils/config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const countries = [
   { code: "+1", name: "USA" },
@@ -23,9 +25,14 @@ const countries = [
 const EditProfile = () => {
   const navigation = useNavigation();
 
+  const [userId, setUserId] = useState("");
+  const [token, setToken] = useState("");
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [selectedCode, setSelectedCode] = useState("+92");
   const [countryModalVisible, setCountryModalVisible] = useState(false);
 
@@ -33,24 +40,129 @@ const EditProfile = () => {
     const loadUserData = async () => {
       const userData = await getUserData();
       if (userData) {
+        setUserId(userData._id || "");
+        setToken(userData.token || "");
         setFullName(userData.name || "");
-        setEmail(userData.email || "");
         setPhoneNumber(userData.phone || "");
       }
     };
     loadUserData();
   }, []);
 
-  const handleEditIconPress = () => {
-    Alert.alert(
-      "Change Profile Picture",
-      "Add image picker functionality here."
-    );
-  };
-
   const handleCountrySelect = (code) => {
     setSelectedCode(code);
     setCountryModalVisible(false);
+  };
+
+  // const handleSaveChanges = async () => {
+  //   // If user wants to update password, check validations
+  //   if (newPassword || confirmPassword) {
+  //     if (!currentPassword) {
+  //       Alert.alert("Error", "Please enter your current password.");
+  //       return;
+  //     }
+
+  //     if (newPassword !== confirmPassword) {
+  //       Alert.alert("Error", "New password and confirm password do not match.");
+  //       return;
+  //     }
+  //   }
+
+  //   try {
+  //     const body = {
+  //       name: fullName,
+  //       phone: phoneNumber,
+  //       ...(newPassword
+  //         ? { currentPassword, password: newPassword } // ✅ send password update only if new password exists
+  //         : {}), // ✅ otherwise don’t send any password fields
+  //     };
+
+  //     const res = await axios.patch(`${API_BASE_URL}/user/${userId}`, body, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+
+  //     Alert.alert("Success", "Profile updated successfully!");
+  //     // ✅ Save updated user info locally so Profile screen sees it immediately
+  //     const updatedUserData = {
+  //       _id: userId,
+  //       token,
+  //       name: body.name,
+  //       phone: body.phone,
+  //       email: res.data.email || undefined, // in case email is editable
+  //     };
+
+  //     await AsyncStorage.setItem("userData", JSON.stringify(updatedUserData));
+
+  //     navigation.goBack();
+  //   } catch (error) {
+  //     console.error("Update failed:", error.response?.data || error.message);
+
+  //     const backendMessage =
+  //       error.response?.data?.message ||
+  //       "Failed to update profile. Please try again.";
+
+  //     Alert.alert("Error", backendMessage);
+  //   }
+  // };
+  const handleSaveChanges = async () => {
+    // If user wants to update password, check validations
+    if (newPassword || confirmPassword) {
+      if (!currentPassword) {
+        Alert.alert("Error", "Please enter your current password.");
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        Alert.alert("Error", "New password and confirm password do not match.");
+        return;
+      }
+    }
+
+    try {
+      // Build request body only with updated fields
+      const body = {};
+      if (fullName) body.name = fullName;
+      if (phoneNumber) body.phone = phoneNumber;
+      if (newPassword) {
+        body.currentPassword = currentPassword;
+        body.password = newPassword;
+      }
+
+      const res = await axios.patch(`${API_BASE_URL}/user/${userId}`, body, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      Alert.alert("Success", "Profile updated successfully!");
+
+      // ✅ Merge new data with previously stored userData instead of overwriting
+      const existingUserData = await getUserData();
+      // const updatedUserData = {
+      //   ...existingUserData,
+      //   name: res.data.name || existingUserData.name,
+      //   phone: res.data.phone || existingUserData.phone,
+      //   email: res.data.email || existingUserData.email,
+      //   // profilePic: res.data.profilePic || existingUserData.profilePic,
+      // };
+      const updatedUserData = {
+        ...existingUserData,
+        name: res.data.name || existingUserData.name,
+        phone: res.data.phone || existingUserData.phone,
+        email: res.data.email || existingUserData.email,
+        profilePicKey: existingUserData.profilePicKey, // ✅ preserve key
+      };
+
+      await AsyncStorage.setItem("userData", JSON.stringify(updatedUserData));
+
+      navigation.goBack();
+    } catch (error) {
+      console.error("Update failed:", error.response?.data || error.message);
+
+      const backendMessage =
+        error.response?.data?.message ||
+        "Failed to update profile. Please try again.";
+
+      Alert.alert("Error", backendMessage);
+    }
   };
 
   return (
@@ -66,45 +178,16 @@ const EditProfile = () => {
           </Text>
         </View>
 
-        {/* Profile Image */}
-        <View style={tw`items-center mt-6 mb-4 relative`}>
-          {/* <Image
-            source={require("../../assets/profile.png")} // TODO: replace with real profilePicUri if needed
-            style={[
-              { width: 80, height: 80, borderRadius: 40 },
-              tw`bg-red-100`,
-            ]}
-          /> */}
-          {/* <TouchableOpacity
-            style={[
-              tw`absolute bg-red-500 rounded-full p-1`,
-              { bottom: 0, right: 110 },
-            ]}
-            onPress={handleEditIconPress}
-          >
-            <FontAwesome5 name="lock" size={12} color="white" />
-          </TouchableOpacity> */}
-        </View>
-
         {/* Input Fields */}
-        <View style={tw`px-4`}>
+        {/* Input Fields */}
+        <View style={tw`px-4 mt-6`}>
           {/* Full name */}
           <Text style={tw`text-sm text-gray-600 mb-1`}>Full name</Text>
           <TextInput
             value={fullName}
             onChangeText={setFullName}
-            style={[
-              tw`border px-4 py-2 rounded-lg mb-4`,
-              { borderColor: "red" },
-            ]}
-          />
-
-          {/* Email (readonly) */}
-          <Text style={tw`text-sm text-gray-600 mb-1`}>Email</Text>
-          <TextInput
-            value={email}
-            editable={false}
-            style={tw`border border-gray-300 bg-gray-100 px-4 py-2 rounded-lg mb-4`}
+            placeholder="Enter your full name"
+            style={tw`border border-gray-300 px-4 py-2 rounded-lg mb-4 text-black`}
           />
 
           {/* Phone */}
@@ -125,20 +208,64 @@ const EditProfile = () => {
                 style={tw`ml-1`}
               />
             </TouchableOpacity>
-
             <TextInput
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               keyboardType="number-pad"
-              style={tw`ml-3 py-2 flex-1`}
+              placeholder="Enter your phone number"
+              style={tw`ml-3 py-2 flex-1 text-black`}
             />
           </View>
+
+          {/* Divider / Info for password */}
+          <View style={tw`mt-6 mb-2`}>
+            <Text style={tw`text-sm font-semibold text-gray-700`}>
+              🔒 Password (optional)
+            </Text>
+            <Text style={tw`text-xs text-gray-500 mt-1`}>
+              Only fill these fields if you want to change your password. Leave
+              them blank to keep your current password.
+            </Text>
+          </View>
+
+          {/* Current Password */}
+          <Text style={tw`text-sm text-gray-600 mb-1`}>Current Password</Text>
+          <TextInput
+            value={currentPassword}
+            onChangeText={setCurrentPassword}
+            secureTextEntry
+            placeholder="Enter current password (only if changing)"
+            style={tw`border border-gray-300 px-4 py-2 rounded-lg mb-4 text-black`}
+          />
+
+          {/* New Password */}
+          <Text style={tw`text-sm text-gray-600 mb-1`}>New Password</Text>
+          <TextInput
+            value={newPassword}
+            onChangeText={setNewPassword}
+            secureTextEntry
+            placeholder="Leave blank to keep the same password"
+            style={tw`border border-gray-300 px-4 py-2 rounded-lg mb-4 text-black`}
+          />
+
+          {/* Confirm Password */}
+          <Text style={tw`text-sm text-gray-600 mb-1`}>Confirm Password</Text>
+          <TextInput
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+            placeholder="Re-enter new password"
+            style={tw`border border-gray-300 px-4 py-2 rounded-lg mb-4 text-black`}
+          />
         </View>
       </ScrollView>
 
       {/* Save Button */}
       <View style={tw`px-4 pb-4 absolute bottom-0 left-0 right-0`}>
-        <TouchableOpacity style={tw`bg-red-500 py-3 rounded-full`}>
+        <TouchableOpacity
+          style={tw`bg-red-500 py-3 rounded-full`}
+          onPress={handleSaveChanges}
+        >
           <Text style={tw`text-center text-white font-semibold`}>
             Save Changes
           </Text>

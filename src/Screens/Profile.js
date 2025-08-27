@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -16,7 +16,9 @@ import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import axios from "axios";
 import { AsyncStorage } from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../utils/config";
-import { getUserData } from "../utils/storage";
+import { getUserData, storeUserData } from "../utils/storage";
+// import { useFocusEffect } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 
 const menuItems = [
   {
@@ -79,44 +81,43 @@ const Profile = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const userData = await getUserData();
-        if (userData) {
-          if (userData.name) setUserName(userData.name);
-          if (userData.email) setUserEmail(userData.email);
+      const userData = await getUserData();
+      if (userData) {
+        setUserId(userData._id || "");
+        setUserName(userData.name || "");
+        setUserEmail(userData.email || "");
+
+        // If we have a profilePicKey, fetch fresh signed URL
+        if (userData.profilePicKey) {
+          const res = await axios.get(
+            `${API_BASE_URL}/user/${userData._id}/profile-picture`
+          );
+          if (res.data && res.data.url) {
+            setProfilePicUri(res.data.url);
+          }
         }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
       }
     };
-
     fetchUser();
   }, []);
 
-  useEffect(() => {
-    const fetchUserIdAndProfilePic = async () => {
-      try {
-        const userData = await getUserData();
-
-        if (!userData?._id) return;
-
-        setUserId(userData._id);
-
-        const { data } = await axios.get(
-          `${API_BASE_URL}/user/${userData._id}/profile-picture`
-        );
-
-        if (data?.url) {
-          setProfilePicUri(data.url);
-          console.log("Fetched profile picture URL:", data.url);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUser = async () => {
+        try {
+          const userData = await getUserData();
+          if (userData) {
+            setUserId(userData._id || "");
+            setUserName(userData.name || "");
+            setUserEmail(userData.email || "");
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
         }
-      } catch (error) {
-        console.error("Error fetching user data or profile picture:", error);
-      }
-    };
-
-    fetchUserIdAndProfilePic();
-  }, []);
+      };
+      fetchUser();
+    }, [])
+  );
 
   const handleImagePick = () => {
     Alert.alert(
@@ -201,6 +202,14 @@ const Profile = () => {
         fileKey,
       });
 
+      // ✅ Save fileKey to AsyncStorage (not signed URL)
+      const existingUserData = await getUserData();
+      const updatedUserData = {
+        ...existingUserData,
+        profilePicKey: fileKey, // save only key
+      };
+      await storeUserData(updatedUserData);
+
       // STEP 5: Get fresh signed GET URL from backend for display
       const res2 = await axios.get(
         `${API_BASE_URL}/user/${userId}/profile-picture`
@@ -229,55 +238,6 @@ const Profile = () => {
       routes: [{ name: "Signin" }],
     });
   };
-
-  //   const fileName = file.fileName || "profile.jpg";
-  //   const fileType = file.type || "image/jpeg";
-
-  //   try {
-  //     console.log("user id", userId);
-  //     // STEP 1: Get S3 upload URL from backend
-  //     const res = await axios.get(
-  //       `${API_BASE_URL}/user/profile-picture/upload-url`,
-
-  //       {
-  //         params: {
-  //           fileName,
-  //           fileType,
-  //           userId,
-  //         },
-  //       }
-  //     );
-  //     console.log(res.data, "file name");
-  //     // ✅ Fix: Extract correct values from API response
-  //     const { url: uploadUrl, key: fileKey } = res.data;
-  //     console.log("GET API Response:", res.data);
-  //     console.log("Upload URL:", uploadUrl);
-
-  //     // STEP 2: Convert local image file to blob
-  //     const fileData = await (await fetch(file.uri)).blob();
-
-  //     // ✅ Fix: Use axios.put to upload to S3
-  //     await axios.put(uploadUrl, fileData, {
-  //       headers: {
-  //         "Content-Type": fileType,
-  //       },
-  //     });
-
-  //     console.log("PUT Upload Successful!");
-  //     console.log("user id ", userId);
-
-  //     // STEP 3: Notify backend after successful upload
-  //     await axios.post(`${API_BASE_URL}/user/${userId}/profile-picture`, {
-  //       fileKey,
-  //     });
-
-  //     setProfilePicUri(file.uri);
-  //     Alert.alert("Success", "Profile picture uploaded successfully!");
-  //   } catch (error) {
-  //     console.error("Upload error:", error);
-  //     Alert.alert("Error", "Failed to upload image");
-  //   }
-  // };
 
   console.log(profilePicUri, "profile pic uri");
 

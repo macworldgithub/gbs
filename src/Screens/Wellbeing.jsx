@@ -11,7 +11,7 @@ export default function WellbeingScreen() {
       id: '1',
       title: 'Mental Health First Aid',
       date: 'March 20, 2025',
-      location: 'Barossa Valley, SA',
+    location: 'Barossa Valley, SA',
       description:
         'Learn how to provide initial support to someone experiencing a mental health problem.',
       category: 'Mental Health',
