@@ -5,9 +5,14 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
+  ScrollView,
   Alert,
   Linking,
 } from "react-native";
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
+
+
+import { Image } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
 import { getUserData } from "../utils/storage";
@@ -93,6 +98,150 @@ export default function MyBusiness() {
     ]);
   };
 
+
+  const handleUpload = async (file, businessId) => {
+    try {
+      const userData = await getUserData();
+      const token = userData?.token;
+      if (!token) {
+        Alert.alert("Error", "No token found, please login again.");
+        return;
+      }
+
+      // Step 1: Get presigned URL
+      const presignUrl = `${API_BASE_URL}/business/${businessId}/logo/upload-url?fileName=${encodeURIComponent(
+        file.fileName || "logo.jpg"
+      )}&fileType=${encodeURIComponent(file.type || "image/jpeg")}`;
+
+      const presignRes = await fetch(presignUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!presignRes.ok) throw new Error("Failed to get upload URL");
+
+      const { url, key } = await presignRes.json();
+
+      // Step 2: Upload to S3
+      const uploadRes = await fetch(url, {
+        method: "PUT",
+        body: await fetch(file.uri).then((r) => r.blob()),
+        headers: { "Content-Type": file.type || "image/jpeg" },
+      });
+
+      if (!uploadRes.ok) throw new Error("Failed to upload file to S3");
+
+      // Step 3: Update business record
+      const updateRes = await fetch(`${API_BASE_URL}/business/${businessId}/logo`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ fileKey: key }),
+      });
+
+      if (!updateRes.ok) throw new Error("Failed to update business with logo");
+
+      Alert.alert("Success", "Logo uploaded successfully!");
+      fetchBusinesses();
+    } catch (err) {
+      console.error("Upload Logo Error:", err);
+      Alert.alert("Error", err.message || "Something went wrong");
+    }
+  };
+
+
+  const uploadLogo = async (businessId) => {
+    Alert.alert(
+      "Upload Logo",
+      "Choose an option",
+      [
+        {
+          text: "Camera",
+          onPress: async () => {
+            const cameraResult = await launchCamera({ mediaType: "photo", quality: 0.7 });
+            if (!cameraResult.didCancel && cameraResult.assets?.[0]) {
+              handleUpload(cameraResult.assets[0], businessId);
+            }
+          },
+        },
+        {
+          text: "Gallery",
+          onPress: async () => {
+            const galleryResult = await launchImageLibrary({ mediaType: "photo", quality: 0.7 });
+            if (!galleryResult.didCancel && galleryResult.assets?.[0]) {
+              handleUpload(galleryResult.assets[0], businessId);
+            }
+          },
+        },
+        { text: "Cancel", style: "cancel" },
+      ],
+      { cancelable: true }
+    );
+  };
+
+
+  const handleUploadGallery = async (files, businessId) => {
+    try {
+      const userData = await getUserData();
+      const token = userData?.token;
+      if (!token) return Alert.alert("Error", "No token found, please login again.");
+
+      // Step 1: Request presigned URLs
+      const fileData = files.map((f) => ({
+        fileName: f.fileName || "gallery.jpg",
+        fileType: f.type || "image/jpeg",
+      }));
+
+      const presignRes = await fetch(
+        `${API_BASE_URL}/business/${businessId}/gallery/upload-urls`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify(fileData),
+        }
+      );
+      if (!presignRes.ok) throw new Error("Failed to get presigned URLs");
+
+      const { urls } = await presignRes.json();
+
+      await Promise.all(
+        files.map(async (file, i) => {
+          const fileBlob = await fetch(file.uri).then((r) => r.blob());
+
+          return fetch(urls[i].url, {
+            method: "PUT",
+            body: fileBlob,
+            headers: { "Content-Type": file.type || "image/jpeg" },
+          });
+        })
+      );
+
+
+      // Step 3: Save keys in business gallery
+      const fileKeys = urls.map((u) => u.key);
+      const updateRes = await fetch(`${API_BASE_URL}/business/${businessId}/gallery`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ fileKeys }),
+      });
+      if (!updateRes.ok) throw new Error("Failed to add images to gallery");
+
+      Alert.alert("Success", "Gallery updated successfully!");
+      fetchBusinesses();
+    } catch (err) {
+      console.error("Gallery Upload Error:", err);
+      Alert.alert("Error", err.message || "Something went wrong");
+    }
+  };
+
+  const uploadGallery = async (businessId) => {
+    const res = await launchImageLibrary({ mediaType: "photo", quality: 0.7, selectionLimit: 0 }); // multiple
+    if (!res.didCancel && res.assets?.length) {
+      handleUploadGallery(res.assets, businessId);
+    }
+  };
+
   return (
     <View style={tw`flex-1 bg-white p-4`}>
       {/* Header */}
@@ -116,17 +265,30 @@ export default function MyBusiness() {
               style={tw`bg-gray-50 rounded-lg p-4 mb-4`}
               onPress={() => navigation.navigate("BusinessDetail", { id: item._id })}
             >
+
               {/* Company Info */}
-              <View style={tw`flex-row justify-between items-start mb-2`}>
+              <View style={tw`flex-row items-center mb-2`}>
                 <View>
-                  <Text style={tw`text-lg font-bold text-gray-800`}>
-                    {item.companyName}
-                  </Text>
+                  <Image
+                    source={item.logo ? { uri: item.logo } : require("../../assets/profile.png")}
+                    style={tw`w-12 h-12 rounded-full`}
+                  />
+
+                  <TouchableOpacity
+                    style={tw`absolute -bottom-1 -right-2 bg-white rounded-full p-1`}
+                    onPress={() => uploadLogo(item._id)}
+                  >
+                    <MaterialIcons name="photo-library" size={16} color="#2563EB" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={tw`flex-1 ml-3`}>
+                  <Text style={tw`text-lg font-bold text-gray-800`}>{item.companyName}</Text>
                   <Text style={tw`text-xs text-gray-500`}>by {item.user?.name}</Text>
                 </View>
 
-                {/* Edit / Delete */}
-                <View style={tw`flex-row`}>
+
+                <View style={tw`flex-row items-center`}>
                   <TouchableOpacity
                     style={tw`mr-3`}
                     onPress={() => {
@@ -134,14 +296,40 @@ export default function MyBusiness() {
                       setEditModalVisible(true);
                     }}
                   >
-                    <MaterialIcons name="edit" size={20} color="#2563EB" />
+                    <MaterialIcons name="edit" size={22} color="#2563EB" />
                   </TouchableOpacity>
-
-                  <TouchableOpacity onPress={() => deleteBusiness(item._id)}>
-                    <MaterialIcons name="delete" size={20} color="#DC2626" />
+                  <TouchableOpacity
+                    onPress={() => deleteBusiness(item._id)}
+                  >
+                    <MaterialIcons name="delete" size={22} color="#DC2626" />
                   </TouchableOpacity>
                 </View>
+                <View style={tw`mt-3`}>
+                  <View style={tw`flex-row justify-between items-center mb-2`}>
+                    <Text style={tw`text-sm font-semibold text-gray-700`}>Gallery</Text>
+                    <TouchableOpacity onPress={() => uploadGallery(item._id)}>
+                      <MaterialIcons name="add-photo-alternate" size={20} color="#2563EB" />
+                    </TouchableOpacity>
+                  </View>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {item.gallery && item.gallery.length > 0 ? (
+                      item.gallery.map((img, idx) => (
+                        <Image
+                          key={idx}
+                          source={{ uri: img }}
+                          style={tw`w-20 h-20 rounded-lg mr-2`}
+                        />
+                      ))
+                    ) : (
+                      <Text style={tw`text-xs text-gray-400`}>No images yet</Text>
+                    )}
+                  </ScrollView>
+                </View>
+
+
               </View>
+
+
 
               <EditBusinessModal
                 visible={editModalVisible}
@@ -260,7 +448,7 @@ export default function MyBusiness() {
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
-            
+
           )}
         />
       )}

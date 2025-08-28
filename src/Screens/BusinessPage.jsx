@@ -3,6 +3,8 @@ import axios from "axios";
 import { API_BASE_URL } from "../../src/utils/config";
 import { getUserData } from "../../src/utils/storage";
 import { useIsFocused } from "@react-navigation/native";
+import { Image } from "react-native";
+
 import {
   View,
   Text,
@@ -28,12 +30,13 @@ const BusinessPage = ({ navigation }) => {
   const [limit, setLimit] = useState(10);
   const [modalVisible, setModalVisible] = useState(false);
   const isFocused = useIsFocused();
+  const [noPackage, setNoPackage] = useState(false);
 
-useEffect(() => {
-  if (isFocused) {
-    fetchBusinesses();
-  }
-}, [isFocused]);
+  useEffect(() => {
+    if (isFocused) {
+      fetchBusinesses();
+    }
+  }, [isFocused]);
 
 
   // 🔍 Fetch Businesses (with search + filters)
@@ -41,6 +44,7 @@ useEffect(() => {
     try {
       setLoading(true);
       setError(null);
+      setNoPackage(false);
 
       const userData = await getUserData();
       const token = userData?.token;
@@ -63,11 +67,24 @@ useEffect(() => {
 
       console.log("Business search response:", response.data);
 
+      if (response.data?.message?.toLowerCase().includes("no active package")) {
+        setNoPackage(true);
+        setBusinessListings([]);
+        return;
+      }
+
       // reference API returns `{ businesses: [...] }`
       setBusinessListings(response.data.businesses || []);
     } catch (error) {
       console.error("Error fetching businesses:", error.response?.data || error.message);
-      setError("Failed to fetch business listings");
+
+      if (error.response?.data?.message?.toLowerCase().includes("no active package")) {
+        setNoPackage(true);
+      } else {
+        setError("Failed to fetch business listings");
+      }
+
+
     } finally {
       setLoading(false);
     }
@@ -132,6 +149,27 @@ useEffect(() => {
 
       {/* Loading/Error State */}
       {loading && <Text style={tw`text-center text-gray-500`}>Loading...</Text>}
+
+      {!loading && noPackage && (
+        <View style={tw`mt-20 items-center`}>
+          <MaterialIcons name="block" size={48} color="#DC2626" />
+          <Text style={tw`text-lg font-bold text-gray-800 mt-2`}>
+            No Active Package Found
+          </Text>
+          <Text style={tw`text-sm text-gray-600 mt-1 text-center px-6`}>
+            You don’t have an active package. Please purchase a package to view business listings.
+          </Text>
+
+          <TouchableOpacity
+            style={tw`mt-4 bg-red-500 px-6 py-2 rounded-lg`}
+            onPress={() => navigation.navigate("Packages")}
+          >
+            <Text style={tw`text-white font-bold`}>View Packages</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+
       {error && <Text style={tw`text-center text-red-500`}>{error}</Text>}
 
       {/* Business Listings */}
@@ -141,8 +179,14 @@ useEffect(() => {
           style={tw`bg-gray-50 rounded-lg p-4 mb-4`}
           onPress={() => navigation.navigate("BusinessDetail", { id: business._id })}
         >
+
+
           {/* Company Info */}
-          <View style={tw`flex-row justify-between items-start mb-2`}>
+          <View style={tw`flex-row items-center mb-2`}>
+            <Image
+              source={business.logo ? { uri: business.logo } : require("../../assets/profile.png")}
+              style={tw`w-12 h-12 rounded-full mr-3`}
+            />
             <View>
               <Text style={tw`text-lg font-bold text-gray-800`}>
                 {business.companyName}
@@ -152,7 +196,8 @@ useEffect(() => {
               </Text>
             </View>
           </View>
-          
+
+
           {/* Rating & Location */}
           <View style={tw`flex-row items-center`}>
             <MaterialIcons name="star" size={16} color="#F59E0B" />

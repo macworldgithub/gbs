@@ -5,17 +5,36 @@ import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import axios from "axios";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../../src/utils/config";
+import { getUserData } from "../../src/utils/storage";
 
 const BusinessDetail = ({ route, navigation }) => {
   const { id } = route.params;
   const [business, setBusiness] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // const fetchBusinessDetail = async () => {
+  //   try {
+  //     const res = await axios.get(`${API_BASE_URL}/business/${id}`);
+  //     setBusiness(res.data);
+  //   } catch (err) {
+  //     Alert.alert("Error", "Failed to fetch business details");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const fetchBusinessDetail = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/business/${id}`);
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      const res = await axios.get(`${API_BASE_URL}/business/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       setBusiness(res.data);
     } catch (err) {
+      console.error("Business detail error:", err.response?.data || err.message);
       Alert.alert("Error", "Failed to fetch business details");
     } finally {
       setLoading(false);
@@ -27,7 +46,7 @@ const BusinessDetail = ({ route, navigation }) => {
   }, []);
 
   if (loading) {
-    return ( 
+    return (
       <View style={tw`flex-1 bg-white justify-center items-center`}>
         <Text style={tw`text-lg text-gray-600`}>Loading...</Text>
       </View>
@@ -67,14 +86,15 @@ const BusinessDetail = ({ route, navigation }) => {
           <View style={tw`flex-row items-center mb-4`}>
             {business.logo ? (
               <Image
-                source={{ uri: `${API_BASE_URL}/${business.logo}` }}
-                style={tw`w-16 h-16 rounded-lg mr-4`}
+                source={{ uri: business.logo }}
+                style={tw`w-16 h-16 rounded-xl mr-4`}
               />
             ) : (
-              <View style={tw`w-16 h-16 rounded-lg mr-4 bg-gray-200 justify-center items-center`}>
+              <View style={tw`w-16 h-16 rounded-xl mr-4 bg-gray-200 justify-center items-center`}>
                 <MaterialIcons name="business" size={24} color="#6B7280" />
               </View>
             )}
+
             <View style={tw`flex-1`}>
               <Text style={tw`text-xl font-bold text-gray-800 mb-1`}>{business.companyName}</Text>
               <Text style={tw`text-sm text-gray-500`}>by {business.user?.name}</Text>
@@ -139,7 +159,7 @@ const BusinessDetail = ({ route, navigation }) => {
           <View style={tw`mb-6`}>
             <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Looking For</Text>
             <Text style={tw`text-base text-gray-700 leading-6`}>{business.lookingFor}</Text>
-            
+
           </View>
         )}
 
@@ -194,7 +214,7 @@ const BusinessDetail = ({ route, navigation }) => {
         {/* Contact Actions */}
         <View style={tw`mb-6`}>
           <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Contact</Text>
-          
+
           {/* <View style={tw`flex-row space-x-3 mb-4`}>
             <TouchableOpacity
               style={tw`flex-1 bg-red-500 rounded-lg py-3 items-center`}
@@ -222,33 +242,33 @@ const BusinessDetail = ({ route, navigation }) => {
               <Text style={tw`text-white font-medium`}>Email</Text>
             </TouchableOpacity>
           </View> */}
-<View style={tw`flex-row mb-4`}>
-  <TouchableOpacity
-    style={tw`flex-1 bg-red-500 rounded-lg py-3 items-center mr-3`}
-    onPress={() => {
-      if (business.phone) {
-        Linking.openURL(`tel:${business.phone}`);
-      } else {
-        Alert.alert("No phone available", "This business doesn't have a phone number listed.");
-      }
-    }}
-  >
-    <Text style={tw`text-white font-medium`}>Call</Text>
-  </TouchableOpacity>
+          <View style={tw`flex-row mb-4`}>
+            <TouchableOpacity
+              style={tw`flex-1 bg-red-500 rounded-lg py-3 items-center mr-3`}
+              onPress={() => {
+                if (business.phone) {
+                  Linking.openURL(`tel:${business.phone}`);
+                } else {
+                  Alert.alert("No phone available", "This business doesn't have a phone number listed.");
+                }
+              }}
+            >
+              <Text style={tw`text-white font-medium`}>Call</Text>
+            </TouchableOpacity>
 
-  <TouchableOpacity
-    style={tw`flex-1 bg-red-500 rounded-lg py-3 items-center`}
-    onPress={() => {
-      if (business.email) {
-        Linking.openURL(`mailto:${business.email}`);
-      } else {
-        Alert.alert("No email available", "This business doesn't have an email listed.");
-      }
-    }}
-  >
-    <Text style={tw`text-white font-medium`}>Email</Text>
-  </TouchableOpacity>
-</View>
+            <TouchableOpacity
+              style={tw`flex-1 bg-red-500 rounded-lg py-3 items-center`}
+              onPress={() => {
+                if (business.email) {
+                  Linking.openURL(`mailto:${business.email}`);
+                } else {
+                  Alert.alert("No email available", "This business doesn't have an email listed.");
+                }
+              }}
+            >
+              <Text style={tw`text-white font-medium`}>Email</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Website Link */}
           {business.website && (
@@ -262,21 +282,21 @@ const BusinessDetail = ({ route, navigation }) => {
         </View>
 
         {business.gallery && business.gallery.length > 0 && (
-    <View style={tw`mb-6`}>
-      <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Gallery</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {business.gallery.map((imgUrl, index) => (
-          <Image
-            key={index}
-            source={{ uri: imgUrl }}
-            style={tw`w-64 h-40 rounded-lg mr-3`}
-            resizeMode="cover"
-          />
-          
-        ))}
-      </ScrollView>
-    </View>
-  )}
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Gallery</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {business.gallery.map((imgUrl, index) => (
+                <Image
+                  key={index}
+                  source={{ uri: imgUrl }}
+                  style={tw`w-64 h-40 rounded-lg mr-3`}
+                  resizeMode="cover"
+                />
+
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
 
         {/* Testimonials */}
