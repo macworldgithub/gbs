@@ -163,17 +163,19 @@ export default function MembersDirectory({ navigation }) {
         const response = await fetch(`${API_BASE_URL}/user`);
         const data = await response.json();
 
-        const formattedData = data.map((user) => ({
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          role: user?.activatedPackage?.role?.label || "Member",
-          image: user?.avatarUrl
-            ? { uri: user.avatarUrl }
-            : require("../../assets/user.jpg"),
-          liked: false,
-        }));
+        const formattedData = data
+          .filter((user) => user._id !== myUserId)
+          .map((user) => ({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user?.activatedPackage?.role?.label || "Member",
+            image: user?.avatarUrl
+              ? { uri: user.avatarUrl }
+              : require("../../assets/user.jpg"),
+            liked: false,
+          }));
 
         setMembers(formattedData);
       } catch (error) {

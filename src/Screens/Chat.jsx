@@ -31,7 +31,7 @@ export default function Chat({ navigation }) {
   if (chatUser && !chatUser._id && chatUser.id) {
     chatUser._id = chatUser.id;
   }
-  
+
   // Debug: Log the chatUser object to see its structure
   console.log("🔍 Chat screen loaded with user:", chatUser);
   console.log("🔍 chatUser._id:", chatUser._id);
@@ -57,7 +57,10 @@ export default function Chat({ navigation }) {
           const parsed = JSON.parse(stored);
           setToken(parsed.token);
           setMyUserId(parsed._id); // ✅ use _id not id
-          console.log("🔍 Loaded user data:", { token: parsed.token ? "present" : "missing", userId: parsed._id });
+          console.log("🔍 Loaded user data:", {
+            token: parsed.token ? "present" : "missing",
+            userId: parsed._id,
+          });
         } else {
           console.log("❌ No user data found in AsyncStorage");
         }
@@ -89,7 +92,10 @@ export default function Chat({ navigation }) {
           setConversationId(res.data._id);
         }
       } catch (e) {
-        console.error("❌ ensureConversation error:", e.response?.data || e.message);
+        console.error(
+          "❌ ensureConversation error:",
+          e.response?.data || e.message
+        );
       }
     };
 
@@ -218,7 +224,10 @@ export default function Chat({ navigation }) {
       const savedMsg = await res.json();
 
       if (!res.ok) {
-        Alert.alert("Message Error", savedMsg.message || "Failed to send message");
+        Alert.alert(
+          "Message Error",
+          savedMsg.message || "Failed to send message"
+        );
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
         return;
       }
@@ -275,7 +284,9 @@ export default function Chat({ navigation }) {
     >
       <View style={tw`flex-1 bg-white pt-8 pb-2`}>
         {/* Header */}
-        <View style={tw`flex-row items-center justify-between px-4 py-3 border-b`}>
+        <View
+          style={tw`flex-row items-center justify-between px-4 py-3 border-b`}
+        >
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} />
           </TouchableOpacity>
@@ -330,10 +341,10 @@ export default function Chat({ navigation }) {
                       item.status === "sent"
                         ? "checkmark"
                         : item.status === "delivered"
-                        ? "checkmark-done"
-                        : item.status === "seen"
-                        ? "checkmark-done-circle"
-                        : "time"
+                          ? "checkmark-done"
+                          : item.status === "seen"
+                            ? "checkmark-done-circle"
+                            : "time"
                     }
                     size={16}
                     color={item.status === "seen" ? "blue" : "gray"}
@@ -352,7 +363,9 @@ export default function Chat({ navigation }) {
           ]}
         >
           <View style={tw`flex-row items-center`}>
-            <View style={tw`flex-1 bg-gray-100 rounded-3xl flex-row items-center px-2 py-1`}>
+            <View
+              style={tw`flex-1 bg-gray-100 rounded-3xl flex-row items-center px-2 py-1`}
+            >
               <TouchableOpacity style={tw`px-2`}>
                 <Ionicons name="happy-outline" size={22} color="#6b7280" />
               </TouchableOpacity>
