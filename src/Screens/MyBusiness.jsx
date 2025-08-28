@@ -304,32 +304,13 @@ export default function MyBusiness() {
                     <MaterialIcons name="delete" size={22} color="#DC2626" />
                   </TouchableOpacity>
                 </View>
-                <View style={tw`mt-3`}>
-                  <View style={tw`flex-row justify-between items-center mb-2`}>
-                    <Text style={tw`text-sm font-semibold text-gray-700`}>Gallery</Text>
+
+                <View style={tw`flex-row justify-between items-center `}>
                     <TouchableOpacity onPress={() => uploadGallery(item._id)}>
                       <MaterialIcons name="add-photo-alternate" size={20} color="#2563EB" />
                     </TouchableOpacity>
                   </View>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    {item.gallery && item.gallery.length > 0 ? (
-                      item.gallery.map((img, idx) => (
-                        <Image
-                          key={idx}
-                          source={{ uri: img }}
-                          style={tw`w-20 h-20 rounded-lg mr-2`}
-                        />
-                      ))
-                    ) : (
-                      <Text style={tw`text-xs text-gray-400`}>No images yet</Text>
-                    )}
-                  </ScrollView>
-                </View>
-
-
               </View>
-
-
 
               <EditBusinessModal
                 visible={editModalVisible}
@@ -337,8 +318,6 @@ export default function MyBusiness() {
                 business={selectedBusiness}
                 onBusinessUpdated={fetchBusinesses}
               />
-
-
 
               {/* Rating & Location */}
               <View style={tw`flex-row items-center`}>
@@ -407,6 +386,29 @@ export default function MyBusiness() {
                       </TouchableOpacity>
                     );
                   })}
+                </View>
+              )}
+
+              {item.gallery && item.gallery.length > 0 && (
+                <View style={tw`mb-3`}>
+                  <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>Gallery</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {item.gallery.slice(0, 2).map((img, idx) => (
+                      <Image
+                        key={idx}
+                        source={{ uri: img }}
+                        style={tw`w-20 h-20 rounded-lg mr-2`}
+                      />
+                    ))}
+                    {item.gallery.length > 2 && (
+                      <TouchableOpacity
+                        style={tw`w-20 h-20 rounded-lg mr-2 justify-center items-center`}
+                        onPress={() => navigation.navigate("BusinessDetail", { id: item._id })}
+                      >
+                        <Text style={tw`text-blue-500 font-medium underline`}>View More</Text>
+                      </TouchableOpacity>
+                    )}
+                  </ScrollView>
                 </View>
               )}
 
