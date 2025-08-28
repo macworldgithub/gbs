@@ -261,6 +261,24 @@ const BusinessDetail = ({ route, navigation }) => {
           )}
         </View>
 
+        {business.gallery && business.gallery.length > 0 && (
+    <View style={tw`mb-6`}>
+      <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Gallery</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {business.gallery.map((imgUrl, index) => (
+          <Image
+            key={index}
+            source={{ uri: imgUrl }}
+            style={tw`w-64 h-40 rounded-lg mr-3`}
+            resizeMode="cover"
+          />
+          
+        ))}
+      </ScrollView>
+    </View>
+  )}
+
+
         {/* Testimonials */}
         {business.testimonials && business.testimonials.length > 0 && (
           <View style={tw`mb-6`}>
@@ -277,6 +295,8 @@ const BusinessDetail = ({ route, navigation }) => {
             ))}
           </View>
         )}
+
+
       </ScrollView>
     </View>
   );
