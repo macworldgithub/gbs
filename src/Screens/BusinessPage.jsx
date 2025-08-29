@@ -13,6 +13,7 @@ import {
   ScrollView,
   Linking,
   Alert,
+  Modal,
 } from "react-native";
 import AddBusinessModal from "../../components/AddBusinessModal";
 import tw from "tailwind-react-native-classnames";
@@ -31,6 +32,8 @@ const BusinessPage = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const isFocused = useIsFocused();
   const [noPackage, setNoPackage] = useState(false);
+  const [packagesModalVisible, setPackagesModalVisible] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState(null);
 
   useEffect(() => {
     if (isFocused) {
@@ -162,7 +165,7 @@ const BusinessPage = ({ navigation }) => {
 
           <TouchableOpacity
             style={tw`mt-4 bg-red-500 px-6 py-2 rounded-lg`}
-            onPress={() => navigation.navigate("Packages")}
+            onPress={() => setPackagesModalVisible(true)}
           >
             <Text style={tw`text-white font-bold`}>View Packages</Text>
           </TouchableOpacity>
@@ -253,6 +256,28 @@ const BusinessPage = ({ navigation }) => {
             </View>
           )}
 
+          {business.gallery && business.gallery.length > 0 && (
+            <View style={tw`mb-3`}>
+              <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>Gallery</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {business.gallery.slice(0, 2).map((img, idx) => (
+                  <Image
+                    key={idx}
+                    source={{ uri: img }}
+                    style={tw`w-20 h-20 rounded-lg mr-2`}
+                  />
+                ))}
+                {business.gallery.length > 2 && (
+                  <TouchableOpacity
+                    style={tw`w-20 h-20 rounded-lg mr-2 justify-center items-center`}
+                    onPress={() => navigation.navigate("BusinessDetail", { id: business._id })}
+                  >
+                    <Text style={tw`text-blue-600 font-medium underline`}>View More</Text>
+                  </TouchableOpacity>
+                )}
+              </ScrollView>
+            </View>
+          )}
           {/* Action Buttons */}
           <View style={tw`flex-row justify-between`}>
             <TouchableOpacity
@@ -295,6 +320,72 @@ const BusinessPage = ({ navigation }) => {
           </View>
         </TouchableOpacity>
       ))}
+
+      {packagesModalVisible && (
+  <Modal
+    visible={packagesModalVisible}
+    animationType="fade"
+    transparent={true} // 👈 Important: so it won't take full screen solid white
+  >
+    <View style={tw`flex-1 bg-black bg-opacity-50 justify-center items-center`}>
+      <View style={tw`bg-white rounded-2xl w-11/12 max-w-md p-6`}>
+        {/* Header */}
+        <Text style={tw`text-lg font-bold text-gray-800 mb-4 text-center`}>
+          Upgrade Your Business
+        </Text>
+
+        {/* Selected Package Display */}
+        {selectedPackage && (
+          <Text style={tw`text-sm text-green-600 mb-4 text-center`}>
+            Selected Package: {selectedPackage}
+          </Text>
+        )}
+
+        {/* Package Selection Buttons */}
+        <TouchableOpacity
+          style={tw`rounded-lg p-3 mb-3 ${
+            selectedPackage === "Top-Tier Business" ? "bg-red-500" : "bg-gray-200"
+          }`}
+          onPress={() => setSelectedPackage("Top-Tier Business")}
+        >
+          <Text
+            style={tw`font-medium text-center ${
+              selectedPackage === "Top-Tier Business" ? "text-white" : "text-gray-800"
+            }`}
+          >
+            Top-Tier Business
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={tw`rounded-lg p-3 mb-3 ${
+            selectedPackage === "Business" ? "bg-red-500" : "bg-gray-200"
+          }`}
+          onPress={() => setSelectedPackage("Business")}
+        >
+          <Text
+            style={tw`font-medium text-center ${
+              selectedPackage === "Business" ? "text-white" : "text-gray-800"
+            }`}
+          >
+            Business
+          </Text>
+        </TouchableOpacity>
+
+        {/* Close Button */}
+        <TouchableOpacity
+          style={tw`mt-4`}
+          onPress={() => setPackagesModalVisible(false)}
+        >
+          <Text style={tw`text-red-500 text-center font-medium`}>Close</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </Modal>
+)}
+
+
+
     </ScrollView>
   );
 };

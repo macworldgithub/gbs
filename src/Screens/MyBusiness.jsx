@@ -27,6 +27,7 @@ export default function MyBusiness() {
   const [error, setError] = useState(null);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [noPackage, setNoPackage] = useState(false);
 
   const navigation = useNavigation();
 
@@ -44,6 +45,15 @@ export default function MyBusiness() {
           Authorization: `Bearer ${userData.token}`,
         },
       });
+
+      if (response.status === 404) {
+        const errData = await response.json();
+        if (errData.message === "User has no active package") {
+          setNoPackage(true);
+          setBusinesses([]);
+          return;
+        }
+      }
 
       if (!response.ok) {
         throw new Error("Failed to fetch businesses");
@@ -65,6 +75,31 @@ export default function MyBusiness() {
 
 
   if (loading) return <ActivityIndicator style={tw`mt-10`} size="large" color="red" />;
+  if (!loading && noPackage) {
+    return (
+      <View style={tw`flex-1 bg-white p-4`}>
+        {/* Header */}
+        <View style={tw`flex-row items-center justify-between mt-12`}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Text style={tw`text-xl font-bold`}>My Businesses</Text>
+          <View style={{ width: 24 }} />
+        </View>
+
+        {/* No Package Message */}
+        <View style={tw`flex-1 justify-center items-center px-6`}>
+          <MaterialIcons name="block" size={48} color="#DC2626" />
+          <Text style={tw`text-lg font-bold text-gray-800 mt-2`}>
+            No Active Package Found
+          </Text>
+          <Text style={tw`text-sm text-gray-600 text-center`}>
+            You don’t have an active package. Please purchase a package to view, update and delete business.
+          </Text>
+        </View>
+      </View>
+    );
+  }
   if (error) return <Text style={tw`text-red-500 mt-10 text-center`}>{error}</Text>;
 
   const deleteBusiness = async (id) => {
@@ -304,32 +339,13 @@ export default function MyBusiness() {
                     <MaterialIcons name="delete" size={22} color="#DC2626" />
                   </TouchableOpacity>
                 </View>
-                <View style={tw`mt-3`}>
-                  <View style={tw`flex-row justify-between items-center mb-2`}>
-                    <Text style={tw`text-sm font-semibold text-gray-700`}>Gallery</Text>
-                    <TouchableOpacity onPress={() => uploadGallery(item._id)}>
-                      <MaterialIcons name="add-photo-alternate" size={20} color="#2563EB" />
-                    </TouchableOpacity>
-                  </View>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    {item.gallery && item.gallery.length > 0 ? (
-                      item.gallery.map((img, idx) => (
-                        <Image
-                          key={idx}
-                          source={{ uri: img }}
-                          style={tw`w-20 h-20 rounded-lg mr-2`}
-                        />
-                      ))
-                    ) : (
-                      <Text style={tw`text-xs text-gray-400`}>No images yet</Text>
-                    )}
-                  </ScrollView>
+
+                <View style={tw`flex-row justify-between items-center `}>
+                  <TouchableOpacity onPress={() => uploadGallery(item._id)}>
+                    <MaterialIcons name="add-photo-alternate" size={20} color="#2563EB" />
+                  </TouchableOpacity>
                 </View>
-
-
               </View>
-
-
 
               <EditBusinessModal
                 visible={editModalVisible}
@@ -337,8 +353,6 @@ export default function MyBusiness() {
                 business={selectedBusiness}
                 onBusinessUpdated={fetchBusinesses}
               />
-
-
 
               {/* Rating & Location */}
               <View style={tw`flex-row items-center`}>
@@ -407,6 +421,29 @@ export default function MyBusiness() {
                       </TouchableOpacity>
                     );
                   })}
+                </View>
+              )}
+
+              {item.gallery && item.gallery.length > 0 && (
+                <View style={tw`mb-3`}>
+                  <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>Gallery</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {item.gallery.slice(0, 2).map((img, idx) => (
+                      <Image
+                        key={idx}
+                        source={{ uri: img }}
+                        style={tw`w-20 h-20 rounded-lg mr-2`}
+                      />
+                    ))}
+                    {item.gallery.length > 2 && (
+                      <TouchableOpacity
+                        style={tw`w-20 h-20 rounded-lg mr-2 justify-center items-center`}
+                        onPress={() => navigation.navigate("BusinessDetail", { id: item._id })}
+                      >
+                        <Text style={tw`text-blue-500 font-medium underline`}>View More</Text>
+                      </TouchableOpacity>
+                    )}
+                  </ScrollView>
                 </View>
               )}
 
