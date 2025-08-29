@@ -10,8 +10,6 @@ import {
   Linking,
 } from "react-native";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
-
-
 import { Image } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
@@ -278,7 +276,7 @@ export default function MyBusiness() {
   };
 
   return (
-    <View style={tw`flex-1 bg-white p-4`}>
+    <View style={tw`flex-1 bg-white p-4 `}>
       {/* Header */}
       <View style={tw`flex-row items-center justify-between mt-8 mb-4`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -297,7 +295,7 @@ export default function MyBusiness() {
           renderItem={({ item }) => (
             <TouchableOpacity
               key={item._id}
-              style={tw`bg-gray-50 rounded-lg p-4 mb-4`}
+              style={tw`bg-gray-100 rounded-lg p-4 mb-4 border border-gray-300`}
               onPress={() => navigation.navigate("BusinessDetail", { id: item._id })}
             >
 
@@ -477,11 +475,11 @@ export default function MyBusiness() {
                   style={tw`flex-1 bg-red-500 rounded-lg py-2 items-center`}
                   onPress={(e) => {
                     e.stopPropagation();
-                    navigation.navigate("BusinessDetail", { id: item._id });
+                    navigation.navigate("AddOffer", { id: item._id });
                   }}
                 >
 
-                  <Text style={tw`text-white font-medium`}>View Details</Text>
+                  <Text style={tw`text-white font-medium`}>Add Offers</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
