@@ -10,7 +10,7 @@ import MembersDirectory from "../Screens/Directory";
 import BusinessPage from "../Screens/BusinessPage";
 import Chat from "../Screens/Chat";
 import WellbeingScreen from "../Screens/Wellbeing";
-import Offers from "../Screens/Offers";
+import OffersStack from "./OffersStackNavigation";
 import SocialPage from "../Screens/SocialPage";
 import Conversations from "../Screens/Conversations";
 
@@ -28,9 +28,11 @@ export default function AuthTabs() {
       <Tab.Screen name="Social" component={Conversations} />
       {/* <Tab.Screen name="Wellbeing" component={WellbeingScreen} /> */}
       <Tab.Screen name="Profile" component={Profile} />
-      <Tab.Screen name="Offers" component={Offers} />
+      <Tab.Screen name="Offers" component={OffersStack} />
      
 
     </Tab.Navigator>
   );
 }
+
+
