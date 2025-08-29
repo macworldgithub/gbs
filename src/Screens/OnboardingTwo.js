@@ -199,6 +199,13 @@ export default function OnboardingTwo({ navigation }) {
         >
           <Text style={styles.buttonText}>Join Now</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.guestButton]}
+          onPress={() => navigation.replace("GuestTabs")}
+        >
+          <Text style={styles.buttonText}>Guest Login</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Sign In Link at the bottom */}
