@@ -54,6 +54,7 @@ export default function Conversations({ navigation }) {
             otherUser: {
               id: other._id,
               name: other.name || other.email || "Unknown",
+              avatarUrl: other.avatarUrl || null,
             },
             lastText: last?.content || "",
           };
@@ -76,7 +77,11 @@ export default function Conversations({ navigation }) {
   const openChat = (item) => {
     console.log("➡️ Open chat: ", item);
     navigation.navigate("Chat", {
-      user: { id: item.otherUser.id, name: item.otherUser.name },
+      user: {
+        id: item.otherUser.id,
+        name: item.otherUser.name,
+        avatarUrl: item.otherUser.avatarUrl, // 👈 include this
+      },
       conversationId: item.id,
     });
   };
@@ -87,18 +92,21 @@ export default function Conversations({ navigation }) {
       style={tw`flex-row items-center p-3 border-b border-gray-200`}
     >
       <Image
-        source={require("../../assets/user.png")}
+        source={
+          item.otherUser?.avatarUrl
+            ? { uri: item.otherUser.avatarUrl }
+            : require("../../assets/user.jpg")
+        }
         style={tw`w-10 h-10 rounded-full`}
       />
+
       <View style={tw`ml-3 flex-1`}>
-        <Text style={tw`text-base font-semibold`}>
-          {item.otherUser.name}
-        </Text>
+        <Text style={tw`text-base font-semibold`}>{item.otherUser.name}</Text>
         <Text style={tw`text-sm text-gray-600`} numberOfLines={1}>
           {item.lastText}
         </Text>
       </View>
-    </TouchableOpacity> 
+    </TouchableOpacity>
   );
 
   return (

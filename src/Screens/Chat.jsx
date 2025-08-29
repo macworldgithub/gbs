@@ -52,6 +52,7 @@ export default function Chat({ navigation }) {
   const listRef = useRef(null);
   const sendingMediaSetRef = useRef(new Set());
   const isPickingRef = useRef(false);
+  const lastTextSendRef = useRef({ content: "", recipientId: "", ts: 0 });
 
   // 🔑 Load logged-in user data
   useEffect(() => {
@@ -110,9 +111,9 @@ export default function Chat({ navigation }) {
   const formatMessage = (msg, myId) => {
     console.log("🔍 Formatting message:", {
       id: msg._id,
-      content: msg.content,
+      content: msg?.content,
       hasMedia: Array.isArray(msg.media) && msg.media.length > 0,
-      media: msg.media,
+      media: msg?.media,
     });
 
     const firstMedia =
@@ -201,56 +202,10 @@ export default function Chat({ navigation }) {
       console.log("🔌 socket connect_error:", err?.message || err);
     });
 
-    // s.on("newMessage", (msg) => {
-    //   console.log("📨 Received newMessage:", msg);
-    //   if (msg?.conversationId !== conversationId) {
-    //     console.log("❌ Message not for current conversation, ignoring");
-    //     return;
-    //   }
-
-    //   const formattedIncoming = formatMessage(msg, myUserId);
-    //   console.log("✅ Formatted incoming message:", formattedIncoming);
-
-    //   // Check if message already exists to prevent duplicates
-    //   setMessages((prev) => {
-    //     console.log("🔄 Current messages before update:", prev.length);
-
-    //     // Check if this message ID already exists
-    //     const messageExists = prev.some((m) => m.id === formattedIncoming.id);
-    //     if (messageExists) {
-    //       console.log("⚠️ Message already exists, ignoring duplicate");
-    //       return prev;
-    //     }
-
-    //     const withoutSending = prev.filter((m) => {
-    //       // Keep all that aren't my optimistic placeholders
-    //       if (!m.fromMe || m.status !== "sending") return true;
-
-    //       // If incoming is media, drop one sending placeholder of the same display type
-    //       if (
-    //         formattedIncoming.type === "IMAGE" ||
-    //         formattedIncoming.type === "VIDEO" ||
-    //         formattedIncoming.type === "FILE"
-    //       ) {
-    //         console.log("🗑️ Dropping sending placeholder for media");
-    //         return false; // drop the first match; simple reconciliation
-    //       }
-
-    //       // If incoming is text, drop a sending text bubble
-    //       if (formattedIncoming.type === "text" && m.type === "text") {
-    //         console.log("🗑️ Dropping sending placeholder for text");
-    //         return false;
-    //       }
-
-    //       return true;
-    //     });
-
-    //     console.log("🔄 Messages after filtering:", withoutSending.length);
-    //     const result = [...withoutSending, formattedIncoming];
-    //     console.log("🔄 Final messages count:", result.length);
-    //     return result;
-    //   });
-    // });
+    // Ensure no duplicate listeners in hot-reload/dev
+    s.off("newMessage");
+    s.off("messageSent");
+    s.off("messageRead");
 
     s.on("newMessage", (msg) => {
       console.log("📨 Received newMessage:", msg);
@@ -265,59 +220,53 @@ export default function Chat({ navigation }) {
       setMessages((prev) => {
         console.log("🔄 Current messages before update:", prev.length);
 
-        // Check if message already exists by ID
-        const messageExistsById = prev.some(
-          (m) => m.id === formattedIncoming.id
-        );
-        if (messageExistsById) {
+        // 1) Ignore if already present by ID
+        if (prev.some((m) => m.id === formattedIncoming.id)) {
           console.log("⚠️ Message already exists by ID, ignoring duplicate");
           return prev;
         }
 
-        // For media messages, also check if we have a sending placeholder with the same content
-        if (formattedIncoming.type !== "text" && formattedIncoming.url) {
-          const existingMediaMessage = prev.find(
+        let next = [...prev];
+
+        // 2) If it's my own message, remove the first optimistic "sending" bubble of same type
+        if (formattedIncoming.fromMe) {
+          const idx = next.findIndex(
             (m) =>
               m.fromMe &&
               m.status === "sending" &&
-              m.type === formattedIncoming.type &&
-              m.fileName === formattedIncoming.fileName // Compare file names
+              m.type === formattedIncoming.type
           );
-
-          if (existingMediaMessage) {
-            console.log("🔄 Replacing sending placeholder with actual message");
-            return prev.map((m) =>
-              m.id === existingMediaMessage.id ? formattedIncoming : m
-            );
-          }
-        }
-
-        // For text messages, check for sending placeholders
-        if (formattedIncoming.type === "text" && formattedIncoming.text) {
-          const existingTextMessage = prev.find(
-            (m) =>
-              m.fromMe &&
-              m.status === "sending" &&
-              m.type === "text" &&
-              m.text === formattedIncoming.text
-          );
-
-          if (existingTextMessage) {
+          if (idx !== -1) {
             console.log(
-              "🔄 Replacing text sending placeholder with actual message"
+              "🗑️ Removing optimistic sending placeholder at index",
+              idx
             );
-            return prev.map((m) =>
-              m.id === existingTextMessage.id ? formattedIncoming : m
-            );
+            next.splice(idx, 1);
           }
         }
 
-        // If no existing placeholder found, add and keep list sorted by createdAt
+        // 3) Add incoming and keep list sorted by createdAt
         console.log("➕ Adding new message to list");
-        const next = [...prev, formattedIncoming];
+        next.push(formattedIncoming);
         next.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
         return next;
       });
+    });
+
+    // Acknowledgement for sender: replace first optimistic sending bubble with real ID
+    s.on("messageSent", (data) => {
+      try {
+        const realId = data?.messageId;
+        if (!realId) return;
+        setMessages((prev) => {
+          const next = [...prev];
+          const idx = next.findIndex((m) => m.fromMe && m.status === "sending");
+          if (idx !== -1) {
+            next[idx] = { ...next[idx], id: realId, status: "sent" };
+          }
+          return next;
+        });
+      } catch {}
     });
     s.on("messageRead", (data) => {
       setMessages((prev) =>
@@ -359,48 +308,49 @@ export default function Chat({ navigation }) {
     }
 
     try {
+      // Throttle duplicate text sends within 1s for identical payloads
+      const now = Date.now();
+      const payloadKey = `${chatUser._id}::${newMessage.trim()}`;
+      if (
+        lastTextSendRef.current.content === newMessage.trim() &&
+        lastTextSendRef.current.recipientId === chatUser._id &&
+        now - lastTextSendRef.current.ts < 1000
+      ) {
+        console.log("⏭️ Skipping duplicate text send (throttled)");
+        return;
+      }
+      lastTextSendRef.current = {
+        content: newMessage.trim(),
+        recipientId: chatUser._id,
+        ts: now,
+      };
+
       const tempId = `local-${Date.now()}`;
       const optimistic = {
         id: tempId,
         text: newMessage,
         fromMe: true,
-        status: "sent",
+        status: "sending",
         type: "text",
         createdAt: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, optimistic]);
 
-      const res = await fetch(`${API_BASE_URL}/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          recipientId: chatUser._id, // ✅ use _id
-          content: newMessage,
-        }),
+      if (!socketRef.current) throw new Error("Socket not connected");
+
+      socketRef.current.emit("sendMessage", {
+        recipientId: chatUser._id,
+        content: newMessage,
       });
 
-      const savedMsg = await res.json();
-
-      if (!res.ok) {
-        Alert.alert(
-          "Message Error",
-          savedMsg.message || "Failed to send message"
-        );
-        setMessages((prev) => prev.filter((m) => m.id !== tempId));
-        return;
-      }
-
-      if (savedMsg?._id) {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === tempId ? { ...m, id: savedMsg._id } : m))
-        );
-      }
+      // Let incoming newMessage replace the optimistic one (handled in listener)
       setNewMessage("");
     } catch (err) {
       console.error("❌ Error sending message:", err);
+      // Remove last optimistic sending message on error
+      setMessages((prev) =>
+        prev.filter((m) => m.status !== "sending" || !m.fromMe)
+      );
     }
   };
 
@@ -425,40 +375,18 @@ export default function Chat({ navigation }) {
       }
     });
   };
-  // const sendMediaMessage = async (file) => {
-  //   console.log("📤 Sending media:", file);
 
-  //   const formData = new FormData();
-  //   formData.append("sender", myUserId);
-  //   formData.append("recipient", chatUser.id);
-  //   formData.append("type", "image");
-
-  //   // Attach file (RN needs uri, type, name)
-  //   formData.append("media", {
-  //     uri: file.uri,
-  //     type: file.type,
-  //     name: file.fileName || `upload.${file.type?.split("/")[1]}`,
-  //   });
-
-  //   try {
-  //     const res = await fetch(`${API_BASE_URL}/messages`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: formData,
-  //     });
-
-  //     const data = await res.json();
-  //     console.log("✅ Media message response:", data);
-  //   } catch (err) {
-  //     console.error("❌ Upload error:", err);
-  //   }
-  // };
   const sendMediaMessage = async (file) => {
-    console.log("📤 Sending media:", file);
+    console.log("📤 Sending media - File details:", {
+      uri: file.uri,
+      type: file.type,
+      fileName: file.fileName,
+      fileSize: file.fileSize,
+      width: file.width,
+      height: file.height,
+    });
 
+    // Handle camera images which might have different properties
     const mimeType = file.type || (file.mimeType ?? "image/jpeg");
     const extension = mimeType.split("/")[1] || "jpg";
     const displayType = mimeType.startsWith("video")
@@ -467,8 +395,11 @@ export default function Chat({ navigation }) {
         ? "IMAGE"
         : "FILE";
 
+    // For camera images, create a better filename
+    const fileName = file.fileName || `camera-${Date.now()}.${extension}`;
+
     // Dedupe: prevent rapid double-send of same asset
-    const fingerprint = file.assetId || file.fileName || file.uri;
+    const fingerprint = file.assetId || file.uri;
     const fpKey = fingerprint || `${file.uri}-${extension}`;
     if (sendingMediaSetRef.current.has(fpKey)) {
       console.log("⏭️ Skipping duplicate media send for:", fpKey);
@@ -478,7 +409,6 @@ export default function Chat({ navigation }) {
 
     // Optimistic UI
     const tempId = `local-${Date.now()}`;
-    // In sendMediaMessage, store the file name in the optimistic message
     setMessages((prev) => [
       ...prev,
       {
@@ -487,10 +417,11 @@ export default function Chat({ navigation }) {
         type: displayType,
         fromMe: true,
         status: "sending",
-        fileName: file.fileName || `upload.${extension}`, // Store file name
+        fileName: fileName,
         createdAt: new Date().toISOString(),
       },
     ]);
+
     try {
       const fileUri =
         Platform.OS === "android" ? file.uri : file.uri.replace("file://", "");
@@ -503,14 +434,13 @@ export default function Chat({ navigation }) {
       socketRef.current.emit("sendMessage", {
         recipientId: chatUser._id,
         file: {
-          name: file.fileName || `upload.${extension}`,
+          name: fileName,
           type: mimeType,
           data: `data:${mimeType};base64,${base64}`,
         },
       });
 
       // The message will be replaced by the incoming 'newMessage' event.
-      // As a fallback, auto-clear the sending state after a timeout if no server ack arrives.
       setTimeout(() => {
         setMessages((prev) =>
           prev.map((m) => (m.id === tempId ? { ...m, status: "sent" } : m))
@@ -519,6 +449,7 @@ export default function Chat({ navigation }) {
     } catch (err) {
       console.error("❌ Upload error:", err);
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      Alert.alert("Error", "Failed to send image");
     } finally {
       // allow resending after short cooldown
       setTimeout(() => {
@@ -528,20 +459,34 @@ export default function Chat({ navigation }) {
   };
 
   const handleCamera = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission Denied", "Camera access is required.");
-      return;
-    }
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission Denied", "Camera access is required.");
+        return;
+      }
 
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
+      // const result = await ImagePicker.launchCameraAsync({
+      //   mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      //   allowsEditing: true,
+      //   quality: 1,
+      // });
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.7, // Reduce quality for smaller files
+        base64: false,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const capturedImage = result.assets[0];
+        console.log("📸 Photo captured:", capturedImage);
 
-    if (!result.canceled) {
-      Alert.alert("Photo Taken", "Image captured successfully.");
+        // Send the captured image
+        sendMediaMessage(capturedImage);
+      }
+    } catch (error) {
+      console.error("❌ Camera error:", error);
+      Alert.alert("Error", "Failed to capture image");
     }
   };
 
@@ -561,9 +506,14 @@ export default function Chat({ navigation }) {
           </TouchableOpacity>
           <View style={tw`flex-row items-center mr-16`}>
             <Image
-              source={require("../../assets/user.png")}
+              source={
+                chatUser?.avatarUrl
+                  ? { uri: chatUser.avatarUrl }
+                  : require("../../assets/user.jpg")
+              }
               style={tw`w-10 h-10 rounded-full mr-2`}
             />
+
             <View>
               <Text style={tw`font-semibold`}>{chatUser?.name ?? "Guest"}</Text>
               <Text style={tw`text-xs text-gray-500`}>Last seen recently</Text>

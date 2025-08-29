@@ -171,6 +171,7 @@ export default function MembersDirectory({ navigation }) {
             email: user.email,
             phone: user.phone,
             role: user?.activatedPackage?.role?.label || "Member",
+            avatarUrl: user?.avatarUrl || null,
             image: user?.avatarUrl
               ? { uri: user.avatarUrl }
               : require("../../assets/user.jpg"),
@@ -213,6 +214,37 @@ export default function MembersDirectory({ navigation }) {
   }, [token, myUserId]);
 
   // ✅ Ensure conversation exists, then open Chat
+  // const openChat = async (user) => {
+  //   try {
+  //     if (!token) {
+  //       console.warn("Missing token; navigating anyway");
+  //       navigation.navigate("Chat", { user });
+  //       return;
+  //     }
+
+  //     const res = await fetch(`${API_BASE_URL}/messages/conversation`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify({ recipientId: user.id }),
+  //     });
+  //     const conv = await res.json();
+  //     if (!res.ok) {
+  //       console.error("❌ startConversation error:", conv);
+  //       navigation.navigate("Chat", { user });
+  //       return;
+  //     }
+
+  //     setChatStatus((prev) => ({ ...prev, [user.id]: "continue" }));
+  //     navigation.navigate("Chat", { user, conversationId: conv._id });
+  //   } catch (err) {
+  //     console.error("❌ Error starting conversation:", err);
+  //     navigation.navigate("Chat", { user });
+  //   }
+  // };
+
   const openChat = async (user) => {
     try {
       if (!token) {
@@ -230,21 +262,20 @@ export default function MembersDirectory({ navigation }) {
         body: JSON.stringify({ recipientId: user.id }),
       });
       const conv = await res.json();
-      if (!res.ok) {
-        console.error("❌ startConversation error:", conv);
-        navigation.navigate("Chat", { user });
-        return;
-      }
 
-      setChatStatus((prev) => ({ ...prev, [user.id]: "continue" }));
-      navigation.navigate("Chat", { user, conversationId: conv._id });
+      navigation.navigate("Chat", {
+        user: {
+          id: user.id,
+          name: user.name,
+          avatarUrl: user.avatarUrl, // 👈 pass it
+        },
+        conversationId: conv?._id,
+      });
     } catch (err) {
       console.error("❌ Error starting conversation:", err);
       navigation.navigate("Chat", { user });
     }
   };
-
-  // (openChat moved above to ensure/create conversation)
 
   const filteredMembers = members.filter((member) =>
     member.name.toLowerCase().includes(search.toLowerCase())
