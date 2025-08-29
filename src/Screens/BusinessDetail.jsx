@@ -1,4 +1,3 @@
-// BusinessDetail.js
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Linking, Alert, Image } from "react-native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
@@ -6,28 +5,24 @@ import axios from "axios";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../../src/utils/config";
 import { getUserData } from "../../src/utils/storage";
-
+import OfferCard from "./OfferCard";
 const BusinessDetail = ({ route, navigation }) => {
   const { id } = route.params;
   const [business, setBusiness] = useState(null);
+  const [offers, setOffers] = useState([]); // State for offers
   const [loading, setLoading] = useState(true);
-
-  // const fetchBusinessDetail = async () => {
-  //   try {
-  //     const res = await axios.get(`${API_BASE_URL}/business/${id}`);
-  //     setBusiness(res.data);
-  //   } catch (err) {
-  //     Alert.alert("Error", "Failed to fetch business details");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const [offersLoading, setOffersLoading] = useState(true); // Separate loading state for offers
 
   const fetchBusinessDetail = async () => {
     try {
       const userData = await getUserData();
       const token = userData?.token;
 
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      // Fetch business details
       const res = await axios.get(`${API_BASE_URL}/business/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -41,8 +36,32 @@ const BusinessDetail = ({ route, navigation }) => {
     }
   };
 
+  const fetchOffers = async () => {
+    try {
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const res = await axios.get(`${API_BASE_URL}/offer/business/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("[Offers for Business]", id, res.data); // Debug log
+      setOffers(res.data); // Set offers from API response
+    } catch (err) {
+      console.error("Offers fetch error:", err.response?.data || err.message);
+      Alert.alert("Error", "Failed to fetch offers");
+    } finally {
+      setOffersLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchBusinessDetail();
+    fetchOffers(); // Fetch offers when component mounts
   }, []);
 
   if (loading) {
@@ -117,7 +136,6 @@ const BusinessDetail = ({ route, navigation }) => {
 
           {/* About */}
           <Text style={tw`text-base text-gray-700 leading-6`}>{business.about}</Text>
-
         </View>
 
         {/* Services */}
@@ -159,9 +177,23 @@ const BusinessDetail = ({ route, navigation }) => {
           <View style={tw`mb-6`}>
             <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Looking For</Text>
             <Text style={tw`text-base text-gray-700 leading-6`}>{business.lookingFor}</Text>
-
           </View>
         )}
+
+        <View style={tw`mb-6`}>
+          <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Offers</Text>
+          {offersLoading ? (
+            <Text style={tw`text-sm text-gray-600`}>Loading offers...</Text>
+          ) : offers.length > 0 ? (
+            offers.map((offer) => <OfferCard key={offer._id} offer={offer}
+              onOfferUpdated={fetchOffers}   // refresh after update
+              onOfferDeleted={(deletedId) => setOffers((prev) => prev.filter(o => o._id !== deletedId))}
+            />)
+          ) : (
+            <Text style={tw`text-sm text-gray-600`}>No offers available</Text>
+          )}
+        </View>
+
 
         {/* Social Links */}
         {business.socialLinks && business.socialLinks.length > 0 && (
@@ -214,34 +246,6 @@ const BusinessDetail = ({ route, navigation }) => {
         {/* Contact Actions */}
         <View style={tw`mb-6`}>
           <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Contact</Text>
-
-          {/* <View style={tw`flex-row space-x-3 mb-4`}>
-            <TouchableOpacity
-              style={tw`flex-1 bg-red-500 rounded-lg py-3 items-center`}
-              onPress={() => {
-                if (business.phone) {
-                  Linking.openURL(`tel:${business.phone}`);
-                } else {
-                  Alert.alert("No phone available", "This business doesn't have a phone number listed.");
-                }
-              }}
-            >
-              <Text style={tw`text-white font-medium`}>Call</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={tw`flex-1 bg-red-500 rounded-lg py-3 items-center`}
-              onPress={() => {
-                if (business.email) {
-                  Linking.openURL(`mailto:${business.email}`);
-                } else {
-                  Alert.alert("No email available", "This business doesn't have an email listed.");
-                }
-              }}
-            >
-              <Text style={tw`text-white font-medium`}>Email</Text>
-            </TouchableOpacity>
-          </View> */}
           <View style={tw`flex-row mb-4`}>
             <TouchableOpacity
               style={tw`flex-1 bg-red-500 rounded-lg py-3 items-center mr-3`}
@@ -292,12 +296,10 @@ const BusinessDetail = ({ route, navigation }) => {
                   style={tw`w-64 h-40 rounded-lg mr-3`}
                   resizeMode="cover"
                 />
-
               ))}
             </ScrollView>
           </View>
         )}
-
 
         {/* Testimonials */}
         {business.testimonials && business.testimonials.length > 0 && (
@@ -315,8 +317,6 @@ const BusinessDetail = ({ route, navigation }) => {
             ))}
           </View>
         )}
-
-
       </ScrollView>
     </View>
   );

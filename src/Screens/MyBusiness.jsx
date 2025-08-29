@@ -9,6 +9,7 @@ import {
   Alert,
   Linking,
 } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import { Image } from "react-native";
 import tw from "tailwind-react-native-classnames";
@@ -26,8 +27,19 @@ export default function MyBusiness() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [noPackage, setNoPackage] = useState(false);
+  const [offersByBusiness, setOffersByBusiness] = useState({});
+  const isFocused = useIsFocused();
 
   const navigation = useNavigation();
+
+  useEffect(() => {
+      if (isFocused) {
+        fetchBusinesses();
+      }
+    }, [isFocused]);
+  
+
+
 
   const fetchBusinesses = async () => {
     try {
@@ -59,10 +71,26 @@ export default function MyBusiness() {
 
       const data = await response.json();
       setBusinesses(data);
+      data.forEach((biz) => fetchOffers(biz._id, userData.token));
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOffers = async (businessId, token) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/offer/business/${businessId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+
+      const offers = await res.json();
+      console.log("[Offers for]", businessId, offers);
+      setOffersByBusiness((prev) => ({ ...prev, [businessId]: offers }));
+    } catch (err) {
+      console.error("Error fetching offers:", err);
     }
   };
 
@@ -376,6 +404,18 @@ export default function MyBusiness() {
                     </View>
                   ))}
               </View>
+
+              {/* Offers */}
+              {offersByBusiness[item._id] && offersByBusiness[item._id].length > 0 && (
+                <View style={tw`mb-3`}>
+                  <Text style={tw`text-md font-bold text-gray-700 mb-2`}>Offers</Text>
+                  {offersByBusiness[item._id].map((offer) => (
+                    <Text key={offer._id} style={tw`text-sm text-red-600`}>
+                      {offer.title || offer.name || offer.offerTitle}
+                    </Text>
+                  ))}
+                </View>
+              )}
 
               {/* Social Links */}
               {item.socialLinks && item.socialLinks.length > 0 && (

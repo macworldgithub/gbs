@@ -143,7 +143,7 @@ const Offers = ({ navigation }) => {
               {offer.description}
             </Text>
 
-            <View style={tw`flex-row justify-between items-center mt-3`}>
+            {/* <View style={tw`flex-row justify-between items-center mt-3`}>
               <Text style={tw`text-xs text-gray-500`}>
                 Expires:{" "}
                 {offer.expiryDate
@@ -153,7 +153,7 @@ const Offers = ({ navigation }) => {
               <TouchableOpacity style={tw`bg-red-500 px-4 py-2 rounded`}>
                 <Text style={tw`text-white text-sm`}>Redeem</Text>
               </TouchableOpacity>
-            </View>
+            </View> */}
 
             {offer.termsAndConditions?.length > 0 && (
               <View style={tw`bg-gray-100 p-2 rounded mt-3`}>

@@ -26,6 +26,7 @@ const menuItems = [
     ],
   },
   { title: "My Business" },
+  { title: "Saved offers" }
 ];
 
 export default function Drawer({ isOpen, onClose }) {

@@ -29,59 +29,65 @@ const AddOfferScreen = ({ navigation, route }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = async () => {
-    if (!businessId) {
-      Alert.alert("Error", "Business ID not found");
-      return;
+ const handleSave = async () => {
+  if (!businessId) {
+    Alert.alert("Error", "Business ID not found");
+    return;
+  }
+  try {
+    setLoading(true);
+    const user = await getUserData();
+    const token = user?.token;
+    if (!token) {
+      throw new Error("User not authenticated. Please log in again.");
     }
-    try {
-      setLoading(true);
-      const url = `${API_BASE_URL}/offer/${businessId}`;
+    const url = `${API_BASE_URL}/offer/${businessId}`;
 
-      const payload = {
-        business: businessId, // 👈 send business id
-        image: form.image || "offer/default/image.jpg",
-        title: form.title.trim(),
-        discount: form.discount.trim(),
-        offerType: form.offerType,
-        category: form.category.trim(),
-        expiryDate: form.expiryDate ? new Date(form.expiryDate).toISOString() : null,
-        description: form.description.trim(),
-        termsAndConditions: (form.termsAndConditions || [])
-          .map((t) => t.trim())
-          .filter((t) => t !== ""),
-        howToRedeem: form.howToRedeem.trim(),
-        contactPhone: form.contactPhone.trim(),
-        contactEmail: form.contactEmail.trim(),
-        locations: (form.locations || [])
-          .map((l) => l.trim().toLowerCase())
-          .filter((l) => l !== "")
-      };
+    const payload = {
+      business: businessId,
+      image: form.image || "offer/default/image.jpg",
+      title: form.title.trim(),
+      discount: form.discount.trim(),
+      offerType: form.offerType,
+      category: form.category.trim(),
+      expiryDate: form.expiryDate ? new Date(form.expiryDate).toISOString() : null,
+      description: form.description.trim(),
+      termsAndConditions: (form.termsAndConditions || [])
+        .map((t) => t.trim())
+        .filter((t) => t !== ""),
+      howToRedeem: form.howToRedeem.trim(),
+      contactPhone: form.contactPhone.trim(),
+      contactEmail: form.contactEmail.trim(),
+      locations: (form.locations || [])
+        .map((l) => l.trim().toLowerCase())
+        .filter((l) => l !== ""),
+    };
 
-      console.log("[AddOffer] URL:", url);
-      console.log("[AddOffer] Payload:", payload);
+    console.log("[AddOffer] URL:", url);
+    console.log("[AddOffer] Payload:", payload);
 
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, // Add token to headers
+      body: JSON.stringify(payload),
+    });
 
-      const responseBody = await res.json();
-      console.log("[AddOffer] Response:", responseBody);
+    const responseBody = await res.json();
+    console.log("[AddOffer] Response:", responseBody);
 
-      if (!res.ok) throw new Error(responseBody?.message || "Failed to add offer");
+    if (!res.ok) throw new Error(responseBody?.message || "Failed to add offer");
 
-      Alert.alert("Success", "Offer added successfully", [
-        { text: "OK", onPress: () => navigation.goBack() }
-      ]);
-    } catch (err) {
-      console.error("Error:", err);
-      Alert.alert("Error", err.message || "Failed to add offer");
-    } finally {
-      setLoading(false);
-    }
-  };
+
+   Alert.alert("Success", "Offer added successfully", [
+  { text: "OK", onPress: () => navigation.goBack({ refresh: true }) },
+]);
+  } catch (err) {
+    console.error("Error:", err);
+    Alert.alert("Error", err.message || "Failed to add offer");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={tw`flex-1 bg-white`}>
