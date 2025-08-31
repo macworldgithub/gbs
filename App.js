@@ -50,13 +50,14 @@ import Wellbeing from "./src/Screens/Wellbeing";
 import Toast from "react-native-toast-message";
 import OfferDetails from "./src/Screens/OfferDetails";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import SocialPage from "./src/Screens/SocialPage";
+import Social from "./src/Screens/Social";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import MyBusiness from "./src/Screens/MyBusiness";
 import AddOfferScreen from "./src/Screens/AddOfferScreen";  
 import OfferCard from "./src/Screens/OfferCard";
 import SavedOffers from "./src/Screens/SavedOffers";
-
+import CreateEvent from "./src/Screens/CreateEvent"
+import EventDetail from "./src/Screens/EventDetail";
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -160,12 +161,14 @@ export default function App() {
           <Stack.Screen name="AuthTabs" component={AuthTabs} />
           <Stack.Screen name="OTPSuccess" component={ResetPass} />
           <Stack.Screen name="OfferDetails" component={OfferDetails} />
-          <Stack.Screen name="socialPage" component={SocialPage} />
+          <Stack.Screen name="social" component={Social} />
           <Stack.Screen name="conversation" component={Conversations} />
           <Stack.Screen name="MyBusiness" component={MyBusiness} />
           <Stack.Screen name="AddOffer" component={AddOfferScreen} />
           <Stack.Screen name="OfferCard" component={OfferCard}/>
           <Stack.Screen name="SavedOffers" component={SavedOffers} />
+          <Stack.Screen name="CreateEvent" component={CreateEvent} />
+          <Stack.Screen name="EventDetail" component={EventDetail} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

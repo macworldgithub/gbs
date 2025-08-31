@@ -445,12 +445,9 @@ export default function MembersDirectory({ navigation }) {
       if (!token || !myUserId) return;
 
       try {
-        const res = await fetch(
-          `${API_BASE_URL}/messages/conversations?page=1&limit=100`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await fetch(`${API_BASE_URL}/messages/conversations?page=1&limit=100`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const data = await res.json();
         if (res.ok && data?.conversations) {
           const statusMap = {};
