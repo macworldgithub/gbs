@@ -11,7 +11,7 @@ import {
 import axios from "axios";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
-import { getUserData } from "../utils/storage"; // Import getUserData
+import { getUserData } from "../utils/storage"; 
 import { MaterialIcons } from "@expo/vector-icons";
 
 const OfferDetails = ({ route, navigation }) => {
@@ -24,11 +24,11 @@ const OfferDetails = ({ route, navigation }) => {
     try {
       setLoading(true);
 
-      const userData = await getUserData(); // Get saved user info
-      const token = userData?.token; // Extract token if available
+      const userData = await getUserData();
+      const token = userData?.token; 
 
       const response = await axios.get(`${API_BASE_URL}/offer/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }, // Attach token
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       setOffer(response.data);

@@ -5,7 +5,7 @@ import gift1 from "../../assets/gift1.png";
 import { API_BASE_URL } from "../utils/config";
 import { getUserData } from "../utils/storage";
 import { ScrollView } from "react-native-gesture-handler";
-import Ionicons from "react-native-vector-icons/Ionicons";  // ✅ missing import add kiya
+import Ionicons from "react-native-vector-icons/Ionicons";  
 
 const SavedOffers = ({ navigation }) => {
   const [userId, setUserId] = useState(null);
@@ -19,7 +19,7 @@ const SavedOffers = ({ navigation }) => {
       try {
         const userData = await getUserData();
         if (userData && (userData._id || userData.id)) {
-          setUserId(userData._id || userData.id); // ✅ dono case handle
+          setUserId(userData._id || userData.id); 
         } else {
           setError("User ID not found in storage");
         }

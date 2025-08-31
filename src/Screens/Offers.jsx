@@ -15,9 +15,8 @@ const Offers = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState({});
-  const [userId, setUserId] = useState(null);   // ✅ local user id
+  const [userId, setUserId] = useState(null);   
 
-  // ✅ user id load karo jab component mount ho
   useEffect(() => {
     const loadUser = async () => {
       const userData = await getUserData();
