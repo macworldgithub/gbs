@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
+import { useNavigation } from "@react-navigation/native";
 
-const tabs = ["Events", "Chat Group", "Photo Gallery"];
+const tabs = ["Events", "Chat Group"];
 
 const eventsData = [
   {
@@ -21,30 +21,29 @@ const eventsData = [
     location: "Barossa Valley, SA",
     attending: 24,
   },
-  {
-    id: 3,
-    title: "Horse Racing Day",
-    date: "March 20, 2025",
-    location: "Barossa Valley, SA",
-    attending: 24,
-  },
- {
-    id: 4,
-    title: "Horse Racing Day",
-    date: "March 20, 2025",
-    location: "Barossa Valley, SA",
-    attending: 24,
-  },
 ];
 
-const SocialPage = () => {
+const Social = () => {
   const [activeTab, setActiveTab] = useState("Events");
+  const navigation = useNavigation();
 
   return (
     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
-      {/* Header */}
-      <Text style={tw`text-xl font-bold text-gray-800 mb-1 mt-14`}>Social</Text>
-      <Text style={tw`text-sm text-gray-600 mb-4`}>Community & Events</Text>
+      {/* Header Row */}
+      <View style={tw`flex-row items-center justify-between mt-14 mb-2`}>
+        <View>
+          <Text style={tw`text-xl font-bold text-gray-800`}>Social</Text>
+          <Text style={tw`text-sm text-gray-600`}>Community & Events</Text>
+        </View>
+
+        {/* Create Event Button */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate("CreateEvent")}
+          style={tw`bg-red-500 px-3 py-2 rounded-lg`}
+        >
+          <Text style={tw`text-white font-semibold text-sm`}>+ Create Event</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Tabs */}
       <View style={tw`flex-row mb-4`}>
@@ -53,7 +52,7 @@ const SocialPage = () => {
             key={tab}
             onPress={() => {
               if (tab === "Events") {
-                setActiveTab(tab); // sirf Events pe change hoga
+                setActiveTab(tab);
               }
             }}
             style={tw`px-4 py-2 mr-2 rounded-md ${
@@ -79,13 +78,11 @@ const SocialPage = () => {
               {event.title}
             </Text>
 
-            {/* Date */}
             <View style={tw`flex-row items-center mb-1`}>
               <MaterialIcons name="event" size={16} color="gray" />
               <Text style={tw`text-sm text-gray-600 ml-2`}>{event.date}</Text>
             </View>
 
-            {/* Location */}
             <View style={tw`flex-row items-center mb-1`}>
               <MaterialIcons name="location-on" size={16} color="gray" />
               <Text style={tw`text-sm text-gray-600 ml-2`}>
@@ -93,7 +90,6 @@ const SocialPage = () => {
               </Text>
             </View>
 
-            {/* Attending */}
             <View style={tw`flex-row items-center`}>
               <MaterialIcons name="people" size={16} color="gray" />
               <Text style={tw`text-sm text-gray-600 ml-2`}>
@@ -106,4 +102,4 @@ const SocialPage = () => {
   );
 };
 
-export default SocialPage;
+export default Social;
