@@ -1,108 +1,111 @@
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, ActivityIndicator, Pressable } from "react-native";
+import tw from "twrnc";
 
+const BASE_API_URL = "https://gbs.westsidecarcare.com.au/events";
 
-import React, { useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity } from 'react-native';
-import tw from 'tailwind-react-native-classnames';
-import { FontAwesome } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+const Cards = ({ stateFilter }) => {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-const popularEvents = [
-    {
-        id: '1',
-        title: 'Partner Crop',
-        location: 'Mandala Krida, Yogyakarta',
-        price: '$60.00 - $300.00',
-        date: 'Sep 12',
-        time: '7:00 PM',
-        organizer: 'Ayla02',
-        description: 'Join us for the legendary BMTH live in concert...',
-        image: require('../assets/popular1.png'),
-        profileImage: require('../assets/profile.png'),
-        map: require('../assets/map.png'),
-    },
-    {
-        id: '2',
-        title: 'Moshing Metal Fest 2024',
-        location: 'Sleman, Yogyakarta',
-        price: '$15.00 - $30.00',
-        date: 'Oct 10',
-        time: '6:00 PM',
-        organizer: 'MetalHeads Club',
-        description: 'The ultimate mosh pit experience awaits...',
-        image: require('../assets/popular2.png'),
-        profileImage: require('../assets/profile.png'),
-        map: require('../assets/map.png'),
-    },
-    {
-        id: '3',
-        title: 'Moshing Metal Fest II 2024',
-        location: 'Maguwo, Yogyakarta',
-        price: '$15.00 - $30.00',
-        date: 'Nov 11',
-        time: '5:00 PM',
-        organizer: 'MetalHeads Club',
-        description: 'Back again by demand with harder breakdowns...',
-        image: require('../assets/popular3.png'),
-        profileImage: require('../assets/profile.png'),
-        map: require('../assets/map.png'),
-    },
-    {
-        id: '4',
-        title: 'Moshing Metal Fest 2024',
-        location: 'Sleman, Yogyakarta',
-        price: '$15.00 - $30.00',
-        date: 'Oct 10',
-        time: '6:00 PM',
-        organizer: 'MetalHeads Club',
-        description: 'The ultimate mosh pit experience awaits...',
-        image: require('../assets/popular2.png'),
-        profileImage: require('../assets/profile.png'),
-        map: require('../assets/map.png'),
-    },
-];
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
 
-const Cards = () => {
-    const [likedEvents, setLikedEvents] = useState({});
-    const navigation = useNavigation();
+        // Build URL with state param if not "all"
+        const url =
+          stateFilter && stateFilter !== "all"
+            ? `${BASE_API_URL}?state=${stateFilter}`
+            : BASE_API_URL;
 
-    const toggleLike = (id) => {
-        setLikedEvents((prev) => ({ ...prev, [id]: !prev[id] }));
+        const response = await fetch(url);
+        const data = await response.json();
+        setEvents(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const handlePress = (event) => {
-        navigation.navigate('DetailEvent', { event });
-    };
+    fetchEvents();
+  }, [stateFilter]); // refetch whenever tab changes
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "Date not available";
+    const date = new Date(dateStr);
+    return date
+      .toLocaleString("en-US", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+      .replace(",", "");
+  };
+
+  const renderEvent = ({ item }) => {
+    const startDate = formatDate(item?.startDate);
+    const endDate = formatDate(item?.endDate);
 
     return (
-        <FlatList
-            data={popularEvents}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-                <TouchableOpacity
-                    onPress={() => handlePress(item)}
-                    style={tw`flex-row items-center bg-gray-100 rounded-lg p-2 mb-2`}
-                >
-                    <Image
-                        source={item.image}
-                        style={{ width: 60, height: 60, borderRadius: 8, marginRight: 10 }}
-                    />
-                    <View style={tw`flex-1`}>
-                        <Text style={tw`font-semibold text-sm`}>{item.title}</Text>
-                        <Text style={tw`text-red-500 text-xs`}>{item.price}</Text>
-                        <Text style={tw`text-gray-500 text-xs`}>{item.location}</Text>
-                    </View>
-                    <TouchableOpacity onPress={() => toggleLike(item.id)}>
-                        <FontAwesome
-                            name={likedEvents[item.id] ? 'heart' : 'heart-o'}
-                            size={16}
-                            color={likedEvents[item.id] ? 'red' : '#9CA3AF'}
-                        />
-                    </TouchableOpacity>
-                </TouchableOpacity>
-            )}
-        />
+      <Pressable
+        style={({ pressed }) => [
+          tw`bg-white p-4 m-2 rounded-xl shadow`,
+          pressed && tw`bg-gray-100`,
+        ]}
+      >
+        <Text style={tw`text-lg font-bold text-black`}>
+          {item?.title || "Untitled Event"}
+        </Text>
+        <Text style={tw`text-gray-600 mt-1`}>
+          {item?.description || "No description available"}
+        </Text>
+
+        {/* Start Date */}
+        <View style={tw`mt-2 flex-row`}>
+          <Text style={tw`text-black text-sm font-semibold`}>StartDate: </Text>
+          <Text style={tw`text-black text-sm`}>{startDate}</Text>
+        </View>
+
+        {/* End Date */}
+        <View style={tw`mt-1 flex-row`}>
+          <Text style={tw`text-black text-sm font-semibold`}>EndDate: </Text>
+          <Text style={tw`text-black text-sm`}>{endDate}</Text>
+        </View>
+
+        {/* State */}
+        <View style={tw`mt-1 mb-2 flex-row`}>
+          <Text style={tw`text-black text-sm font-semibold`}>State: </Text>
+          <Text style={tw`text-red-500 text-sm`}>{item?.state || "N/A"}</Text>
+        </View>
+      </Pressable>
     );
+  };
+
+  return (
+    <View style={tw`flex-1`}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#ff4d4f" />
+      ) : (
+        <FlatList
+          data={events}
+          keyExtractor={(item, index) => item?._id?.toString() || index.toString()}
+          renderItem={renderEvent}
+          contentContainerStyle={tw`p-2`}
+          ListEmptyComponent={
+            <Text style={tw`text-gray-500 text-center mt-4`}>
+              No events found for {stateFilter}
+            </Text>
+          }
+        />
+      )}
+    </View>
+  );
 };
 
 export default Cards;

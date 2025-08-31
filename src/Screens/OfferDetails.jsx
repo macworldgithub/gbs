@@ -1,31 +1,48 @@
-
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Linking } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  TouchableOpacity,
+  Linking,
+  Alert,
+} from "react-native";
 import axios from "axios";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
-import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
-
+import { getUserData } from "../utils/storage"; 
+import { MaterialIcons } from "@expo/vector-icons";
 
 const OfferDetails = ({ route, navigation }) => {
   const { id } = route.params;
-//   const navigation = useNavigation();
   const [offer, setOffer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    setLoading(true);
-    axios
-      .get(`${API_BASE_URL}/offer/${id}`)
-      .then((res) => {
-        setOffer(res.data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to fetch offer details");
-        setLoading(false);
+  const fetchOfferDetail = async () => {
+    try {
+      setLoading(true);
+
+      const userData = await getUserData();
+      const token = userData?.token; 
+
+      const response = await axios.get(`${API_BASE_URL}/offer/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
+
+      setOffer(response.data);
+    } catch (err) {
+      console.error("Offer detail error:", err.response?.data || err.message);
+      setError("Failed to fetch offer details");
+      Alert.alert("Error", "Failed to fetch offer details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOfferDetail();
   }, [id]);
 
   if (loading) {
@@ -47,41 +64,34 @@ const OfferDetails = ({ route, navigation }) => {
   if (!offer) return null;
 
   return (
-    <View style={tw`flex-1 bg-white`}>
+    <View style={tw`flex-1 bg-white mt-8`}>
       {/* Top Header */}
-      <View style={tw`flex-row items-center bg-red-500 px-4 py-3`} className="">
+      <View style={tw`flex-row items-center bg-red-500 px-4 py-3 mt-8`}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={tw`mr-3`}>
           <MaterialIcons name="arrow-back" size={24} color="white" />
-
         </TouchableOpacity>
-        <Text style={tw`text-white text-lg font-bold`} className="">Offer Details</Text>
+        <Text style={tw`text-white text-lg font-bold`}>Offer Details</Text>
       </View>
 
       <ScrollView style={tw`flex-1 p-4`}>
-        {/* Title */}
         <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>{offer.title}</Text>
-        {/* <Text style={tw`text-sm text-gray-500 mb-3`}>by {offer.businessName}</Text> */}
 
-        {/* Discount */}
         {offer.discount && (
           <Text style={tw`text-red-600 text-xl font-bold mb-4`}>
             {offer.discount}
           </Text>
         )}
 
-        {/* Description */}
-        <Text style={tw`text-gray-700 text-base mb-4`} className="">{offer.description}</Text>
+        <Text style={tw`text-gray-700 text-base mb-4`}>{offer.description}</Text>
 
-        {/* Offer Info */}
         <View style={tw`mb-4 bg-gray-50 p-3 rounded-lg shadow-sm`}>
-          <Text style={tw`text-sm text-gray-500 `}>Type: {offer.offerType}</Text>
+          <Text style={tw`text-sm text-gray-500`}>Type: {offer.offerType}</Text>
           <Text style={tw`text-sm text-gray-500`}>Category: {offer.category}</Text>
           <Text style={tw`text-sm text-gray-500`}>
             Expires: {offer.expiryDate ? new Date(offer.expiryDate).toLocaleDateString() : "-"}
           </Text>
         </View>
 
-        {/* Terms & Conditions */}
         {offer.termsAndConditions?.length > 0 && (
           <View style={tw`bg-gray-100 p-3 rounded-lg shadow-sm mb-4`}>
             <Text style={tw`font-bold text-gray-700 mb-2`}>Terms & Conditions</Text>
@@ -91,7 +101,6 @@ const OfferDetails = ({ route, navigation }) => {
           </View>
         )}
 
-        {/* How to Redeem */}
         {offer.howToRedeem && (
           <View style={tw`bg-gray-100 p-3 rounded-lg shadow-sm mb-4`}>
             <Text style={tw`font-bold text-gray-700 mb-2`}>How to Redeem</Text>
@@ -99,7 +108,6 @@ const OfferDetails = ({ route, navigation }) => {
           </View>
         )}
 
-        {/* Contact Buttons */}
         <View style={tw`flex-row justify-between mt-4`}>
           {offer.contactPhone && (
             <TouchableOpacity

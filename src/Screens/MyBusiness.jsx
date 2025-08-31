@@ -9,9 +9,8 @@ import {
   Alert,
   Linking,
 } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
-
-
 import { Image } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
@@ -27,8 +26,20 @@ export default function MyBusiness() {
   const [error, setError] = useState(null);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [noPackage, setNoPackage] = useState(false);
+  const [offersByBusiness, setOffersByBusiness] = useState({});
+  const isFocused = useIsFocused();
 
   const navigation = useNavigation();
+
+  useEffect(() => {
+      if (isFocused) {
+        fetchBusinesses();
+      }
+    }, [isFocused]);
+  
+
+
 
   const fetchBusinesses = async () => {
     try {
@@ -45,16 +56,41 @@ export default function MyBusiness() {
         },
       });
 
+      if (response.status === 404) {
+        const errData = await response.json();
+        if (errData.message === "User has no active package") {
+          setNoPackage(true);
+          setBusinesses([]);
+          return;
+        }
+      }
+
       if (!response.ok) {
         throw new Error("Failed to fetch businesses");
       }
 
       const data = await response.json();
       setBusinesses(data);
+      data.forEach((biz) => fetchOffers(biz._id, userData.token));
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOffers = async (businessId, token) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/offer/business/${businessId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+
+      const offers = await res.json();
+      console.log("[Offers for]", businessId, offers);
+      setOffersByBusiness((prev) => ({ ...prev, [businessId]: offers }));
+    } catch (err) {
+      console.error("Error fetching offers:", err);
     }
   };
 
@@ -65,6 +101,31 @@ export default function MyBusiness() {
 
 
   if (loading) return <ActivityIndicator style={tw`mt-10`} size="large" color="red" />;
+  if (!loading && noPackage) {
+    return (
+      <View style={tw`flex-1 bg-white p-4`}>
+        {/* Header */}
+        <View style={tw`flex-row items-center justify-between mt-12`}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Text style={tw`text-xl font-bold`}>My Businesses</Text>
+          <View style={{ width: 24 }} />
+        </View>
+
+        {/* No Package Message */}
+        <View style={tw`flex-1 justify-center items-center px-6`}>
+          <MaterialIcons name="block" size={48} color="#DC2626" />
+          <Text style={tw`text-lg font-bold text-gray-800 mt-2`}>
+            No Active Package Found
+          </Text>
+          <Text style={tw`text-sm text-gray-600 text-center`}>
+            You don’t have an active package. Please purchase a package to view, update and delete business.
+          </Text>
+        </View>
+      </View>
+    );
+  }
   if (error) return <Text style={tw`text-red-500 mt-10 text-center`}>{error}</Text>;
 
   const deleteBusiness = async (id) => {
@@ -243,7 +304,7 @@ export default function MyBusiness() {
   };
 
   return (
-    <View style={tw`flex-1 bg-white p-4`}>
+    <View style={tw`flex-1 bg-white p-4 `}>
       {/* Header */}
       <View style={tw`flex-row items-center justify-between mt-8 mb-4`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -262,7 +323,7 @@ export default function MyBusiness() {
           renderItem={({ item }) => (
             <TouchableOpacity
               key={item._id}
-              style={tw`bg-gray-50 rounded-lg p-4 mb-4`}
+              style={tw`bg-gray-100 rounded-lg p-4 mb-4 border border-gray-300`}
               onPress={() => navigation.navigate("BusinessDetail", { id: item._id })}
             >
 
@@ -306,10 +367,10 @@ export default function MyBusiness() {
                 </View>
 
                 <View style={tw`flex-row justify-between items-center `}>
-                    <TouchableOpacity onPress={() => uploadGallery(item._id)}>
-                      <MaterialIcons name="add-photo-alternate" size={20} color="#2563EB" />
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity onPress={() => uploadGallery(item._id)}>
+                    <MaterialIcons name="add-photo-alternate" size={20} color="#2563EB" />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <EditBusinessModal
@@ -343,6 +404,18 @@ export default function MyBusiness() {
                     </View>
                   ))}
               </View>
+
+              {/* Offers */}
+              {offersByBusiness[item._id] && offersByBusiness[item._id].length > 0 && (
+                <View style={tw`mb-3`}>
+                  <Text style={tw`text-md font-bold text-gray-700 mb-2`}>Offers</Text>
+                  {offersByBusiness[item._id].map((offer) => (
+                    <Text key={offer._id} style={tw`text-sm text-red-600`}>
+                      {offer.title || offer.name || offer.offerTitle}
+                    </Text>
+                  ))}
+                </View>
+              )}
 
               {/* Social Links */}
               {item.socialLinks && item.socialLinks.length > 0 && (
@@ -442,11 +515,11 @@ export default function MyBusiness() {
                   style={tw`flex-1 bg-red-500 rounded-lg py-2 items-center`}
                   onPress={(e) => {
                     e.stopPropagation();
-                    navigation.navigate("BusinessDetail", { id: item._id });
+                    navigation.navigate("AddOffer", { id: item._id });
                   }}
                 >
 
-                  <Text style={tw`text-white font-medium`}>View Details</Text>
+                  <Text style={tw`text-white font-medium`}>Add Offers</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
