@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Dimensions, Animated } from "react-native";
+import { View, Text, TouchableOpacity, Dimensions, Animated, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import { API_BASE_URL } from "../src/utils/config";
+import { getUserData } from "../src/utils/storage";
 
 const { width } = Dimensions.get("window");
 
@@ -26,7 +29,8 @@ const menuItems = [
     ],
   },
   { title: "My Business" },
-  { title: "Saved offers" }
+  { title: "Saved offers" },
+  { title: "Delete User Package" }
 ];
 
 export default function Drawer({ isOpen, onClose }) {
@@ -39,6 +43,61 @@ export default function Drawer({ isOpen, onClose }) {
       ...prev,
       [title]: !prev[title],
     }));
+  };
+
+  // Delete user package function
+  const deleteUserPackage = async () => {
+    try {
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      if (!token) {
+        Alert.alert("Error", "No token found, please login again.");
+        return;
+      }
+
+      // Show confirmation dialog
+      Alert.alert(
+        "Delete Package",
+        "Are you sure you want to delete your current package? This action cannot be undone.",
+        [
+          {
+            text: "Cancel",
+            style: "cancel"
+          },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                const response = await axios.delete(`${API_BASE_URL}/user-package`, {
+                  headers: { 
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  },
+                });
+
+                console.log("Package deletion response:", response.data);
+                Alert.alert("Success", "Your package has been deleted successfully!");
+                
+                // Close drawer after successful deletion
+                onClose();
+                
+                // Navigate to Business tab to refresh the page
+                navigation.navigate("Business");
+                
+              } catch (error) {
+                console.error("Error deleting package:", error.response?.data || error.message);
+                Alert.alert("Error", "Failed to delete package. Please try again.");
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error("Error in deleteUserPackage:", error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    }
   };
 
   useEffect(() => {
@@ -58,6 +117,8 @@ export default function Drawer({ isOpen, onClose }) {
         navigation.navigate("MyBusiness"); 
       } else if (item.title === "Saved offers") {
         navigation.navigate("SavedOffers");
+      } else if (item.title === "Delete User Package") {
+        deleteUserPackage();
       } else if (item.subItems) {
         toggleExpand(item.title);
       }
@@ -72,7 +133,13 @@ export default function Drawer({ isOpen, onClose }) {
             { paddingLeft: level * 16, borderBottomWidth: 0.5, borderColor: "#fff3" },
           ]}
         >
-          <Text style={[tw`text-black text-base flex-1`, { fontWeight: "500" }]}>
+          <Text style={[
+            tw`text-black text-base flex-1`, 
+            { 
+              fontWeight: "500",
+              color: item.title === "Delete User Package" ? "#DC2626" : "black"
+            }
+          ]}>
             {item.title}
           </Text>
           {item.subItems && (

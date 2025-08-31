@@ -34,12 +34,103 @@ const BusinessPage = ({ navigation }) => {
   const [noPackage, setNoPackage] = useState(false);
   const [packagesModalVisible, setPackagesModalVisible] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
+  const [roles, setRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const [packageLoading, setPackageLoading] = useState(false);
 
   useEffect(() => {
     if (isFocused) {
       fetchBusinesses();
     }
   }, [isFocused]);
+
+  // Listen for focus events to refresh when coming back from other screens
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchBusinesses();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  // Fetch roles from API
+  const fetchRoles = async () => {
+    try {
+      setRolesLoading(true);
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      if (!token) {
+        setError("No token found, please login again.");
+        return;
+      }
+
+      const response = await axios.get(`${API_BASE_URL}/roles`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Filter only Business and Top Tier Business roles
+      const businessRoles = response.data.filter(role => 
+        role.name === "business" || role.name === "top_tier_business"
+      );
+      
+      setRoles(businessRoles);
+    } catch (error) {
+      console.error("Error fetching roles:", error.response?.data || error.message);
+      setError("Failed to fetch package options");
+    } finally {
+      setRolesLoading(false);
+    }
+  };
+
+  // Handle package selection and API call
+  const handlePackageSelection = async (role) => {
+    try {
+      // Set selected package for visual feedback first
+      setSelectedPackage(role);
+      setPackageLoading(true);
+      
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      if (!token) {
+        setError("No token found, please login again.");
+        setPackageLoading(false);
+        return;
+      }
+
+      const requestBody = {
+        role: role._id,
+        startDate: new Date().toISOString(),
+        months: 3,
+        trial: false
+      };
+
+      const response = await axios.post(`${API_BASE_URL}/user-package`, requestBody, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      console.log("Package selection response:", response.data);
+      
+      // Close modal and refresh businesses
+      setPackagesModalVisible(false);
+      setSelectedPackage(null);
+      fetchBusinesses();
+      
+      Alert.alert("Success", "Package selected successfully!");
+      
+    } catch (error) {
+      console.error("Error selecting package:", error.response?.data || error.message);
+      Alert.alert("Error", "Failed to select package. Please try again.");
+      // Reset selected package on error
+      setSelectedPackage(null);
+    } finally {
+      setPackageLoading(false);
+    }
+  };
 
 
   // 🔍 Fetch Businesses (with search + filters)
@@ -165,7 +256,10 @@ const BusinessPage = ({ navigation }) => {
 
           <TouchableOpacity
             style={tw`mt-4 bg-red-500 px-6 py-2 rounded-lg`}
-            onPress={() => setPackagesModalVisible(true)}
+            onPress={() => {
+              setPackagesModalVisible(true);
+              fetchRoles(); // Fetch roles when modal opens
+            }}
           >
             <Text style={tw`text-white font-bold`}>View Packages</Text>
           </TouchableOpacity>
@@ -337,45 +431,52 @@ const BusinessPage = ({ navigation }) => {
         {/* Selected Package Display */}
         {selectedPackage && (
           <Text style={tw`text-sm text-green-600 mb-4 text-center`}>
-            Selected Package: {selectedPackage}
+            Selected Package: {selectedPackage.label}
+          </Text>
+        )}
+
+        {/* Loading State */}
+        {packageLoading && (
+          <Text style={tw`text-sm text-blue-600 mb-4 text-center`}>
+            Processing package selection...
           </Text>
         )}
 
         {/* Package Selection Buttons */}
-        <TouchableOpacity
-          style={tw`rounded-lg p-3 mb-3 ${
-            selectedPackage === "Top-Tier Business" ? "bg-red-500" : "bg-gray-200"
-          }`}
-          onPress={() => setSelectedPackage("Top-Tier Business")}
-        >
-          <Text
-            style={tw`font-medium text-center ${
-              selectedPackage === "Top-Tier Business" ? "text-white" : "text-gray-800"
-            }`}
-          >
-            Top-Tier Business
-          </Text>
-        </TouchableOpacity>
+        {rolesLoading ? (
+          <Text style={tw`text-center text-gray-500`}>Loading packages...</Text>
+        ) : roles.length === 0 ? (
+          <Text style={tw`text-center text-gray-500`}>No package options available.</Text>
+        ) : (
+                     roles.map((role) => (
+             <TouchableOpacity
+               key={role._id}
+               style={tw`rounded-lg p-3 mb-3 ${
+                 selectedPackage?._id === role._id ? "bg-red-500" : "bg-gray-200"
+               }`}
+               onPress={() => handlePackageSelection(role)}
+               disabled={packageLoading}
+             >
+               <Text
+                 style={tw`font-medium text-center ${
+                   selectedPackage?._id === role._id ? "text-white" : "text-gray-800"
+                 }`}
+               >
+                 {role.label}
+               </Text>
+             </TouchableOpacity>
+           ))
+        )}
 
-        <TouchableOpacity
-          style={tw`rounded-lg p-3 mb-3 ${
-            selectedPackage === "Business" ? "bg-red-500" : "bg-gray-200"
-          }`}
-          onPress={() => setSelectedPackage("Business")}
-        >
-          <Text
-            style={tw`font-medium text-center ${
-              selectedPackage === "Business" ? "text-white" : "text-gray-800"
-            }`}
-          >
-            Business
-          </Text>
-        </TouchableOpacity>
+
 
         {/* Close Button */}
         <TouchableOpacity
           style={tw`mt-4`}
-          onPress={() => setPackagesModalVisible(false)}
+          onPress={() => {
+            setPackagesModalVisible(false);
+            setSelectedPackage(null);
+          }}
         >
           <Text style={tw`text-red-500 text-center font-medium`}>Close</Text>
         </TouchableOpacity>
