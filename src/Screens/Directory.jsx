@@ -163,17 +163,20 @@ export default function MembersDirectory({ navigation }) {
         const response = await fetch(`${API_BASE_URL}/user`);
         const data = await response.json();
 
-        const formattedData = data.map((user) => ({
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          role: user?.activatedPackage?.role?.label || "Member",
-          image: user.avatarUrl
-            ? user.avatarUrl
-            : require("../../assets/user.jpg"),
-          liked: false,
-        }));
+        const formattedData = data
+          .filter((user) => user._id !== myUserId)
+          .map((user) => ({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user?.activatedPackage?.role?.label || "Member",
+            avatarUrl: user?.avatarUrl || null,
+            image: user?.avatarUrl
+              ? { uri: user.avatarUrl }
+              : require("../../assets/user.jpg"),
+            liked: false,
+          }));
 
         setMembers(formattedData);
       } catch (error) {
@@ -185,14 +188,19 @@ export default function MembersDirectory({ navigation }) {
       // After token is set, try to prefetch conversation statuses
       try {
         if (!token) return;
-        const res = await fetch(`${API_BASE_URL}/messages/conversations?page=1&limit=100`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${API_BASE_URL}/messages/conversations?page=1&limit=100`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const data = await res.json();
         if (res.ok && data?.conversations) {
           const statusMap = {};
           data.conversations.forEach((conv) => {
-            const other = (conv.participants || []).find((p) => p._id !== myUserId);
+            const other = (conv.participants || []).find(
+              (p) => p._id !== myUserId
+            );
             if (other?._id) statusMap[other._id] = "continue";
           });
           setChatStatus(statusMap);
@@ -206,6 +214,37 @@ export default function MembersDirectory({ navigation }) {
   }, [token, myUserId]);
 
   // ✅ Ensure conversation exists, then open Chat
+  // const openChat = async (user) => {
+  //   try {
+  //     if (!token) {
+  //       console.warn("Missing token; navigating anyway");
+  //       navigation.navigate("Chat", { user });
+  //       return;
+  //     }
+
+  //     const res = await fetch(`${API_BASE_URL}/messages/conversation`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify({ recipientId: user.id }),
+  //     });
+  //     const conv = await res.json();
+  //     if (!res.ok) {
+  //       console.error("❌ startConversation error:", conv);
+  //       navigation.navigate("Chat", { user });
+  //       return;
+  //     }
+
+  //     setChatStatus((prev) => ({ ...prev, [user.id]: "continue" }));
+  //     navigation.navigate("Chat", { user, conversationId: conv._id });
+  //   } catch (err) {
+  //     console.error("❌ Error starting conversation:", err);
+  //     navigation.navigate("Chat", { user });
+  //   }
+  // };
+
   const openChat = async (user) => {
     try {
       if (!token) {
@@ -223,21 +262,20 @@ export default function MembersDirectory({ navigation }) {
         body: JSON.stringify({ recipientId: user.id }),
       });
       const conv = await res.json();
-      if (!res.ok) {
-        console.error("❌ startConversation error:", conv);
-        navigation.navigate("Chat", { user });
-        return;
-      }
 
-      setChatStatus((prev) => ({ ...prev, [user.id]: "continue" }));
-      navigation.navigate("Chat", { user, conversationId: conv._id });
+      navigation.navigate("Chat", {
+        user: {
+          id: user.id,
+          name: user.name,
+          avatarUrl: user.avatarUrl, // 👈 pass it
+        },
+        conversationId: conv?._id,
+      });
     } catch (err) {
       console.error("❌ Error starting conversation:", err);
       navigation.navigate("Chat", { user });
     }
   };
-
-  // (openChat moved above to ensure/create conversation)
 
   const filteredMembers = members.filter((member) =>
     member.name.toLowerCase().includes(search.toLowerCase())

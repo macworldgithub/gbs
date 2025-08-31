@@ -30,26 +30,42 @@ export default function Conversations({ navigation }) {
       if (!token || !myUserId) return;
       setLoading(true);
       try {
-        const { data } = await axios.get(`${API_BASE_URL}/messages/conversations`, {
-          params: { page: 1, limit: 50 },
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const { data } = await axios.get(
+          `${API_BASE_URL}/messages/conversations`,
+          {
+            params: { page: 1, limit: 50 },
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         console.log("✅ Conversations GET response:", data);
 
-        const conversations = Array.isArray(data?.conversations) ? data.conversations : [];
+        const conversations = Array.isArray(data?.conversations)
+          ? data.conversations
+          : [];
         const mapped = conversations.map((c) => {
-          const other = (c.participants || []).find((p) => p._id !== myUserId) || {};
-          const last = Array.isArray(c.messages) && c.messages.length > 0 ? c.messages[0] : null;
+          const other =
+            (c.participants || []).find((p) => p._id !== myUserId) || {};
+          const last =
+            Array.isArray(c.messages) && c.messages.length > 0
+              ? c.messages[0]
+              : null;
           return {
             id: c._id,
-            otherUser: { id: other._id, name: other.name || other.email || "Unknown" },
+            otherUser: {
+              id: other._id,
+              name: other.name || other.email || "Unknown",
+              avatarUrl: other.avatarUrl || null,
+            },
             lastText: last?.content || "",
           };
         });
         console.log("✅ Conversations mapped for UI:", mapped);
         setItems(mapped);
       } catch (e) {
-        console.log("❌ Conversations GET error:", e?.response?.data || e.message);
+        console.log(
+          "❌ Conversations GET error:",
+          e?.response?.data || e.message
+        );
         setItems([]);
       } finally {
         setLoading(false);
@@ -61,17 +77,34 @@ export default function Conversations({ navigation }) {
   const openChat = (item) => {
     console.log("➡️ Open chat: ", item);
     navigation.navigate("Chat", {
-      user: { id: item.otherUser.id, name: item.otherUser.name },
+      user: {
+        id: item.otherUser.id,
+        name: item.otherUser.name,
+        avatarUrl: item.otherUser.avatarUrl, // 👈 include this
+      },
       conversationId: item.id,
     });
   };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => openChat(item)} style={tw`flex-row items-center p-3 border-b border-gray-200`}>
-      <Image source={require("../../assets/user.png")} style={tw`w-10 h-10 rounded-full`} />
+    <TouchableOpacity
+      onPress={() => openChat(item)}
+      style={tw`flex-row items-center p-3 border-b border-gray-200`}
+    >
+      <Image
+        source={
+          item.otherUser?.avatarUrl
+            ? { uri: item.otherUser.avatarUrl }
+            : require("../../assets/user.jpg")
+        }
+        style={tw`w-10 h-10 rounded-full`}
+      />
+
       <View style={tw`ml-3 flex-1`}>
         <Text style={tw`text-base font-semibold`}>{item.otherUser.name}</Text>
-        <Text style={tw`text-sm text-gray-600`} numberOfLines={1}>{item.lastText}</Text>
+        <Text style={tw`text-sm text-gray-600`} numberOfLines={1}>
+          {item.lastText}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -84,10 +117,12 @@ export default function Conversations({ navigation }) {
       {loading ? (
         <Text style={tw`text-center text-gray-500 mt-10`}>Loading...</Text>
       ) : (
-        <FlatList data={items} keyExtractor={(i) => i.id} renderItem={renderItem} />
+        <FlatList
+          data={items}
+          keyExtractor={(i) => i.id}
+          renderItem={renderItem}
+        />
       )}
     </View>
   );
 }
-
-

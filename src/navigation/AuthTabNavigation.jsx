@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import Home from "../Screens/Home";
 import Profile from "../Screens/Profile";
-import CustomTabBar from "../../components/CustomTabBar"
+import CustomTabBar from "../../components/CustomTabBar";
 import Favorite from "../Screens/Favorite";
 import AllChat from "../Screens/AllChat";
 import MembersDirectory from "../Screens/Directory";
@@ -13,7 +13,7 @@ import WellbeingScreen from "../Screens/Wellbeing";
 import Offers from "../Screens/Offers";
 import SocialPage from "../Screens/SocialPage";
 import Conversations from "../Screens/Conversations";
-import ProfileScreen from "../Screens/ProfileScreen";
+
 const Tab = createBottomTabNavigator();
 
 export default function AuthTabs() {
@@ -27,8 +27,9 @@ export default function AuthTabs() {
       <Tab.Screen name="Business" component={BusinessPage} />
       <Tab.Screen name="Social" component={Conversations} />
       {/* <Tab.Screen name="Wellbeing" component={WellbeingScreen} /> */}
-      <Tab.Screen name="Wellbeing" component={Profile} />
+      <Tab.Screen name="Profile" component={Profile} />
       <Tab.Screen name="Offers" component={Offers} />
+     
 
     </Tab.Navigator>
   );
