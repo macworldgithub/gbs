@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Image, Alert } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import { API_BASE_URL } from "../../src/utils/config";
-import { getUserData } from "../../src/utils/storage"; // <-- Added
+import { getUserData } from "../../src/utils/storage"; 
 import gift1 from "../../assets/gift1.png";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const tabs = ["All", "Member Offers", "Partner Deals"];
 
@@ -13,13 +14,23 @@ const Offers = ({ navigation }) => {
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [saving, setSaving] = useState({});
+  const [userId, setUserId] = useState(null);   // ✅ local user id
+
+  // ✅ user id load karo jab component mount ho
+  useEffect(() => {
+    const loadUser = async () => {
+      const userData = await getUserData();
+      setUserId(userData?._id || null);
+    };
+    loadUser();
+  }, []);
 
   const fetchOffers = async (tab) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Get user token
       const userData = await getUserData();
       const token = userData?.token;
 
@@ -37,7 +48,7 @@ const Offers = ({ navigation }) => {
       }
 
       const res = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` }, // <-- Added Authorization header
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       setOffers(res.data.offers || []);
@@ -46,6 +57,47 @@ const Offers = ({ navigation }) => {
       setError("Failed to fetch offers");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveOffer = async (offerId) => {
+    try {
+      setSaving((prev) => ({ ...prev, [offerId]: true }));
+
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      if (!token || !userId) {
+        Alert.alert("Error", "User not logged in");
+        return;
+      }
+
+      const url = `${API_BASE_URL}/offer/${offerId}/save/${userId}`;
+      console.log("Saving offer:", url);
+
+      const res = await axios.post(url, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      console.log("Save Offer Response:", res.status, res.data);
+
+      if (res.status === 200 || res.status === 201) {
+        // ✅ instantly update UI
+        setOffers((prevOffers) =>
+          prevOffers.map((offer) =>
+            offer._id === offerId
+              ? { ...offer, savedBy: [...(offer.savedBy || []), userId] }
+              : offer
+          )
+        );
+      } else {
+        Alert.alert("Error", "Failed to save offer");
+      }
+    } catch (err) {
+      console.error("Error saving offer:", err.response?.status, err.response?.data || err.message);
+      Alert.alert("Error", "Could not save offer");
+    } finally {
+      setSaving((prev) => ({ ...prev, [offerId]: false }));
     }
   };
 
@@ -58,12 +110,6 @@ const Offers = ({ navigation }) => {
       {/* Header */}
       <View style={tw`flex-row justify-between items-center mt-14 mb-1`}>
         <Text style={tw`text-xl font-bold text-gray-800`}>Exclusive offers</Text>
-        <TouchableOpacity
-          style={tw`bg-red-500 py-2 px-4 rounded-lg`}
-          onPress={() => navigation.navigate("AddOffer")}
-        >
-          <Text style={tw`text-white text-base font-semibold`}>+ Add Offer</Text>
-        </TouchableOpacity>
       </View>
       <Text style={tw`text-sm text-gray-600 mb-4`}>
         Member Benefits & Partner Deals
@@ -75,14 +121,10 @@ const Offers = ({ navigation }) => {
           <TouchableOpacity
             key={tab}
             onPress={() => setActiveTab(tab)}
-            style={tw`px-4 py-2 mr-2 rounded-full ${
-              activeTab === tab ? "bg-red-500" : "bg-gray-100"
-            }`}
+            style={tw`px-4 py-2 mr-2 rounded-full ${activeTab === tab ? "bg-red-500" : "bg-gray-100"}`}
           >
             <Text
-              style={tw`text-sm ${
-                activeTab === tab ? "text-white" : "text-gray-700"
-              }`}
+              style={tw`text-sm ${activeTab === tab ? "text-white" : "text-gray-700"}`}
             >
               {tab}
             </Text>
@@ -107,9 +149,11 @@ const Offers = ({ navigation }) => {
           key={offer._id}
           onPress={() => navigation.navigate("OfferDetails", { id: offer._id })}
         >
-          <View style={tw`bg-white border border-gray-200 rounded-lg p-4 mb-4`}>
-            <View style={tw`flex-row justify-between items-center`}>
-              <View style={tw`flex-row justify-start`}>
+          <View style={tw`bg-white border border-gray-300 rounded-lg p-4 mb-4`}>
+
+            {/* Top Row: Title + Save Icon */}
+            <View style={tw`flex-row justify-between items-start`}>
+              <View style={tw`flex-row items-center`}>
                 <View style={tw`bg-red-500 mr-2`}>
                   <Image source={gift1} />
                 </View>
@@ -117,15 +161,28 @@ const Offers = ({ navigation }) => {
                   {offer.title}
                 </Text>
               </View>
-              <Text style={tw`text-red-600 font-bold text-sm`}>
-                {offer.discount}
-              </Text>
+
+              {/* Save Icon */}
+              <TouchableOpacity onPress={() => saveOffer(offer._id)}>
+                <Icon
+                  name={offer.savedBy?.includes(userId) ? "bookmark" : "bookmark-outline"}
+                  size={22}
+                  color={offer.savedBy?.includes(userId) ? "red" : "gray"}
+                />
+              </TouchableOpacity>
             </View>
 
+            {/* Discount under Title */}
+            <Text style={tw`text-red-600 font-bold text-sm mt-1`}>
+              {offer.discount}
+            </Text>
+
+            {/* Company Name */}
             <Text style={tw`text-sm text-gray-800 mt-1`}>
               {offer.business?.companyName || ""}
             </Text>
 
+            {/* Offer Type + Category */}
             <View style={tw`flex-row items-center mt-1`}>
               <Text
                 style={tw`text-xs px-2 py-1 rounded-full ${
@@ -139,22 +196,12 @@ const Offers = ({ navigation }) => {
               <Text style={tw`text-xs text-gray-500 ml-2`}>{offer.category}</Text>
             </View>
 
+            {/* Description */}
             <Text style={tw`text-sm text-gray-600 mt-2`}>
               {offer.description}
             </Text>
 
-            {/* <View style={tw`flex-row justify-between items-center mt-3`}>
-              <Text style={tw`text-xs text-gray-500`}>
-                Expires:{" "}
-                {offer.expiryDate
-                  ? new Date(offer.expiryDate).toLocaleDateString()
-                  : "-"}
-              </Text>
-              <TouchableOpacity style={tw`bg-red-500 px-4 py-2 rounded`}>
-                <Text style={tw`text-white text-sm`}>Redeem</Text>
-              </TouchableOpacity>
-            </View> */}
-
+            {/* Terms & Conditions */}
             {offer.termsAndConditions?.length > 0 && (
               <View style={tw`bg-gray-100 p-2 rounded mt-3`}>
                 {offer.termsAndConditions.map((term, idx) => (

@@ -55,7 +55,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import MyBusiness from "./src/Screens/MyBusiness";
 import AddOfferScreen from "./src/Screens/AddOfferScreen";  
 import OfferCard from "./src/Screens/OfferCard";
-
+import SavedOffers from "./src/Screens/SavedOffers";
 
 const Stack = createStackNavigator();
 
@@ -165,6 +165,7 @@ export default function App() {
           <Stack.Screen name="MyBusiness" component={MyBusiness} />
           <Stack.Screen name="AddOffer" component={AddOfferScreen} />
           <Stack.Screen name="OfferCard" component={OfferCard}/>
+          <Stack.Screen name="SavedOffers" component={SavedOffers} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

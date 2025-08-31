@@ -55,7 +55,9 @@ export default function Drawer({ isOpen, onClose }) {
     const handlePress = () => {
       if (item.title === "My Business") {
         onClose(); // close drawer
-        navigation.navigate("MyBusiness"); // 👈 navigate to new screen
+        navigation.navigate("MyBusiness"); 
+      } else if (item.title === "Saved offers") {
+        navigation.navigate("SavedOffers");
       } else if (item.subItems) {
         toggleExpand(item.title);
       }
