@@ -53,6 +53,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import SocialPage from "./src/Screens/SocialPage";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import MyBusiness from "./src/Screens/MyBusiness";
+import AddOfferScreen from "./src/Screens/AddOfferScreen";  
+import OfferCard from "./src/Screens/OfferCard";
 
 
 const Stack = createStackNavigator();
@@ -161,6 +163,8 @@ export default function App() {
           <Stack.Screen name="socialPage" component={SocialPage} />
           <Stack.Screen name="conversation" component={Conversations} />
           <Stack.Screen name="MyBusiness" component={MyBusiness} />
+          <Stack.Screen name="AddOffer" component={AddOfferScreen} />
+          <Stack.Screen name="OfferCard" component={OfferCard}/>
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
