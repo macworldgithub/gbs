@@ -9,9 +9,8 @@ import {
   Alert,
   Linking,
 } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
-
-
 import { Image } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
@@ -28,8 +27,16 @@ export default function MyBusiness() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [noPackage, setNoPackage] = useState(false);
+  const [offersByBusiness, setOffersByBusiness] = useState({});
+  const isFocused = useIsFocused();
 
   const navigation = useNavigation();
+
+  useEffect(() => {
+    if (isFocused) {
+      fetchBusinesses();
+    }
+  }, [isFocused]);
 
   const fetchBusinesses = async () => {
     try {
@@ -61,6 +68,7 @@ export default function MyBusiness() {
 
       const data = await response.json();
       setBusinesses(data);
+      data.forEach((biz) => fetchOffers(biz._id, userData.token));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -68,13 +76,27 @@ export default function MyBusiness() {
     }
   };
 
+  const fetchOffers = async (businessId, token) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/offer/business/${businessId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+
+      const offers = await res.json();
+      console.log("[Offers for]", businessId, offers);
+      setOffersByBusiness((prev) => ({ ...prev, [businessId]: offers }));
+    } catch (err) {
+      console.error("Error fetching offers:", err);
+    }
+  };
+
   useEffect(() => {
     fetchBusinesses();
   }, []);
 
-
-
-  if (loading) return <ActivityIndicator style={tw`mt-10`} size="large" color="red" />;
+  if (loading)
+    return <ActivityIndicator style={tw`mt-10`} size="large" color="red" />;
   if (!loading && noPackage) {
     return (
       <View style={tw`flex-1 bg-white p-4`}>
@@ -94,45 +116,53 @@ export default function MyBusiness() {
             No Active Package Found
           </Text>
           <Text style={tw`text-sm text-gray-600 text-center`}>
-            You don’t have an active package. Please purchase a package to view, update and delete business.
+            You don’t have an active package. Please purchase a package to view,
+            update and delete business.
           </Text>
         </View>
       </View>
     );
   }
-  if (error) return <Text style={tw`text-red-500 mt-10 text-center`}>{error}</Text>;
+  if (error)
+    return <Text style={tw`text-red-500 mt-10 text-center`}>{error}</Text>;
 
   const deleteBusiness = async (id) => {
-    Alert.alert("Confirm Delete", "Are you sure you want to delete this business?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            const userData = await getUserData();
-            const token = userData?.token;
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this business?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const userData = await getUserData();
+              const token = userData?.token;
 
-            if (!token) {
-              Alert.alert("Error", "No token found, please login again.");
-              return;
+              if (!token) {
+                Alert.alert("Error", "No token found, please login again.");
+                return;
+              }
+
+              await axios.delete(`${API_BASE_URL}/business/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+
+              Alert.alert("Success", "Business deleted successfully");
+              fetchBusinesses();
+            } catch (error) {
+              console.error(
+                "Error deleting business:",
+                error.response?.data || error.message
+              );
+              Alert.alert("Error", "Failed to delete business");
             }
-
-            await axios.delete(`${API_BASE_URL}/business/${id}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-
-            Alert.alert("Success", "Business deleted successfully");
-            fetchBusinesses();
-          } catch (error) {
-            console.error("Error deleting business:", error.response?.data || error.message);
-            Alert.alert("Error", "Failed to delete business");
-          }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
-
 
   const handleUpload = async (file, businessId) => {
     try {
@@ -166,14 +196,17 @@ export default function MyBusiness() {
       if (!uploadRes.ok) throw new Error("Failed to upload file to S3");
 
       // Step 3: Update business record
-      const updateRes = await fetch(`${API_BASE_URL}/business/${businessId}/logo`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ fileKey: key }),
-      });
+      const updateRes = await fetch(
+        `${API_BASE_URL}/business/${businessId}/logo`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ fileKey: key }),
+        }
+      );
 
       if (!updateRes.ok) throw new Error("Failed to update business with logo");
 
@@ -185,7 +218,6 @@ export default function MyBusiness() {
     }
   };
 
-
   const uploadLogo = async (businessId) => {
     Alert.alert(
       "Upload Logo",
@@ -194,7 +226,10 @@ export default function MyBusiness() {
         {
           text: "Camera",
           onPress: async () => {
-            const cameraResult = await launchCamera({ mediaType: "photo", quality: 0.7 });
+            const cameraResult = await launchCamera({
+              mediaType: "photo",
+              quality: 0.7,
+            });
             if (!cameraResult.didCancel && cameraResult.assets?.[0]) {
               handleUpload(cameraResult.assets[0], businessId);
             }
@@ -203,7 +238,10 @@ export default function MyBusiness() {
         {
           text: "Gallery",
           onPress: async () => {
-            const galleryResult = await launchImageLibrary({ mediaType: "photo", quality: 0.7 });
+            const galleryResult = await launchImageLibrary({
+              mediaType: "photo",
+              quality: 0.7,
+            });
             if (!galleryResult.didCancel && galleryResult.assets?.[0]) {
               handleUpload(galleryResult.assets[0], businessId);
             }
@@ -215,12 +253,12 @@ export default function MyBusiness() {
     );
   };
 
-
   const handleUploadGallery = async (files, businessId) => {
     try {
       const userData = await getUserData();
       const token = userData?.token;
-      if (!token) return Alert.alert("Error", "No token found, please login again.");
+      if (!token)
+        return Alert.alert("Error", "No token found, please login again.");
 
       // Step 1: Request presigned URLs
       const fileData = files.map((f) => ({
@@ -232,7 +270,10 @@ export default function MyBusiness() {
         `${API_BASE_URL}/business/${businessId}/gallery/upload-urls`,
         {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify(fileData),
         }
       );
@@ -252,14 +293,19 @@ export default function MyBusiness() {
         })
       );
 
-
       // Step 3: Save keys in business gallery
       const fileKeys = urls.map((u) => u.key);
-      const updateRes = await fetch(`${API_BASE_URL}/business/${businessId}/gallery`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ fileKeys }),
-      });
+      const updateRes = await fetch(
+        `${API_BASE_URL}/business/${businessId}/gallery`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ fileKeys }),
+        }
+      );
       if (!updateRes.ok) throw new Error("Failed to add images to gallery");
 
       Alert.alert("Success", "Gallery updated successfully!");
@@ -271,14 +317,18 @@ export default function MyBusiness() {
   };
 
   const uploadGallery = async (businessId) => {
-    const res = await launchImageLibrary({ mediaType: "photo", quality: 0.7, selectionLimit: 0 }); // multiple
+    const res = await launchImageLibrary({
+      mediaType: "photo",
+      quality: 0.7,
+      selectionLimit: 0,
+    }); // multiple
     if (!res.didCancel && res.assets?.length) {
       handleUploadGallery(res.assets, businessId);
     }
   };
 
   return (
-    <View style={tw`flex-1 bg-white p-4`}>
+    <View style={tw`flex-1 bg-white p-4 `}>
       {/* Header */}
       <View style={tw`flex-row items-center justify-between mt-8 mb-4`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -289,7 +339,9 @@ export default function MyBusiness() {
       </View>
 
       {businesses.length === 0 ? (
-        <Text style={tw`text-gray-500 text-center mt-10`}>No businesses found.</Text>
+        <Text style={tw`text-gray-500 text-center mt-10`}>
+          No businesses found.
+        </Text>
       ) : (
         <FlatList
           data={businesses}
@@ -297,15 +349,20 @@ export default function MyBusiness() {
           renderItem={({ item }) => (
             <TouchableOpacity
               key={item._id}
-              style={tw`bg-gray-50 rounded-lg p-4 mb-4`}
-              onPress={() => navigation.navigate("BusinessDetail", { id: item._id })}
+              style={tw`bg-gray-100 rounded-lg p-4 mb-4 border border-gray-300`}
+              onPress={() =>
+                navigation.navigate("BusinessDetail", { id: item._id })
+              }
             >
-
               {/* Company Info */}
               <View style={tw`flex-row items-center mb-2`}>
                 <View>
                   <Image
-                    source={item.logo ? { uri: item.logo } : require("../../assets/profile.png")}
+                    source={
+                      item.logo
+                        ? { uri: item.logo }
+                        : require("../../assets/profile.png")
+                    }
                     style={tw`w-12 h-12 rounded-full`}
                   />
 
@@ -313,15 +370,22 @@ export default function MyBusiness() {
                     style={tw`absolute -bottom-1 -right-2 bg-white rounded-full p-1`}
                     onPress={() => uploadLogo(item._id)}
                   >
-                    <MaterialIcons name="photo-library" size={16} color="#2563EB" />
+                    <MaterialIcons
+                      name="photo-library"
+                      size={16}
+                      color="#2563EB"
+                    />
                   </TouchableOpacity>
                 </View>
 
                 <View style={tw`flex-1 ml-3`}>
-                  <Text style={tw`text-lg font-bold text-gray-800`}>{item.companyName}</Text>
-                  <Text style={tw`text-xs text-gray-500`}>by {item.user?.name}</Text>
+                  <Text style={tw`text-lg font-bold text-gray-800`}>
+                    {item.companyName}
+                  </Text>
+                  <Text style={tw`text-xs text-gray-500`}>
+                    by {item.user?.name}
+                  </Text>
                 </View>
-
 
                 <View style={tw`flex-row items-center`}>
                   <TouchableOpacity
@@ -333,16 +397,18 @@ export default function MyBusiness() {
                   >
                     <MaterialIcons name="edit" size={22} color="#2563EB" />
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => deleteBusiness(item._id)}
-                  >
+                  <TouchableOpacity onPress={() => deleteBusiness(item._id)}>
                     <MaterialIcons name="delete" size={22} color="#DC2626" />
                   </TouchableOpacity>
                 </View>
 
                 <View style={tw`flex-row justify-between items-center `}>
                   <TouchableOpacity onPress={() => uploadGallery(item._id)}>
-                    <MaterialIcons name="add-photo-alternate" size={20} color="#2563EB" />
+                    <MaterialIcons
+                      name="add-photo-alternate"
+                      size={20}
+                      color="#2563EB"
+                    />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -357,7 +423,9 @@ export default function MyBusiness() {
               {/* Rating & Location */}
               <View style={tw`flex-row items-center`}>
                 <MaterialIcons name="star" size={16} color="#F59E0B" />
-                <Text style={tw`text-xs text-gray-700 ml-1`}>{item.rating}</Text>
+                <Text style={tw`text-xs text-gray-700 ml-1`}>
+                  {item.rating}
+                </Text>
                 <Text style={tw`text-xs text-gray-500 ml-2`}>
                   {item.city}, {item.state}
                 </Text>
@@ -378,6 +446,21 @@ export default function MyBusiness() {
                     </View>
                   ))}
               </View>
+
+              {/* Offers */}
+              {offersByBusiness[item._id] &&
+                offersByBusiness[item._id].length > 0 && (
+                  <View style={tw`mb-3`}>
+                    <Text style={tw`text-md font-bold text-gray-700 mb-2`}>
+                      Offers
+                    </Text>
+                    {offersByBusiness[item._id].map((offer) => (
+                      <Text key={offer._id} style={tw`text-sm text-red-600`}>
+                        {offer.title || offer.name || offer.offerTitle}
+                      </Text>
+                    ))}
+                  </View>
+                )}
 
               {/* Social Links */}
               {item.socialLinks && item.socialLinks.length > 0 && (
@@ -414,9 +497,17 @@ export default function MyBusiness() {
                         onPress={() => Linking.openURL(link.url)}
                       >
                         {iconType === "FontAwesome5" ? (
-                          <FontAwesome5 name={iconName} size={20} color="#DC2626" />
+                          <FontAwesome5
+                            name={iconName}
+                            size={20}
+                            color="#DC2626"
+                          />
                         ) : (
-                          <MaterialIcons name={iconName} size={20} color="#DC2626" />
+                          <MaterialIcons
+                            name={iconName}
+                            size={20}
+                            color="#DC2626"
+                          />
                         )}
                       </TouchableOpacity>
                     );
@@ -426,7 +517,9 @@ export default function MyBusiness() {
 
               {item.gallery && item.gallery.length > 0 && (
                 <View style={tw`mb-3`}>
-                  <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>Gallery</Text>
+                  <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>
+                    Gallery
+                  </Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     {item.gallery.slice(0, 2).map((img, idx) => (
                       <Image
@@ -438,9 +531,15 @@ export default function MyBusiness() {
                     {item.gallery.length > 2 && (
                       <TouchableOpacity
                         style={tw`w-20 h-20 rounded-lg mr-2 justify-center items-center`}
-                        onPress={() => navigation.navigate("BusinessDetail", { id: item._id })}
+                        onPress={() =>
+                          navigation.navigate("BusinessDetail", {
+                            id: item._id,
+                          })
+                        }
                       >
-                        <Text style={tw`text-blue-500 font-medium underline`}>View More</Text>
+                        <Text style={tw`text-blue-500 font-medium underline`}>
+                          View More
+                        </Text>
                       </TouchableOpacity>
                     )}
                   </ScrollView>
@@ -477,15 +576,13 @@ export default function MyBusiness() {
                   style={tw`flex-1 bg-red-500 rounded-lg py-2 items-center`}
                   onPress={(e) => {
                     e.stopPropagation();
-                    navigation.navigate("BusinessDetail", { id: item._id });
+                    navigation.navigate("AddOffer", { id: item._id });
                   }}
                 >
-
-                  <Text style={tw`text-white font-medium`}>View Details</Text>
+                  <Text style={tw`text-white font-medium`}>Add Offers</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
-
           )}
         />
       )}

@@ -1,470 +1,18 @@
-// import React, { useState } from "react";
-// import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-// import tw from "tailwind-react-native-classnames";
-
-// const tabs = ["All", "Member Offers", "Partner Deals"];
-
-// const offersData = [
-//   {
-//     id: 1,
-//     title: "20% Off Legal Consultation",
-//     company: "Elite Legal Solutions",
-//     tag: "Member",
-//     category: "Professional Services",
-//     description:
-//       "Get 20% off your first legal consultation. Perfect for business formation and contract reviews.",
-//     discount: "20% Off",
-//     expiry: "March 30, 2025",
-//     note: "Valid for new clients only. Cannot be combined with other offers.",
-//   },
-//   {
-//     id: 2,
-//     title: "Free Energy Audit + 15% off bills",
-//     company: "Energy Plus Partners",
-//     tag: "Partner",
-//     category: "Utilities",
-//     description:
-//       "Comprehensive energy audit plus ongoing 15% discount on your energy bills.",
-//     discount: "15% Off",
-//     expiry: "March 15, 2025",
-//     note: "Available to all GBS members. 12 month minimum contract.",
-//   },
-// ];
-
-// const Offers = () => {
-//   const [activeTab, setActiveTab] = useState("All");
-
-//   return (
-//     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
-//       {/* Header */}
-//       <Text style={tw`text-xl font-bold text-gray-800 mb-1 mt-14`}>
-//         Exclusive offers
-//       </Text>
-//       <Text style={tw`text-sm text-gray-600 mb-4`}>
-//         Member Benefits & Partner Deals
-//       </Text>
-
-//       {/* Tabs */}
-//       <View style={tw`flex-row mb-4`}>
-//         {tabs.map((tab) => (
-//           <TouchableOpacity
-//             key={tab}
-//             onPress={() => setActiveTab(tab)}
-//             style={tw`px-4 py-2 mr-2 rounded-full ${
-//               activeTab === tab ? "bg-red-500" : "bg-gray-100"
-//             }`}
-//           >
-//             <Text
-//               style={tw`text-sm ${
-//                 activeTab === tab ? "text-white" : "text-gray-700"
-//               }`}
-//             >
-//               {tab}
-//             </Text>
-//           </TouchableOpacity>
-//         ))}
-//       </View>
-
-//       {/* Offers List */}
-//       {offersData.map((offer) => (
-//         <View
-//           key={offer.id}
-//           style={tw`bg-white border border-gray-200 rounded-lg p-4 mb-4`}
-//         >
-//           {/* Title & Discount */}
-//           <View style={tw`flex-row justify-between items-center`}>
-//             <Text style={tw`text-base font-bold text-gray-800`}>
-//               {offer.title}
-//             </Text>
-//             <Text style={tw`text-red-600 font-bold text-sm`}>
-//               {offer.discount}
-//             </Text>
-//           </View>
-
-//           {/* Company + Tag + Category */}
-//           {/* Company */}
-// <Text style={tw`text-sm text-gray-800 mt-1`}>
-//   {offer.company}
-// </Text>
-
-// {/* Tag + Category in same row */}
-// <View style={tw`flex-row items-center mt-1`}>
-//   <Text
-//     style={tw`text-xs px-2 py-1 rounded-full ${
-//       offer.tag === "Member"
-//         ? "bg-red-100 text-red-600"
-//         : "bg-purple-100 text-purple-600"
-//     }`}
-//   >
-//     {offer.tag}
-//   </Text>
-//   <Text style={tw`text-xs text-gray-500 ml-2`}>
-//     {offer.category}
-//   </Text>
-// </View>
-
-//           {/* Description */}
-//           <Text style={tw`text-sm text-gray-600 mt-2`}>
-//             {offer.description}
-//           </Text>
-
-//           {/* Expiry + Redeem Button */}
-//           <View style={tw`flex-row justify-between items-center mt-3`}>
-//             <Text style={tw`text-xs text-gray-500`}>
-//               Expires: {offer.expiry}
-//             </Text>
-//             <TouchableOpacity
-//               style={tw`bg-red-500 px-4 py-2 rounded`}
-//             >
-//               <Text style={tw`text-white text-sm`}>Redeem</Text>
-//             </TouchableOpacity>
-//           </View>
-
-//           {/* Note */}
-//           <View style={tw`bg-gray-100 p-2 rounded mt-3`}>
-//             <Text style={tw`text-xs text-gray-500`}>{offer.note}</Text>
-//           </View>
-//         </View>
-//       ))}
-//     </ScrollView>
-//   );
-// };
-
-// export default Offers;
-
-// import React, { useState, useEffect } from "react";
-// import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-// import tw from "tailwind-react-native-classnames";
-// import axios from "axios";
-// import { API_BASE_URL } from "../../src/utils/config";
-// import { Image } from "react-native";
-// import gift1 from "../../assets/gift1.png";
-
-// const tabs = ["All", "Member Offers", "Partner Deals"];
-
-// const Offers = ({ navigation }) => {
-//   const [activeTab, setActiveTab] = useState("All");
-//   const [offers, setOffers] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-
-//   const fetchOffers = async (tab) => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-
-//       let url = `${API_BASE_URL}/offer/search`;
-
-//       if (tab === "Member Offers") {
-//         url += `?offerType=Member`;
-//       } else if (tab === "Partner Deals") {
-//         url += `?offerType=Partner`;
-//       }
-
-//       const res = await axios.get(url);
-//       setOffers(res.data.offers || []);
-//     } catch (err) {
-//       setError("Failed to fetch offers");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchOffers(activeTab);
-//   }, [activeTab]);
-
-//   return (
-//     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
-//       {/* Header */}
-//       <Text style={tw`text-xl font-bold text-gray-800 mb-1 mt-14`}>
-//         Exclusive offers
-//       </Text>
-//       <Text style={tw`text-sm text-gray-600 mb-4`}>
-//         Member Benefits & Partner Deals
-//       </Text>
-
-//       {/* Tabs */}
-//       <View style={tw`flex-row mb-4`}>
-//         {tabs.map((tab) => (
-//           <TouchableOpacity
-//             key={tab}
-//             onPress={() => setActiveTab(tab)}
-//             style={tw`px-4 py-2 mr-2 rounded-full ${
-//               activeTab === tab ? "bg-red-500" : "bg-gray-100"
-//             }`}
-//           >
-//             <Text
-//               style={tw`text-sm ${
-//                 activeTab === tab ? "text-white" : "text-gray-700"
-//               }`}
-//             >
-//               {tab}
-//             </Text>
-//           </TouchableOpacity>
-//         ))}
-//       </View>
-
-//       {/* Loading/Error */}
-//       {loading && <Text style={tw`text-center text-gray-500`}>Loading...</Text>}
-//       {error && <Text style={tw`text-center text-red-500`}>{error}</Text>}
-
-//       {/* No Offers Message */}
-//       {!loading && offers.length === 0 && !error && (
-//         <Text style={tw`text-center text-gray-500 mt-6`}>
-//           No offers available for "{activeTab}" right now. Please check back
-//           later!
-//         </Text>
-//       )}
-
-//       {/* Offers List */}
-//       {offers.map((offer) => (
-//         <TouchableOpacity
-//           key={offer._id}
-//           onPress={() => navigation.navigate("OfferDetails", { id: offer._id })}
-//         >
-//           <View style={tw`bg-white border border-gray-200 rounded-lg p-4 mb-4`}>
-//             {/* Title & Discount */}
-//             <View style={tw`flex-row justify-between items-center`}>
-//               <View style={tw`flex-row justify-start`}>
-//                 <View style={tw`bg-red-500 mr-2`}>
-//                   <Image source={gift1} />
-//                 </View>
-
-//                 <Text style={tw`text-base font-bold text-gray-800 `}>
-//                   {offer.title}
-//                 </Text>
-//               </View>
-
-//               <Text style={tw`text-red-600 font-bold text-sm`}>
-//                 {offer.discount}
-//               </Text>
-//             </View>
-
-//             {/* Company + Tag + Category */}
-//             <Text style={tw`text-sm text-gray-800 mt-1`}>
-//               {offer.business?.companyName || ""}
-//             </Text>
-
-//             {/* Tag + Category */}
-//             <View style={tw`flex-row items-center mt-1`}>
-//               <Text
-//                 style={tw`text-xs px-2 py-1 rounded-full ${
-//                   offer.offerType === "Member"
-//                     ? "bg-red-100 text-red-600"
-//                     : "bg-purple-100 text-purple-600"
-//                 }`}
-//               >
-//                 {offer.offerType}
-//               </Text>
-//               <Text style={tw`text-xs text-gray-500 ml-2`}>
-//                 {offer.category}
-//               </Text>
-//             </View>
-
-//             {/* Description */}
-//             <Text style={tw`text-sm text-gray-600 mt-2`}>
-//               {offer.description}
-//             </Text>
-
-//             {/* Expiry + Redeem */}
-//             <View style={tw`flex-row justify-between items-center mt-3`}>
-//               <Text style={tw`text-xs text-gray-500`}>
-//                 Expires:{" "}
-//                 {offer.expiryDate
-//                   ? new Date(offer.expiryDate).toLocaleDateString()
-//                   : "-"}
-//               </Text>
-//               <TouchableOpacity style={tw`bg-red-500 px-4 py-2 rounded`}>
-//                 <Text style={tw`text-white text-sm`}>Redeem</Text>
-//               </TouchableOpacity>
-//             </View>
-
-//             {/* Terms */}
-//             {offer.termsAndConditions?.length > 0 && (
-//               <View style={tw`bg-gray-100 p-2 rounded mt-3`}>
-//                 {offer.termsAndConditions.map((term, idx) => (
-//                   <Text key={idx} style={tw`text-xs text-gray-500`}>
-//                     • {term}
-//                   </Text>
-//                 ))}
-//               </View>
-//             )}
-//           </View>
-//         </TouchableOpacity>
-//       ))}
-//     </ScrollView>
-//   );
-// };
-
-// export default Offers;
-
-
-
-// import React, { useState, useEffect } from "react";
-// import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
-// import tw from "tailwind-react-native-classnames";
-// import axios from "axios";
-// import { API_BASE_URL } from "../../src/utils/config";
-// import { getUserData } from "../../src/utils/storage";  // <-- Added
-// import gift1 from "../../assets/gift1.png";
-
-// const tabs = ["All", "Member Offers", "Partner Deals"];
-
-// const Offers = ({ navigation }) => {
-//   const [activeTab, setActiveTab] = useState("All");
-//   const [offers, setOffers] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-
-//   const fetchOffers = async (tab) => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-
-//       // Get user token
-//       const userData = await getUserData();
-//       const token = userData?.token;
-
-//       if (!token) {
-//         setError("No token found, please login again.");
-//         setLoading(false);
-//         return;
-//       }
-
-//       let url = `${API_BASE_URL}/offer/search`;
-//       if (tab === "Member Offers") {
-//         url += `?offerType=Member`;
-//       } else if (tab === "Partner Deals") {
-//         url += `?offerType=Partner`;
-//       }
-
-//       const res = await axios.get(url, {
-//         headers: { Authorization: `Bearer ${token}` },  // <-- Added Authorization
-//       });
-
-//       setOffers(res.data.offers || []);
-//     } catch (err) {
-//       setError("Failed to fetch offers");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchOffers(activeTab);
-//   }, [activeTab]);
-
-//   return (
-//     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
-//       <Text style={tw`text-xl font-bold text-gray-800 mb-1 mt-14`}>
-//         Exclusive offers
-//       </Text>
-//       <Text style={tw`text-sm text-gray-600 mb-4`}>
-//         Member Benefits & Partner Deals
-//       </Text>
-
-//       {/* Tabs */}
-//       <View style={tw`flex-row mb-4`}>
-//         {tabs.map((tab) => (
-//           <TouchableOpacity
-//             key={tab}
-//             onPress={() => setActiveTab(tab)}
-//             style={tw`px-4 py-2 mr-2 rounded-full ${activeTab === tab ? "bg-red-500" : "bg-gray-100"}`}
-//           >
-//             <Text style={tw`text-sm ${activeTab === tab ? "text-white" : "text-gray-700"}`}>
-//               {tab}
-//             </Text>
-//           </TouchableOpacity>
-//         ))}
-//       </View>
-
-//       {/* Loading/Error */}
-//       {loading && <Text style={tw`text-center text-gray-500`}>Loading...</Text>}
-//       {error && <Text style={tw`text-center text-red-500`}>{error}</Text>}
-
-//       {/* No Offers */}
-//       {!loading && offers.length === 0 && !error && (
-//         <Text style={tw`text-center text-gray-500 mt-6`}>
-//           No offers available for "{activeTab}" right now. Please check back later!
-//         </Text>
-//       )}
-
-//       {/* Offers List */}
-//       {offers.map((offer) => (
-//         <TouchableOpacity
-//           key={offer._id}
-//           onPress={() => navigation.navigate("OfferDetails", { id: offer._id })}
-//         >
-//           <View style={tw`bg-white border border-gray-200 rounded-lg p-4 mb-4`}>
-//             <View style={tw`flex-row justify-between items-center`}>
-//               <View style={tw`flex-row justify-start`}>
-//                 <View style={tw`bg-red-500 mr-2`}>
-//                   <Image source={gift1} />
-//                 </View>
-//                 <Text style={tw`text-base font-bold text-gray-800`}>
-//                   {offer.title}
-//                 </Text>
-//               </View>
-//               <Text style={tw`text-red-600 font-bold text-sm`}>
-//                 {offer.discount}
-//               </Text>
-//             </View>
-
-//             <Text style={tw`text-sm text-gray-800 mt-1`}>
-//               {offer.business?.companyName || ""}
-//             </Text>
-
-//             <View style={tw`flex-row items-center mt-1`}>
-//               <Text style={tw`text-xs px-2 py-1 rounded-full ${offer.offerType === "Member" ? "bg-red-100 text-red-600" : "bg-purple-100 text-purple-600"}`}>
-//                 {offer.offerType}
-//               </Text>
-//               <Text style={tw`text-xs text-gray-500 ml-2`}>
-//                 {offer.category}
-//               </Text>
-//             </View>
-
-//             <Text style={tw`text-sm text-gray-600 mt-2`}>
-//               {offer.description}
-//             </Text>
-
-//             <View style={tw`flex-row justify-between items-center mt-3`}>
-//               <Text style={tw`text-xs text-gray-500`}>
-//                 Expires: {offer.expiryDate ? new Date(offer.expiryDate).toLocaleDateString() : "-"}
-//               </Text>
-//               <TouchableOpacity style={tw`bg-red-500 px-4 py-2 rounded`}>
-//                 <Text style={tw`text-white text-sm`}>Redeem</Text>
-//               </TouchableOpacity>
-//             </View>
-
-//             {offer.termsAndConditions?.length > 0 && (
-//               <View style={tw`bg-gray-100 p-2 rounded mt-3`}>
-//                 {offer.termsAndConditions.map((term, idx) => (
-//                   <Text key={idx} style={tw`text-xs text-gray-500`}>
-//                     • {term}
-//                   </Text>
-//                 ))}
-//               </View>
-//             )}
-//           </View>
-//         </TouchableOpacity>
-//       ))}
-//     </ScrollView>
-//   );
-// };
-
-// export default Offers;
-
-
-
-
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Alert,
+} from "react-native";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import { API_BASE_URL } from "../../src/utils/config";
-import { getUserData } from "../../src/utils/storage"; // <-- Added
+import { getUserData } from "../../src/utils/storage";
 import gift1 from "../../assets/gift1.png";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const tabs = ["All", "Member Offers", "Partner Deals"];
 
@@ -473,13 +21,22 @@ const Offers = ({ navigation }) => {
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [saving, setSaving] = useState({});
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const userData = await getUserData();
+      setUserId(userData?._id || null);
+    };
+    loadUser();
+  }, []);
 
   const fetchOffers = async (tab) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Get user token
       const userData = await getUserData();
       const token = userData?.token;
 
@@ -497,7 +54,7 @@ const Offers = ({ navigation }) => {
       }
 
       const res = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` }, // <-- Added Authorization header
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       setOffers(res.data.offers || []);
@@ -509,6 +66,55 @@ const Offers = ({ navigation }) => {
     }
   };
 
+  const saveOffer = async (offerId) => {
+    try {
+      setSaving((prev) => ({ ...prev, [offerId]: true }));
+
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      if (!token || !userId) {
+        Alert.alert("Error", "User not logged in");
+        return;
+      }
+
+      const url = `${API_BASE_URL}/offer/${offerId}/save/${userId}`;
+      console.log("Saving offer:", url);
+
+      const res = await axios.post(
+        url,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      console.log("Save Offer Response:", res.status, res.data);
+
+      if (res.status === 200 || res.status === 201) {
+        // ✅ instantly update UI
+        setOffers((prevOffers) =>
+          prevOffers.map((offer) =>
+            offer._id === offerId
+              ? { ...offer, savedBy: [...(offer.savedBy || []), userId] }
+              : offer
+          )
+        );
+      } else {
+        Alert.alert("Error", "Failed to save offer");
+      }
+    } catch (err) {
+      console.error(
+        "Error saving offer:",
+        err.response?.status,
+        err.response?.data || err.message
+      );
+      Alert.alert("Error", "Could not save offer");
+    } finally {
+      setSaving((prev) => ({ ...prev, [offerId]: false }));
+    }
+  };
+
   useEffect(() => {
     fetchOffers(activeTab);
   }, [activeTab]);
@@ -517,13 +123,9 @@ const Offers = ({ navigation }) => {
     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
       {/* Header */}
       <View style={tw`flex-row justify-between items-center mt-14 mb-1`}>
-        <Text style={tw`text-xl font-bold text-gray-800`}>Exclusive offers</Text>
-        <TouchableOpacity
-          style={tw`bg-red-500 py-2 px-4 rounded-lg`}
-          onPress={() => navigation.navigate("AddOffer")}
-        >
-          <Text style={tw`text-white text-base font-semibold`}>+ Add Offer</Text>
-        </TouchableOpacity>
+        <Text style={tw`text-xl font-bold text-gray-800`}>
+          Exclusive offers
+        </Text>
       </View>
       <Text style={tw`text-sm text-gray-600 mb-4`}>
         Member Benefits & Partner Deals
@@ -535,14 +137,10 @@ const Offers = ({ navigation }) => {
           <TouchableOpacity
             key={tab}
             onPress={() => setActiveTab(tab)}
-            style={tw`px-4 py-2 mr-2 rounded-full ${
-              activeTab === tab ? "bg-red-500" : "bg-gray-100"
-            }`}
+            style={tw`px-4 py-2 mr-2 rounded-full ${activeTab === tab ? "bg-red-500" : "bg-gray-100"}`}
           >
             <Text
-              style={tw`text-sm ${
-                activeTab === tab ? "text-white" : "text-gray-700"
-              }`}
+              style={tw`text-sm ${activeTab === tab ? "text-white" : "text-gray-700"}`}
             >
               {tab}
             </Text>
@@ -557,7 +155,8 @@ const Offers = ({ navigation }) => {
       {/* No Offers */}
       {!loading && offers.length === 0 && !error && (
         <Text style={tw`text-center text-gray-500 mt-6`}>
-          No offers available for "{activeTab}" right now. Please check back later!
+          No offers available for "{activeTab}" right now. Please check back
+          later!
         </Text>
       )}
 
@@ -567,9 +166,10 @@ const Offers = ({ navigation }) => {
           key={offer._id}
           onPress={() => navigation.navigate("OfferDetails", { id: offer._id })}
         >
-          <View style={tw`bg-white border border-gray-200 rounded-lg p-4 mb-4`}>
-            <View style={tw`flex-row justify-between items-center`}>
-              <View style={tw`flex-row justify-start`}>
+          <View style={tw`bg-white border border-gray-300 rounded-lg p-4 mb-4`}>
+            {/* Top Row: Title + Save Icon */}
+            <View style={tw`flex-row justify-between items-start`}>
+              <View style={tw`flex-row items-center`}>
                 <View style={tw`bg-red-500 mr-2`}>
                   <Image source={gift1} />
                 </View>
@@ -577,15 +177,32 @@ const Offers = ({ navigation }) => {
                   {offer.title}
                 </Text>
               </View>
-              <Text style={tw`text-red-600 font-bold text-sm`}>
-                {offer.discount}
-              </Text>
+
+              {/* Save Icon */}
+              <TouchableOpacity onPress={() => saveOffer(offer._id)}>
+                <Icon
+                  name={
+                    offer.savedBy?.includes(userId)
+                      ? "bookmark"
+                      : "bookmark-outline"
+                  }
+                  size={22}
+                  color={offer.savedBy?.includes(userId) ? "red" : "gray"}
+                />
+              </TouchableOpacity>
             </View>
 
+            {/* Discount under Title */}
+            <Text style={tw`text-red-600 font-bold text-sm mt-1`}>
+              {offer.discount}
+            </Text>
+
+            {/* Company Name */}
             <Text style={tw`text-sm text-gray-800 mt-1`}>
               {offer.business?.companyName || ""}
             </Text>
 
+            {/* Offer Type + Category */}
             <View style={tw`flex-row items-center mt-1`}>
               <Text
                 style={tw`text-xs px-2 py-1 rounded-full ${
@@ -596,25 +213,17 @@ const Offers = ({ navigation }) => {
               >
                 {offer.offerType}
               </Text>
-              <Text style={tw`text-xs text-gray-500 ml-2`}>{offer.category}</Text>
+              <Text style={tw`text-xs text-gray-500 ml-2`}>
+                {offer.category}
+              </Text>
             </View>
 
+            {/* Description */}
             <Text style={tw`text-sm text-gray-600 mt-2`}>
               {offer.description}
             </Text>
 
-            <View style={tw`flex-row justify-between items-center mt-3`}>
-              <Text style={tw`text-xs text-gray-500`}>
-                Expires:{" "}
-                {offer.expiryDate
-                  ? new Date(offer.expiryDate).toLocaleDateString()
-                  : "-"}
-              </Text>
-              <TouchableOpacity style={tw`bg-red-500 px-4 py-2 rounded`}>
-                <Text style={tw`text-white text-sm`}>Redeem</Text>
-              </TouchableOpacity>
-            </View>
-
+            {/* Terms & Conditions */}
             {offer.termsAndConditions?.length > 0 && (
               <View style={tw`bg-gray-100 p-2 rounded mt-3`}>
                 {offer.termsAndConditions.map((term, idx) => (

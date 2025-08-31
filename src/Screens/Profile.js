@@ -79,6 +79,27 @@ const Profile = () => {
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
 
+  // useEffect(() => {
+  //   const fetchUser = async () => {
+  //     const userData = await getUserData();
+  //     if (userData) {
+  //       setUserId(userData._id || "");
+  //       setUserName(userData.name || "");
+  //       setUserEmail(userData.email || "");
+
+  //       // If we have a profilePicKey, fetch fresh signed URL
+  //       if (userData.profilePicKey) {
+  //         const res = await axios.get(
+  //           `${API_BASE_URL}/user/${userData._id}/profile-picture`
+  //         );
+  //         if (res.data && res.data.url) {
+  //           setProfilePicUri(res.data.url);
+  //         }
+  //       }
+  //     }
+  //   };
+  //   fetchUser();
+  // }, []);
   useEffect(() => {
     const fetchUser = async () => {
       const userData = await getUserData();
@@ -87,13 +108,19 @@ const Profile = () => {
         setUserName(userData.name || "");
         setUserEmail(userData.email || "");
 
-        // If we have a profilePicKey, fetch fresh signed URL
-        if (userData.profilePicKey) {
-          const res = await axios.get(
-            `${API_BASE_URL}/user/${userData._id}/profile-picture`
-          );
-          if (res.data && res.data.url) {
-            setProfilePicUri(res.data.url);
+        // ✅ Check both avatarUrl and profilePicKey
+        const fileKey = userData.profilePicKey || userData.avatarUrl;
+
+        if (fileKey) {
+          try {
+            const res = await axios.get(
+              `${API_BASE_URL}/user/${userData._id}/profile-picture`
+            );
+            if (res.data && res.data.url) {
+              setProfilePicUri(res.data.url);
+            }
+          } catch (err) {
+            console.error("Error fetching signed profile picture:", err);
           }
         }
       }

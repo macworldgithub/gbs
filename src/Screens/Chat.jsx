@@ -16,10 +16,13 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { API_BASE_URL } from "../utils/config";
+import * as FileSystem from "expo-file-system";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { io } from "socket.io-client";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import axios from "axios";
+import Video from "react-native-video";
 
 export default function Chat({ navigation }) {
   const route = useRoute();
@@ -31,7 +34,7 @@ export default function Chat({ navigation }) {
   if (chatUser && !chatUser._id && chatUser.id) {
     chatUser._id = chatUser.id;
   }
-  
+
   // Debug: Log the chatUser object to see its structure
   console.log("🔍 Chat screen loaded with user:", chatUser);
   console.log("🔍 chatUser._id:", chatUser._id);
@@ -47,6 +50,8 @@ export default function Chat({ navigation }) {
 
   const socketRef = useRef(null);
   const listRef = useRef(null);
+  const sendingMediaSetRef = useRef(new Set());
+  const isPickingRef = useRef(false);
 
   // 🔑 Load logged-in user data
   useEffect(() => {
@@ -57,7 +62,10 @@ export default function Chat({ navigation }) {
           const parsed = JSON.parse(stored);
           setToken(parsed.token);
           setMyUserId(parsed._id); // ✅ use _id not id
-          console.log("🔍 Loaded user data:", { token: parsed.token ? "present" : "missing", userId: parsed._id });
+          console.log("🔍 Loaded user data:", {
+            token: parsed.token ? "present" : "missing",
+            userId: parsed._id,
+          });
         } else {
           console.log("❌ No user data found in AsyncStorage");
         }
@@ -89,21 +97,54 @@ export default function Chat({ navigation }) {
           setConversationId(res.data._id);
         }
       } catch (e) {
-        console.error("❌ ensureConversation error:", e.response?.data || e.message);
+        console.error(
+          "❌ ensureConversation error:",
+          e.response?.data || e.message
+        );
       }
     };
 
     ensureConversation();
   }, [token, chatUser?._id, conversationId]);
 
-  // ✅ convert backend message → frontend format
-  const formatMessage = (msg, myId) => ({
-    id: msg._id,
-    text: msg.content,
-    fromMe: msg.sender?._id === myId,
-    status: msg.isRead ? "seen" : "sent",
-    type: "text",
-  });
+  const formatMessage = (msg, myId) => {
+    console.log("🔍 Formatting message:", {
+      id: msg._id,
+      content: msg.content,
+      hasMedia: Array.isArray(msg.media) && msg.media.length > 0,
+      media: msg.media,
+    });
+
+    const firstMedia =
+      Array.isArray(msg.media) && msg.media.length > 0 ? msg.media[0] : null;
+    const mediaUrl = firstMedia?.signedUrl || null;
+    const mediaType = firstMedia?.type;
+
+    // Determine message type: prioritize media over content
+    let messageType = "text";
+    if (firstMedia) {
+      if (mediaType === "video") {
+        messageType = "VIDEO";
+      } else if (mediaType === "image") {
+        messageType = "IMAGE";
+      } else {
+        messageType = "FILE";
+      }
+    }
+
+    const formatted = {
+      id: msg._id,
+      text: msg.content || "", // Handle empty content for media messages
+      url: mediaUrl,
+      fromMe: msg.sender?._id === myId,
+      status: msg.isRead ? "seen" : "sent",
+      type: messageType,
+      createdAt: msg.createdAt || new Date().toISOString(),
+    };
+
+    console.log("✅ Formatted message:", formatted);
+    return formatted;
+  };
 
   // ✅ Fetch messages
   const fetchMessages = async () => {
@@ -114,8 +155,19 @@ export default function Chat({ navigation }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      console.log("📥 Raw API response:", res.data);
       const msgs = Array.isArray(res.data?.messages) ? res.data.messages : [];
-      const formatted = msgs.map((m) => formatMessage(m, myUserId));
+      // Backend returns newest first; sort ascending so newest at bottom
+      const sortedByCreatedAt = [...msgs].sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
+      console.log("📥 Messages from API:", msgs);
+
+      const formatted = sortedByCreatedAt.map((m) =>
+        formatMessage(m, myUserId)
+      );
+      console.log("✅ Formatted messages:", formatted);
+
       setMessages(formatted);
 
       setTimeout(() => listRef.current?.scrollToEnd?.({ animated: false }), 0);
@@ -149,11 +201,124 @@ export default function Chat({ navigation }) {
       console.log("🔌 socket connect_error:", err?.message || err);
     });
 
-    s.on("newMessage", (msg) => {
-      if (msg?.conversationId !== conversationId) return;
-      setMessages((prev) => [...prev, formatMessage(msg, myUserId)]);
-    });
+    // s.on("newMessage", (msg) => {
+    //   console.log("📨 Received newMessage:", msg);
+    //   if (msg?.conversationId !== conversationId) {
+    //     console.log("❌ Message not for current conversation, ignoring");
+    //     return;
+    //   }
 
+    //   const formattedIncoming = formatMessage(msg, myUserId);
+    //   console.log("✅ Formatted incoming message:", formattedIncoming);
+
+    //   // Check if message already exists to prevent duplicates
+    //   setMessages((prev) => {
+    //     console.log("🔄 Current messages before update:", prev.length);
+
+    //     // Check if this message ID already exists
+    //     const messageExists = prev.some((m) => m.id === formattedIncoming.id);
+    //     if (messageExists) {
+    //       console.log("⚠️ Message already exists, ignoring duplicate");
+    //       return prev;
+    //     }
+
+    //     const withoutSending = prev.filter((m) => {
+    //       // Keep all that aren't my optimistic placeholders
+    //       if (!m.fromMe || m.status !== "sending") return true;
+
+    //       // If incoming is media, drop one sending placeholder of the same display type
+    //       if (
+    //         formattedIncoming.type === "IMAGE" ||
+    //         formattedIncoming.type === "VIDEO" ||
+    //         formattedIncoming.type === "FILE"
+    //       ) {
+    //         console.log("🗑️ Dropping sending placeholder for media");
+    //         return false; // drop the first match; simple reconciliation
+    //       }
+
+    //       // If incoming is text, drop a sending text bubble
+    //       if (formattedIncoming.type === "text" && m.type === "text") {
+    //         console.log("🗑️ Dropping sending placeholder for text");
+    //         return false;
+    //       }
+
+    //       return true;
+    //     });
+
+    //     console.log("🔄 Messages after filtering:", withoutSending.length);
+    //     const result = [...withoutSending, formattedIncoming];
+    //     console.log("🔄 Final messages count:", result.length);
+    //     return result;
+    //   });
+    // });
+
+    s.on("newMessage", (msg) => {
+      console.log("📨 Received newMessage:", msg);
+      if (msg?.conversationId !== conversationId) {
+        console.log("❌ Message not for current conversation, ignoring");
+        return;
+      }
+
+      const formattedIncoming = formatMessage(msg, myUserId);
+      console.log("✅ Formatted incoming message:", formattedIncoming);
+
+      setMessages((prev) => {
+        console.log("🔄 Current messages before update:", prev.length);
+
+        // Check if message already exists by ID
+        const messageExistsById = prev.some(
+          (m) => m.id === formattedIncoming.id
+        );
+        if (messageExistsById) {
+          console.log("⚠️ Message already exists by ID, ignoring duplicate");
+          return prev;
+        }
+
+        // For media messages, also check if we have a sending placeholder with the same content
+        if (formattedIncoming.type !== "text" && formattedIncoming.url) {
+          const existingMediaMessage = prev.find(
+            (m) =>
+              m.fromMe &&
+              m.status === "sending" &&
+              m.type === formattedIncoming.type &&
+              m.fileName === formattedIncoming.fileName // Compare file names
+          );
+
+          if (existingMediaMessage) {
+            console.log("🔄 Replacing sending placeholder with actual message");
+            return prev.map((m) =>
+              m.id === existingMediaMessage.id ? formattedIncoming : m
+            );
+          }
+        }
+
+        // For text messages, check for sending placeholders
+        if (formattedIncoming.type === "text" && formattedIncoming.text) {
+          const existingTextMessage = prev.find(
+            (m) =>
+              m.fromMe &&
+              m.status === "sending" &&
+              m.type === "text" &&
+              m.text === formattedIncoming.text
+          );
+
+          if (existingTextMessage) {
+            console.log(
+              "🔄 Replacing text sending placeholder with actual message"
+            );
+            return prev.map((m) =>
+              m.id === existingTextMessage.id ? formattedIncoming : m
+            );
+          }
+        }
+
+        // If no existing placeholder found, add and keep list sorted by createdAt
+        console.log("➕ Adding new message to list");
+        const next = [...prev, formattedIncoming];
+        next.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        return next;
+      });
+    });
     s.on("messageRead", (data) => {
       setMessages((prev) =>
         prev.map((m) =>
@@ -164,11 +329,12 @@ export default function Chat({ navigation }) {
 
     return () => {
       try {
+        console.log("🔌 Cleaning up socket connection");
         s.removeAllListeners();
         s.disconnect();
       } catch {}
     };
-  }, [token, conversationId, myUserId]);
+  }, [token, myUserId]); // Removed conversationId from dependencies
 
   // ✅ Send message
   const sendMessage = async () => {
@@ -200,6 +366,7 @@ export default function Chat({ navigation }) {
         fromMe: true,
         status: "sent",
         type: "text",
+        createdAt: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, optimistic]);
 
@@ -218,7 +385,10 @@ export default function Chat({ navigation }) {
       const savedMsg = await res.json();
 
       if (!res.ok) {
-        Alert.alert("Message Error", savedMsg.message || "Failed to send message");
+        Alert.alert(
+          "Message Error",
+          savedMsg.message || "Failed to send message"
+        );
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
         return;
       }
@@ -234,18 +404,126 @@ export default function Chat({ navigation }) {
     }
   };
 
-  const handlePlus = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: "*/*",
-        copyToCacheDirectory: true,
-        multiple: false,
-      });
-      if (result.type === "success") {
-        Alert.alert("File Selected", result.name);
+  //For picking media files
+  const pickMedia = () => {
+    if (isPickingRef.current) return;
+    isPickingRef.current = true;
+    launchImageLibrary({ mediaType: "mixed" }, (response) => {
+      try {
+        if (
+          !response?.didCancel &&
+          !response?.errorCode &&
+          response?.assets?.length
+        ) {
+          const file = response.assets[0];
+          sendMediaMessage(file);
+        }
+      } finally {
+        setTimeout(() => {
+          isPickingRef.current = false;
+        }, 300);
       }
-    } catch {
-      Alert.alert("Error", "Could not open document picker.");
+    });
+  };
+  // const sendMediaMessage = async (file) => {
+  //   console.log("📤 Sending media:", file);
+
+  //   const formData = new FormData();
+  //   formData.append("sender", myUserId);
+  //   formData.append("recipient", chatUser.id);
+  //   formData.append("type", "image");
+
+  //   // Attach file (RN needs uri, type, name)
+  //   formData.append("media", {
+  //     uri: file.uri,
+  //     type: file.type,
+  //     name: file.fileName || `upload.${file.type?.split("/")[1]}`,
+  //   });
+
+  //   try {
+  //     const res = await fetch(`${API_BASE_URL}/messages`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: formData,
+  //     });
+
+  //     const data = await res.json();
+  //     console.log("✅ Media message response:", data);
+  //   } catch (err) {
+  //     console.error("❌ Upload error:", err);
+  //   }
+  // };
+  const sendMediaMessage = async (file) => {
+    console.log("📤 Sending media:", file);
+
+    const mimeType = file.type || (file.mimeType ?? "image/jpeg");
+    const extension = mimeType.split("/")[1] || "jpg";
+    const displayType = mimeType.startsWith("video")
+      ? "VIDEO"
+      : mimeType.startsWith("image")
+        ? "IMAGE"
+        : "FILE";
+
+    // Dedupe: prevent rapid double-send of same asset
+    const fingerprint = file.assetId || file.fileName || file.uri;
+    const fpKey = fingerprint || `${file.uri}-${extension}`;
+    if (sendingMediaSetRef.current.has(fpKey)) {
+      console.log("⏭️ Skipping duplicate media send for:", fpKey);
+      return;
+    }
+    sendingMediaSetRef.current.add(fpKey);
+
+    // Optimistic UI
+    const tempId = `local-${Date.now()}`;
+    // In sendMediaMessage, store the file name in the optimistic message
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: tempId,
+        url: file.uri,
+        type: displayType,
+        fromMe: true,
+        status: "sending",
+        fileName: file.fileName || `upload.${extension}`, // Store file name
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+    try {
+      const fileUri =
+        Platform.OS === "android" ? file.uri : file.uri.replace("file://", "");
+      const base64 = await FileSystem.readAsStringAsync(fileUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      if (!socketRef.current) throw new Error("Socket not connected");
+
+      socketRef.current.emit("sendMessage", {
+        recipientId: chatUser._id,
+        file: {
+          name: file.fileName || `upload.${extension}`,
+          type: mimeType,
+          data: `data:${mimeType};base64,${base64}`,
+        },
+      });
+
+      // The message will be replaced by the incoming 'newMessage' event.
+      // As a fallback, auto-clear the sending state after a timeout if no server ack arrives.
+      setTimeout(() => {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? { ...m, status: "sent" } : m))
+        );
+      }, 8000);
+    } catch (err) {
+      console.error("❌ Upload error:", err);
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+    } finally {
+      // allow resending after short cooldown
+      setTimeout(() => {
+        sendingMediaSetRef.current.delete(fpKey);
+      }, 1500);
     }
   };
 
@@ -275,7 +553,9 @@ export default function Chat({ navigation }) {
     >
       <View style={tw`flex-1 bg-white pt-8 pb-2`}>
         {/* Header */}
-        <View style={tw`flex-row items-center justify-between px-4 py-3 border-b`}>
+        <View
+          style={tw`flex-row items-center justify-between px-4 py-3 border-b`}
+        >
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} />
           </TouchableOpacity>
@@ -310,38 +590,94 @@ export default function Chat({ navigation }) {
           onContentSizeChange={() =>
             listRef.current?.scrollToEnd?.({ animated: true })
           }
-          renderItem={({ item }) => (
-            <View
-              style={tw.style(
-                `px-4 py-2 my-1`,
-                item.fromMe ? "items-end" : "items-start"
-              )}
-            >
+          // renderItem={({ item }) => (
+          //   <View
+          //     style={tw.style(
+          //       `px-4 py-2 my-1`,
+          //       item.fromMe ? "items-end" : "items-start"
+          //     )}
+          //   >
+          //     <View
+          //       style={tw.style(
+          //         "rounded-xl px-4 py-2 flex-row items-center",
+          //         item.fromMe ? "bg-pink-200" : "bg-gray-100"
+          //       )}
+          //     >
+          //       <Text style={tw`mr-1`}>{item.text}</Text>
+          //       {item.fromMe && item.status && (
+          //         <Ionicons
+          //           name={
+          //             item.status === "sent"
+          //               ? "checkmark"
+          //               : item.status === "delivered"
+          //                 ? "checkmark-done"
+          //                 : item.status === "seen"
+          //                   ? "checkmark-done-circle"
+          //                   : "time"
+          //           }
+          //           size={16}
+          //           color={item.status === "seen" ? "blue" : "gray"}
+          //         />
+          //       )}
+          //     </View>
+          //   </View>
+          // )}
+          renderItem={({ item }) => {
+            console.log("🎨 Rendering message item:", {
+              id: item.id,
+              type: item.type,
+              url: item.url,
+              text: item.text,
+            });
+
+            return (
               <View
                 style={tw.style(
-                  "rounded-xl px-4 py-2 flex-row items-center",
-                  item.fromMe ? "bg-pink-200" : "bg-gray-100"
+                  `px-4 py-2 my-1`,
+                  item.fromMe ? "items-end" : "items-start"
                 )}
               >
-                <Text style={tw`mr-1`}>{item.text}</Text>
-                {item.fromMe && item.status && (
-                  <Ionicons
-                    name={
-                      item.status === "sent"
-                        ? "checkmark"
-                        : item.status === "delivered"
-                        ? "checkmark-done"
-                        : item.status === "seen"
-                        ? "checkmark-done-circle"
-                        : "time"
-                    }
-                    size={16}
-                    color={item.status === "seen" ? "blue" : "gray"}
+                {item.type === "text" && item.text && (
+                  <View
+                    style={tw.style(
+                      "rounded-xl px-4 py-2 flex-row items-center",
+                      item.fromMe ? "bg-pink-200" : "bg-gray-100"
+                    )}
+                  >
+                    <Text style={tw`mr-1`}>{item.text}</Text>
+                    {/* ✅ status checkmarks */}
+                  </View>
+                )}
+
+                {item.type === "IMAGE" && item.url && (
+                  <Image
+                    source={{ uri: item.url }}
+                    style={{ width: 200, height: 200, borderRadius: 12 }}
+                    resizeMode="cover"
                   />
                 )}
+
+                {item.type === "VIDEO" && item.url && (
+                  <Video
+                    source={{ uri: item.url }}
+                    style={{ width: 250, height: 250 }}
+                    controls
+                    resizeMode="contain"
+                  />
+                )}
+
+                {/* Debug: Show message type if no content/url */}
+                {!item.text && !item.url && (
+                  <View style={tw`bg-gray-200 rounded-lg px-3 py-2`}>
+                    <Text style={tw`text-xs text-gray-500`}>
+                      Debug: Type={item.type}, URL=
+                      {item.url ? "Present" : "Missing"}
+                    </Text>
+                  </View>
+                )}
               </View>
-            </View>
-          )}
+            );
+          }}
         />
 
         {/* Input */}
@@ -352,7 +688,9 @@ export default function Chat({ navigation }) {
           ]}
         >
           <View style={tw`flex-row items-center`}>
-            <View style={tw`flex-1 bg-gray-100 rounded-3xl flex-row items-center px-2 py-1`}>
+            <View
+              style={tw`flex-1 bg-gray-100 rounded-3xl flex-row items-center px-2 py-1`}
+            >
               <TouchableOpacity style={tw`px-2`}>
                 <Ionicons name="happy-outline" size={22} color="#6b7280" />
               </TouchableOpacity>
@@ -364,9 +702,13 @@ export default function Chat({ navigation }) {
                 blurOnSubmit={false}
                 multiline
               />
-              <TouchableOpacity onPress={handlePlus} style={tw`px-2`}>
+              {/* <TouchableOpacity onPress={handlePlus} style={tw`px-2`}>
+                <Ionicons name="attach-outline" size={22} color="#6b7280" />
+              </TouchableOpacity> */}
+              <TouchableOpacity onPress={pickMedia} style={tw`px-2`}>
                 <Ionicons name="attach-outline" size={22} color="#6b7280" />
               </TouchableOpacity>
+
               <TouchableOpacity onPress={handleCamera} style={tw`px-2`}>
                 <Ionicons name="camera-outline" size={22} color="#6b7280" />
               </TouchableOpacity>
