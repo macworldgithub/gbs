@@ -57,6 +57,7 @@ import AddOfferScreen from "./src/Screens/AddOfferScreen";
 import OfferCard from "./src/Screens/OfferCard";
 import SavedOffers from "./src/Screens/SavedOffers";
 import CreateEvent from "./src/Screens/CreateEvent"
+import EventDetail from "./src/Screens/EventDetail";
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -167,6 +168,7 @@ export default function App() {
           <Stack.Screen name="OfferCard" component={OfferCard}/>
           <Stack.Screen name="SavedOffers" component={SavedOffers} />
           <Stack.Screen name="CreateEvent" component={CreateEvent} />
+          <Stack.Screen name="EventDetail" component={EventDetail} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

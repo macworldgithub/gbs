@@ -1,127 +1,3 @@
-// import React, { useState } from "react";
-// import {
-//   View,
-//   Text,
-//   TextInput,
-//   FlatList,
-//   Image,
-//   TouchableOpacity,
-// } from "react-native";
-// import tw from "tailwind-react-native-classnames";
-// import { Ionicons } from "@expo/vector-icons";
-
-// // Initial member data
-// const initialMembersData = [
-//   {
-//     id: "1",
-//     name: "John Smith",
-//     company: "Smith Logistics",
-//     role: "Business Executive Members",
-//     image: require("../../assets/john.png"),
-//     liked: false,
-//   },
-//   {
-//     id: "2",
-//     name: "Sarah Wilson",
-//     company: "Wilson Enterprises",
-//     role: "Chairman's Partners",
-//     image: require("../../assets/sarah.png"),
-//     liked: false,
-//   },
-//   {
-//     id: "3",
-//     name: "Michael Chen",
-//     company: "Chen Transport",
-//     role: "Business Members",
-//     image: require("../../assets/michael.png"),
-//     liked: false,
-//   },
-//   {
-//     id: "4",
-//     name: "John Smith",
-//     company: "Smith Logistics",
-//     role: "Business Executive Members",
-//     image: require("../../assets/smith.png"),
-//     liked: false,
-//   },
-//   {
-//     id: "5",
-//     name: "Sarah Wilson",
-//     company: "Wilson Enterprises",
-//     role: "Chairman's Partners",
-//     image: require("../../assets/wilson.png"),
-//     liked: false,
-//   },
-// ];
-
-// export default function MembersDirectory() {
-//   const [search, setSearch] = useState("");
-//   const [members, setMembers] = useState(initialMembersData);
-
-//   // Toggle heart liked/unliked
-//   const toggleLike = (id) => {
-//     const updatedMembers = members.map((member) =>
-//       member.id === id ? { ...member, liked: !member.liked } : member
-//     );
-//     setMembers(updatedMembers);
-//   };
-
-//   // Filter based on search text
-//   const filteredMembers = members.filter((member) =>
-//     member.name.toLowerCase().includes(search.toLowerCase())
-//   );
-
-//   return (
-//     <View style={tw`flex-1 bg-white px-4 pt-4`}>
-//       <Text style={tw`text-sm text-black mb-4 mt-14 font-bold`}>Members Directory</Text>
-
-//       <View
-//         style={tw`flex-row items-center border border-red-400 rounded-full px-4 py-2 mb-4 mt-6`}
-//       >
-//         <Ionicons name="search" size={18} color="#999" />
-//         <TextInput
-//           placeholder="Search members....."
-//           placeholderTextColor="#999"
-//           value={search}
-//           onChangeText={setSearch}
-//           style={tw`ml-2 flex-1 text-sm text-black`}
-//         />
-//       </View>
-
-//       <FlatList
-//         data={filteredMembers}
-//         keyExtractor={(item) => item.id}
-//         renderItem={({ item }) => (
-//           <View
-//             style={tw`flex-row items-center bg-gray-100 p-3 mb-3 rounded-xl`}
-//           >
-//             <Image
-//               source={item.image}
-//               style={tw`w-12 h-12 rounded-full`}
-//               resizeMode="cover"
-//             />
-
-//             <View style={tw`ml-3 flex-1`}>
-//               <Text style={tw`text-black font-semibold text-sm`}>
-//                 {item.name}
-//               </Text>
-//               <Text style={tw`text-red-500 text-sm`}>{item.company}</Text>
-//               <Text style={tw`text-gray-500 text-xs`}>{item.role}</Text>
-//             </View>
-
-//             <TouchableOpacity onPress={() => toggleLike(item.id)}>
-//               <Ionicons
-//                 name={item.liked ? "heart" : "heart-outline"}
-//                 size={20}
-//                 color={item.liked ? "#ed292e" : "#aaa"}
-//               />
-//             </TouchableOpacity>
-//           </View>
-//         )}
-//       />
-//     </View>
-//   );
-// }
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -132,7 +8,6 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -144,8 +19,84 @@ export default function MembersDirectory({ navigation }) {
   const [chatStatus, setChatStatus] = useState({}); // store chat status by userId
   const [token, setToken] = useState(null);
   const [myUserId, setMyUserId] = useState(null);
-  // ✅ Fetch members from API
-  // ✅ Fetch members
+  const [selectedState, setSelectedState] = useState("All");
+  const [searchTimeout, setSearchTimeout] = useState(null);
+
+  // Search users with API
+  const searchUsers = async (query = "", state = "All") => {
+    try {
+      setLoading(true);
+      
+      let url = `${API_BASE_URL}/user/search?`;
+      const params = new URLSearchParams();
+      
+      if (query.trim()) {
+        params.append("query", query.trim());
+      }
+      
+      if (state !== "All") {
+        params.append("state", state);
+      }
+      
+      // Add default pagination
+      params.append("page", "1");
+      params.append("limit", "50");
+      
+      url += params.toString();
+      
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (response.ok && data.users) {
+        const formattedData = data.users.map((user) => ({
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user?.activatedPackage?.role?.label || "Member",
+          image: user.avatarUrl
+            ? { uri: user.avatarUrl }
+            : require("../../assets/user.jpg"),
+          liked: false,
+          state: user.state,
+        }));
+
+        setMembers(formattedData);
+      } else {
+        console.error("❌ Error in search response:", data);
+        setMembers([]);
+      }
+    } catch (error) {
+      console.error("❌ Error searching users:", error);
+      setMembers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Debounced search function
+  const handleSearch = (text) => {
+    setSearch(text);
+    
+    // Clear existing timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
+    // Set new timeout for search
+    const timeout = setTimeout(() => {
+      searchUsers(text, selectedState);
+    }, 500); // 500ms delay
+    
+    setSearchTimeout(timeout);
+  };
+
+  // Handle state filter change
+  const handleStateFilter = (state) => {
+    setSelectedState(state);
+    searchUsers(search, state);
+  };
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -159,40 +110,31 @@ export default function MembersDirectory({ navigation }) {
         console.error("❌ Error loading userData:", e);
       }
 
-      try {
-        const response = await fetch(`${API_BASE_URL}/user`);
-        const data = await response.json();
+      // Initial search to load all users
+      searchUsers("", "All");
+    };
 
-        const formattedData = data
-          .filter((user) => user._id !== myUserId)
-          .map((user) => ({
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            role: user?.activatedPackage?.role?.label || "Member",
-            image: user?.avatarUrl
-              ? { uri: user.avatarUrl }
-              : require("../../assets/user.jpg"),
-            liked: false,
-          }));
+    init();
+  }, []);
 
-        setMembers(formattedData);
-      } catch (error) {
-        console.error("❌ Error fetching members:", error);
-      } finally {
-        setLoading(false);
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
       }
+    };
+  }, [searchTimeout]);
 
-      // After token is set, try to prefetch conversation statuses
+  // After token is set, try to prefetch conversation statuses
+  useEffect(() => {
+    const prefetchConversations = async () => {
+      if (!token || !myUserId) return;
+      
       try {
-        if (!token) return;
-        const res = await fetch(
-          `${API_BASE_URL}/messages/conversations?page=1&limit=100`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await fetch(`${API_BASE_URL}/messages/conversations?page=1&limit=100`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const data = await res.json();
         if (res.ok && data?.conversations) {
           const statusMap = {};
@@ -209,7 +151,7 @@ export default function MembersDirectory({ navigation }) {
       }
     };
 
-    init();
+    prefetchConversations();
   }, [token, myUserId]);
 
   // ✅ Ensure conversation exists, then open Chat
@@ -244,12 +186,6 @@ export default function MembersDirectory({ navigation }) {
     }
   };
 
-  // (openChat moved above to ensure/create conversation)
-
-  const filteredMembers = members.filter((member) =>
-    member.name.toLowerCase().includes(search.toLowerCase())
-  );
-
   // ✅ Toggle like/unlike
   const toggleLike = (id) => {
     setMembers((prevMembers) =>
@@ -259,10 +195,9 @@ export default function MembersDirectory({ navigation }) {
     );
   };
 
-  // ✅ Filter based on search
-  // const filteredMembers = members.filter((member) =>
-  //   member.name.toLowerCase().includes(search.toLowerCase())
-  // );
+  const openDetail = (user) => {
+    navigation.navigate("DirectoryDetail", { id: user.id });
+  };
 
   return (
     <View style={tw`flex-1 bg-white px-4 pt-4`}>
@@ -276,25 +211,51 @@ export default function MembersDirectory({ navigation }) {
       >
         <Ionicons name="search" size={18} color="#999" />
         <TextInput
-          placeholder="Search members..."
+          placeholder="Search members by name or email..."
           placeholderTextColor="#999"
           value={search}
-          onChangeText={setSearch}
+          onChangeText={handleSearch}
           style={tw`ml-2 flex-1 text-sm text-black`}
         />
+      </View>
+
+      {/* State Filter Buttons */}
+      <View style={tw`flex-row justify-between mb-4`}>
+        {["All", "VIC", "NSW", "QLD", "SA"].map((filter) => (
+          <TouchableOpacity
+            key={filter}
+            style={tw`px-4 py-2 rounded-lg border border-gray-300 ${
+              selectedState === filter ? "bg-red-100 border-red-400" : "bg-gray-100"
+            }`}
+            onPress={() => handleStateFilter(filter)}
+          >
+            <Text
+              style={tw`text-sm ${
+                selectedState === filter ? "text-red-500" : "text-gray-600"
+              }`}
+            >
+              {filter}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* ✅ Members List */}
       {loading ? (
         <Text style={tw`text-center text-gray-500 mt-10`}>
-          Loading members...
+          Searching members...
+        </Text>
+      ) : members.length === 0 ? (
+        <Text style={tw`text-center text-gray-500 mt-10`}>
+          No members found. Try adjusting your search or filters.
         </Text>
       ) : (
         <FlatList
-          data={filteredMembers}
+          data={members}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View
+            <TouchableOpacity
+              onPress={() => openDetail(item)}
               style={tw`flex-row items-center bg-gray-100 p-3 mb-3 rounded-xl`}
             >
               <Image
@@ -308,7 +269,9 @@ export default function MembersDirectory({ navigation }) {
                   {item.name}
                 </Text>
                 <Text style={tw`text-red-500 text-sm`}>{item.email}</Text>
-                <Text style={tw`text-gray-500 text-xs`}>{item.role}</Text>
+                <Text style={tw`text-gray-500 text-xs`}>
+                  {item.role} • {item.state}
+                </Text>
               </View>
 
               <TouchableOpacity onPress={() => toggleLike(item.id)}>
@@ -328,7 +291,7 @@ export default function MembersDirectory({ navigation }) {
                     : "Start Chat"}
                 </Text>
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           )}
         />
       )}
