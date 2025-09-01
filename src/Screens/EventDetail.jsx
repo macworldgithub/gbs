@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ActivityIndicator, ScrollView, Alert, Image, TouchableOpacity } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import Ionicons from "react-native-vector-icons/Ionicons"; 
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 import tw from "tailwind-react-native-classnames";
 
@@ -51,10 +51,6 @@ const EventDetail = () => {
         <View style={{ width: 24 }} />
       </View>
       <Text style={tw`text-2xl font-bold text-gray-800 mb-2`}>{event.title}</Text>
-      {event.imageUrl ? (
-        <Image source={{ uri: event.imageUrl }} style={tw`w-full h-48 rounded-lg mb-4`} />
-      ) : null}
-
       {/* Description */}
       <Text style={tw`text-base text-gray-700 mb-4`}>{event.description}</Text>
 
