@@ -11,9 +11,10 @@ import BusinessPage from "../Screens/BusinessPage";
 import Chat from "../Screens/Chat";
 import WellbeingScreen from "../Screens/Wellbeing";
 import OffersStack from "./OffersStackNavigation";
-import SocialPage from "../Screens/SocialPage";
 import Conversations from "../Screens/Conversations";
 import Offers from "../Screens/Offers";
+import DirectoryStack from "./DirectoryStackNavigation";
+import Social from "../Screens/Social";
 
 const Tab = createBottomTabNavigator();
 
@@ -24,11 +25,11 @@ export default function AuthTabs() {
       tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="Directory" component={MembersDirectory} />
+      <Tab.Screen name="Directory" component={DirectoryStack} />
       <Tab.Screen name="Business" component={BusinessPage} />
-      {/* <Tab.Screen name="Social" component={SocialPage} /> */}
-      <Tab.Screen name="Social" component={Conversations} />
       <Tab.Screen name="Wellbeing" component={WellbeingScreen} />
+      <Tab.Screen name="Social" component={Social} />
+      {/* <Tab.Screen name="Wellbeing" component={WellbeingScreen} /> */}
       <Tab.Screen name="Offers" component={Offers} />
     </Tab.Navigator>
   );

@@ -1,0 +1,102 @@
+import React, { useEffect, useState } from "react";
+import { View, Text, ActivityIndicator, ScrollView, Alert, Image, TouchableOpacity } from "react-native";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import Ionicons from "react-native-vector-icons/Ionicons"; 
+
+import tw from "tailwind-react-native-classnames";
+
+const API_URL = "https://gbs.westsidecarcare.com.au/events";
+
+const EventDetail = () => {
+  const route = useRoute();
+  const navigation = useNavigation();
+  const { eventId } = route.params;
+
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/${eventId}`, {
+          headers: { Accept: "application/json" },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setEvent(data);
+        } else {
+          Alert.alert("Error", data.message || "Failed to fetch event details");
+        }
+      } catch (error) {
+        Alert.alert("Error", error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvent();
+  }, [eventId]);
+
+  if (loading) return <ActivityIndicator size="large" color="red" style={tw`mt-10`} />;
+
+  if (!event) return <Text style={tw`text-center mt-10 text-gray-500`}>Event not found</Text>;
+
+  return (
+    <ScrollView style={tw`flex-1 bg-white p-4 mt-6`}>
+      <View style={tw`flex-row items-center justify-between mt-8 mb-4`}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
+        <Text style={tw`text-xl font-bold`}>Event Offers</Text>
+        <View style={{ width: 24 }} />
+      </View>
+      <Text style={tw`text-2xl font-bold text-gray-800 mb-2`}>{event.title}</Text>
+      {event.imageUrl ? (
+        <Image source={{ uri: event.imageUrl }} style={tw`w-full h-48 rounded-lg mb-4`} />
+      ) : null}
+
+      {/* Description */}
+      <Text style={tw`text-base text-gray-700 mb-4`}>{event.description}</Text>
+
+      {/* Dates */}
+      <Text style={tw`text-sm text-gray-600`}>
+        Start: {new Date(event.startDate).toLocaleString()}
+      </Text>
+      <Text style={tw`text-sm text-gray-600 mb-4`}>
+        End: {new Date(event.endDate).toLocaleString()}
+      </Text>
+
+      {/* State */}
+      <Text style={tw`text-sm text-gray-600 mb-2`}>
+        State: {event.state || "N/A"}
+      </Text>
+
+      {/* Location */}
+      <Text style={tw`text-sm text-gray-600 mb-2`}>
+        Location:{" "}
+        {Array.isArray(event.locationNames)
+          ? event.locationNames.join(", ")
+          : event.locationNames || "N/A"}
+      </Text>
+
+      {/* Creator */}
+      <Text style={tw`text-sm text-gray-600 mb-4`}>
+        Created by: {event.creator?.name || "Unknown"}
+      </Text>
+
+      {/* Attendees */}
+      <Text style={tw`font-bold text-gray-800 mb-2`}>Attendees:</Text>
+      {event.attendees?.length > 0 ? (
+        event.attendees.map((att) => (
+          <Text key={att._id} style={tw`text-sm text-gray-700`}>
+            • {att.name}
+          </Text>
+        ))
+      ) : (
+        <Text style={tw`text-gray-500`}>No attendees yet</Text>
+      )}
+    </ScrollView>
+  );
+};
+
+export default EventDetail;

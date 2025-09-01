@@ -139,10 +139,13 @@ const UpgradePackage = ({ navigation }) => {
           roles.map((role) => (
             <View
               key={role._id}
-              style={tw`bg-white rounded-xl p-4 mb-3 border border-red-200 `}
+              style={[
+                tw`bg-white rounded-xl p-4 mb-3 border border-red-200`,
+                { overflow: "hidden" },
+              ]}
             >
-              <View style={tw`flex-row items-center justify-between`}>
-                <View>
+              <View style={tw`flex-row justify-between`}>
+                <View style={[tw`pr-3`, { flex: 1 }]}>
                   <Text style={tw`text-base font-bold text-gray-800`}>
                     {role.label}
                   </Text>
@@ -151,7 +154,10 @@ const UpgradePackage = ({ navigation }) => {
                   </Text>
                 </View>
                 <TouchableOpacity
-                  style={tw`bg-red-500 px-4 py-2 rounded-lg`}
+                  style={[
+                    tw`bg-red-500 px-4 py-2 rounded-lg`,
+                    { alignSelf: "flex-start" },
+                  ]}
                   onPress={() => upgradeToRole(role)}
                   disabled={submitting}
                 >

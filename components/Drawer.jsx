@@ -41,6 +41,7 @@ const menuItems = [
   { title: "My Business" },
   { title: "Saved offers" },
   { title: "Profile" },
+  { title: "Conversation" },
   { title: "Upgrade Package" },
   { title: "Delete User Package" },
 ];
@@ -212,6 +213,9 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "Profile") {
         onClose();
         navigation.navigate("Profile");
+      } else if (item.title === "Conversation") {
+        onClose();
+        navigation.navigate("conversation");
       } else if (item.title === "Upgrade Package") {
         onClose();
         navigation.navigate("UpgradePackage");
