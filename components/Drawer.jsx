@@ -44,6 +44,7 @@ const menuItems = [
   { title: "Conversation" },
   { title: "Upgrade Package" },
   { title: "Delete User Package" },
+  { title: "Logout" },
 ];
 
 export default function Drawer({ isOpen, onClose }) {
@@ -192,6 +193,12 @@ export default function Drawer({ isOpen, onClose }) {
       Alert.alert("Error", "Something went wrong. Please try again.");
     }
   };
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("userData");
+    } catch (e) {}
+    navigation.reset({ index: 0, routes: [{ name: "Signin" }] });
+  };
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -221,6 +228,8 @@ export default function Drawer({ isOpen, onClose }) {
         navigation.navigate("UpgradePackage");
       } else if (item.title === "Delete User Package") {
         deleteUserPackage();
+      } else if (item.title === "Logout") {
+        handleLogout();
       } else if (item.subItems) {
         toggleExpand(item.title);
       }
@@ -245,7 +254,10 @@ export default function Drawer({ isOpen, onClose }) {
               {
                 fontWeight: "500",
                 color:
-                  item.title === "Delete User Package" ? "#DC2626" : "black",
+                  item.title === "Delete User Package" ||
+                  item.title === "Logout"
+                    ? "#DC2626"
+                    : "black",
               },
             ]}
           >
@@ -316,7 +328,7 @@ export default function Drawer({ isOpen, onClose }) {
                 {userProfile.name || "User"}
               </Text>
               {roleLabel && (
-                <Text style={tw`text-xs text-gray-500`}>{roleLabel}</Text>
+                <Text style={tw`text-xs text-gray-500 w-44`}>{roleLabel}</Text>
               )}
             </View>
           </View>

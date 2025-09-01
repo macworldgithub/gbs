@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,48 +6,54 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import tw from 'tailwind-react-native-classnames';
-import { Ionicons, FontAwesome, FontAwesome5 } from '@expo/vector-icons';
-import Cards from '../../components/Cards';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Drawer from '../../components/Drawer';
-import axios from 'axios';
-import { API_BASE_URL } from '../utils/config';
+  Modal,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+  Platform,
+} from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useNavigation } from "@react-navigation/native";
+import tw from "tailwind-react-native-classnames";
+import { Ionicons, FontAwesome, FontAwesome5 } from "@expo/vector-icons";
+import Cards from "../../components/Cards";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Drawer from "../../components/Drawer";
+import axios from "axios";
+import { API_BASE_URL } from "../utils/config";
 
 const upcomingEvents = [
   {
-    id: '1',
-    title: 'Synchronize Fest 2024',
-    date: 'May 20',
-    location: 'Yogyakarta',
-    price: '$285',
-    image: require('../../assets/event1.png'),
+    id: "1",
+    title: "Synchronize Fest 2024",
+    date: "May 20",
+    location: "Yogyakarta",
+    price: "$285",
+    image: require("../../assets/event1.png"),
   },
   {
-    id: '2',
-    title: 'WJNC #9 : Gathering',
-    date: 'Oct 7',
-    location: 'Yogyakarta',
-    price: '$185',
-    image: require('../../assets/event2.png'),
+    id: "2",
+    title: "WJNC #9 : Gathering",
+    date: "Oct 7",
+    location: "Yogyakarta",
+    price: "$185",
+    image: require("../../assets/event2.png"),
   },
 ];
 
 const tabs = [
-  { key: 'all', label: 'All' },
-  { key: 'VIC', label: 'VIC' },
-  { key: 'NSW', label: 'NSW' },
-  { key: 'QLD', label: 'QLD' },
-  { key: 'SA', label: 'SA' },
+  { key: "all", label: "All" },
+  { key: "VIC", label: "VIC" },
+  { key: "NSW", label: "NSW" },
+  { key: "QLD", label: "QLD" },
+  { key: "SA", label: "SA" },
 ];
 
 export default function Home() {
   const navigation = useNavigation();
   const [likedEvents, setLikedEvents] = useState({});
-  const [activeTab, setActiveTab] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
   const [businessResults, setBusinessResults] = useState([]);
   const [offerResults, setOfferResults] = useState([]);
@@ -57,26 +63,166 @@ export default function Home() {
   // Sidebar state
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Create Event Modal state
+  const [createEventModalVisible, setCreateEventModalVisible] = useState(false);
+  const [roles, setRoles] = useState([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
+  const [submittingEvent, setSubmittingEvent] = useState(false);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [eventForm, setEventForm] = useState({
+    title: "",
+    description: "",
+    state: "VIC",
+    startDate: new Date(),
+    endDate: new Date(),
+    selectedRoleId: "",
+  });
+
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+  // Load roles when modal opens
+  const loadRoles = async () => {
+    try {
+      setLoadingRoles(true);
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedUserData = JSON.parse(userData);
+      const token = parsedUserData?.token;
+
+      if (!token) {
+        Alert.alert("Error", "No token found, please login again.");
+        return;
+      }
+
+      const res = await axios.get(`${API_BASE_URL}/roles`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setRoles(res.data || []);
+    } catch (e) {
+      console.log("[Home] roles error:", e.response?.data || e.message);
+      Alert.alert("Error", "Failed to load roles");
+    } finally {
+      setLoadingRoles(false);
+    }
+  };
+
+  const openCreateEventModal = () => {
+    setCreateEventModalVisible(true);
+    loadRoles();
+  };
+
+  const closeCreateEventModal = () => {
+    setCreateEventModalVisible(false);
+    setEventForm({
+      title: "",
+      description: "",
+      state: "VIC",
+      startDate: new Date(),
+      endDate: new Date(),
+      selectedRoleId: "",
+    });
+    setShowStartDatePicker(false);
+    setShowEndDatePicker(false);
+  };
+
+  const onStartDateChange = (event, selectedDate) => {
+    setShowStartDatePicker(false); // 👈 always close after selection
+    if (selectedDate) {
+      setEventForm((prev) => ({
+        ...prev,
+        startDate: selectedDate,
+        endDate: new Date(selectedDate.getTime() + 3 * 60 * 60 * 1000), // add 3 hrs
+      }));
+    }
+  };
+
+  const onEndDateChange = (event, selectedDate) => {
+    setShowEndDatePicker(false); // 👈 always close after selection
+    if (selectedDate) {
+      setEventForm((prev) => ({ ...prev, endDate: selectedDate }));
+    }
+  };
+
+  const createEvent = async () => {
+    if (
+      !eventForm.title.trim() ||
+      !eventForm.description.trim() ||
+      !eventForm.selectedRoleId
+    ) {
+      Alert.alert("Error", "Please fill all required fields");
+      return;
+    }
+
+    try {
+      setSubmittingEvent(true);
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedUserData = JSON.parse(userData);
+      const token = parsedUserData?.token;
+
+      if (!token) {
+        Alert.alert("Error", "No token found, please login again.");
+        return;
+      }
+
+      const body = {
+        title: eventForm.title.trim(),
+        description: eventForm.description.trim(),
+        state: eventForm.state,
+        area: {
+          type: "MultiPolygon",
+          coordinates: [
+            [
+              [
+                [151.2093, -33.8688], // Sydney coordinates
+                [151.2094, -33.8689],
+                [151.2095, -33.8688],
+                [151.2093, -33.8688],
+              ],
+            ],
+          ],
+        },
+        openToAll: false,
+        startDate: eventForm.startDate.toISOString(),
+        endDate: eventForm.endDate.toISOString(),
+        roles: [eventForm.selectedRoleId],
+      };
+
+      const res = await axios.post(`${API_BASE_URL}/events`, body, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("[Home] Create event response:", res.data);
+      Alert.alert("Success", "Event created successfully!");
+      closeCreateEventModal();
+    } catch (e) {
+      console.log("[Home] Create event error:", e.response?.data || e.message);
+      Alert.alert("Error", "Failed to create event. Please try again.");
+    } finally {
+      setSubmittingEvent(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem('userData');
+      await AsyncStorage.removeItem("userData");
     } catch (e) {}
-    navigation.reset({ index: 0, routes: [{ name: 'Signin' }] });
+    navigation.reset({ index: 0, routes: [{ name: "Signin" }] });
   };
 
   const handleTabPress = (key) => {
     setActiveTab(key);
     switch (key) {
-      case 'upcoming':
-        navigation.navigate('UpcomingEvent');
+      case "upcoming":
+        navigation.navigate("UpcomingEvent");
         break;
-      case 'popular':
-        navigation.navigate('PopularEvent');
+      case "popular":
+        navigation.navigate("PopularEvent");
         break;
-      case 'live':
-        navigation.navigate('LiveEvent');
+      case "live":
+        navigation.navigate("LiveEvent");
         break;
       default:
         break;
@@ -104,7 +250,9 @@ export default function Home() {
           limit: 10,
         };
         const res = await axios.get(`${API_BASE_URL}/search`, { params });
-        const b = Array.isArray(res.data?.businesses) ? res.data.businesses : [];
+        const b = Array.isArray(res.data?.businesses)
+          ? res.data.businesses
+          : [];
         const o = Array.isArray(res.data?.offers) ? res.data.offers : [];
         const u = Array.isArray(res.data?.users) ? res.data.users : [];
         setBusinessResults(b);
@@ -131,15 +279,23 @@ export default function Home() {
         </TouchableOpacity>
 
         <View style={tw`flex-row items-center`}>
-          <TouchableOpacity onPress={() => navigation.navigate('Notification')} style={tw`mr-4`}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Notification")}
+            style={tw`mr-4`}
+          >
             <View style={tw`relative`}>
               <FontAwesome name="bell" size={20} color="black" />
-              <View style={tw`absolute top-0 right-0 w-3 h-3 rounded-full bg-red-500`} />
+              <View
+                style={tw`absolute top-0 right-0 w-3 h-3 rounded-full bg-red-500`}
+              />
             </View>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleLogout} style={tw`flex-row items-center`}>
-            <Ionicons name="log-out-outline" size={20} color="#ef4444" />
-            <Text style={tw`ml-1 text-red-500`}>Logout</Text>
+          <TouchableOpacity
+            onPress={openCreateEventModal}
+            style={tw`flex-row items-center border border-red-500 px-3 py-1 rounded-full`}
+          >
+            {/* <Ionicons name="log-out-outline" size={20} color="#ef4444" /> */}
+            <Text style={tw`ml-1 text-red-500 `}>Create Events</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -158,7 +314,9 @@ export default function Home() {
           blurOnSubmit={false}
           returnKeyType="search"
           autoFocus={false}
-          onSubmitEditing={() => { /* keep keyboard */ }}
+          onSubmitEditing={() => {
+            /* keep keyboard */
+          }}
         />
       </View>
 
@@ -169,24 +327,33 @@ export default function Home() {
             <Text style={tw`px-3 py-2 text-gray-500`}>Searching...</Text>
           )}
 
-          {!searchLoading && businessResults.length === 0 && offerResults.length === 0 && userResults.length === 0 && (
-            <Text style={tw`px-3 py-2 text-gray-500`}>No results</Text>
-          )}
+          {!searchLoading &&
+            businessResults.length === 0 &&
+            offerResults.length === 0 &&
+            userResults.length === 0 && (
+              <Text style={tw`px-3 py-2 text-gray-500`}>No results</Text>
+            )}
 
           {!searchLoading && businessResults.length > 0 && (
             <View>
-              <Text style={tw`px-3 pt-2 pb-1 text-gray-700 font-semibold`}>Businesses</Text>
+              <Text style={tw`px-3 pt-2 pb-1 text-gray-700 font-semibold`}>
+                Businesses
+              </Text>
               <FlatList
                 data={businessResults}
                 keyExtractor={(item) => item._id}
                 keyboardShouldPersistTaps="always"
                 renderItem={({ item }) => (
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('BusinessDetail', { id: item._id })}
+                    onPress={() =>
+                      navigation.navigate("BusinessDetail", { id: item._id })
+                    }
                     style={tw`px-3 py-2 border-b border-gray-200`}
                   >
                     <Text style={tw`font-semibold`}>{item.companyName}</Text>
-                    <Text style={tw`text-gray-500 text-xs`}>{item.industry} • {item.state}</Text>
+                    <Text style={tw`text-gray-500 text-xs`}>
+                      {item.industry} • {item.state}
+                    </Text>
                   </TouchableOpacity>
                 )}
               />
@@ -195,18 +362,24 @@ export default function Home() {
 
           {!searchLoading && offerResults.length > 0 && (
             <View>
-              <Text style={tw`px-3 pt-2 pb-1 text-gray-700 font-semibold`}>Offers</Text>
+              <Text style={tw`px-3 pt-2 pb-1 text-gray-700 font-semibold`}>
+                Offers
+              </Text>
               <FlatList
                 data={offerResults}
                 keyExtractor={(item) => item._id}
                 keyboardShouldPersistTaps="always"
                 renderItem={({ item }) => (
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('OfferDetails', { id: item._id })}
+                    onPress={() =>
+                      navigation.navigate("OfferDetails", { id: item._id })
+                    }
                     style={tw`px-3 py-2 border-b border-gray-200`}
                   >
                     <Text style={tw`font-semibold`}>{item.title}</Text>
-                    <Text style={tw`text-gray-500 text-xs`}>{item.discount} • {item.offerType}</Text>
+                    <Text style={tw`text-gray-500 text-xs`}>
+                      {item.discount} • {item.offerType}
+                    </Text>
                   </TouchableOpacity>
                 )}
               />
@@ -215,7 +388,9 @@ export default function Home() {
 
           {!searchLoading && userResults.length > 0 && (
             <View>
-              <Text style={tw`px-3 pt-2 pb-1 text-gray-700 font-semibold`}>Users</Text>
+              <Text style={tw`px-3 pt-2 pb-1 text-gray-700 font-semibold`}>
+                Users
+              </Text>
               <FlatList
                 data={userResults}
                 keyExtractor={(item) => item._id}
@@ -249,11 +424,14 @@ export default function Home() {
             <FontAwesome5
               name={item.icon}
               size={14}
-              color={activeTab === item.key ? '#EF4444' : '#6B7280'}
+              color={activeTab === item.key ? "#EF4444" : "#6B7280"}
               style={tw`mr-2`}
             />
             <Text
-              style={tw.style(`text-sm`, activeTab === item.key ? `text-red-500` : `text-gray-600`)}
+              style={tw.style(
+                `text-sm`,
+                activeTab === item.key ? `text-red-500` : `text-gray-600`
+              )}
             >
               {item.label}
             </Text>
@@ -300,22 +478,235 @@ export default function Home() {
         renderItem={() => (
           <View style={tw`px-4`}>
             <View style={tw`flex-row justify-between mb-2`}>
-              <Text style={tw`font-semibold`}>Chairman's Partners</Text>
-              <Text style={tw`text-red-500 text-sm`}>See all partners</Text>
+              <Text style={tw`font-semibold`}>Events</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate("social");
+                }}
+              >
+                <Text style={tw`text-red-500 text-sm`}>See all Events</Text>
+              </TouchableOpacity>
             </View>
             <Cards />
           </View>
         )}
-        keyExtractor={() => 'footer'}
+        keyExtractor={() => "footer"}
       />
 
       {/* Sidebar Component */}
       <Drawer isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* Create Event Modal */}
+      <Modal visible={createEventModalVisible} transparent animationType="fade">
+        <View
+          style={tw`flex-1 bg-black bg-opacity-50 justify-center items-center`}
+        >
+          <View style={tw`bg-white w-11/12 max-w-md rounded-2xl p-6 max-h-96`}>
+            <Text style={tw`text-lg font-bold text-gray-900 text-center mb-4`}>
+              Create New Event
+            </Text>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Title Input */}
+              <View style={tw`mb-4`}>
+                <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
+                  Event Title *
+                </Text>
+                <TextInput
+                  style={tw`border border-gray-300 rounded-lg px-3 py-2 text-sm`}
+                  placeholder="Enter event title"
+                  value={eventForm.title}
+                  onChangeText={(text) =>
+                    setEventForm({ ...eventForm, title: text })
+                  }
+                />
+              </View>
+
+              {/* Description Input */}
+              <View style={tw`mb-4`}>
+                <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
+                  Description *
+                </Text>
+                <TextInput
+                  style={tw`border border-gray-300 rounded-lg px-3 py-2 text-sm`}
+                  placeholder="Enter event description"
+                  multiline
+                  numberOfLines={3}
+                  value={eventForm.description}
+                  onChangeText={(text) =>
+                    setEventForm({ ...eventForm, description: text })
+                  }
+                />
+              </View>
+
+              {/* State Dropdown */}
+              <View style={tw`mb-4`}>
+                <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
+                  State *
+                </Text>
+                <View style={tw`border border-gray-300 rounded-lg px-3 py-2`}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {["VIC", "NSW", "QLD", "SA"].map((state) => (
+                      <TouchableOpacity
+                        key={state}
+                        style={tw.style(
+                          `px-3 py-1 rounded-full mr-2`,
+                          eventForm.state === state
+                            ? `bg-red-500`
+                            : `bg-gray-200`
+                        )}
+                        onPress={() => setEventForm({ ...eventForm, state })}
+                      >
+                        <Text
+                          style={tw.style(
+                            `text-xs font-medium`,
+                            eventForm.state === state
+                              ? `text-white`
+                              : `text-gray-700`
+                          )}
+                        >
+                          {state}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              </View>
+
+              {/* Start Date */}
+              <View style={tw`mb-4`}>
+                <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
+                  Start Date *
+                </Text>
+                <TouchableOpacity
+                  style={tw`border border-gray-300 rounded-lg px-3 py-2`}
+                  onPress={() => setShowStartDatePicker(true)}
+                >
+                  <Text style={tw`text-sm text-gray-700`}>
+                    {eventForm.startDate.toLocaleDateString()}{" "}
+                    {eventForm.startDate.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* End Date */}
+              <View style={tw`mb-4`}>
+                <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
+                  End Date *
+                </Text>
+                <TouchableOpacity
+                  style={tw`border border-gray-300 rounded-lg px-3 py-2`}
+                  onPress={() => setShowEndDatePicker(true)}
+                >
+                  <Text style={tw`text-sm text-gray-700`}>
+                    {eventForm.endDate.toLocaleDateString()}{" "}
+                    {eventForm.endDate.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Roles Dropdown */}
+              <View style={tw`mb-6`}>
+                <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
+                  Role *
+                </Text>
+                {loadingRoles ? (
+                  <View
+                    style={tw`border border-gray-300 rounded-lg px-3 py-2 items-center`}
+                  >
+                    <ActivityIndicator color="#DC2626" size="small" />
+                    <Text style={tw`text-gray-500 text-sm ml-2`}>
+                      Loading roles...
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={tw`border border-gray-300 rounded-lg px-3 py-2`}>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                    >
+                      {roles.map((role) => (
+                        <TouchableOpacity
+                          key={role._id}
+                          style={tw.style(
+                            `px-3 py-1 rounded-full mr-2`,
+                            eventForm.selectedRoleId === role._id
+                              ? `bg-red-500`
+                              : `bg-gray-200`
+                          )}
+                          onPress={() =>
+                            setEventForm({
+                              ...eventForm,
+                              selectedRoleId: role._id,
+                            })
+                          }
+                        >
+                          <Text
+                            style={tw.style(
+                              `text-xs font-medium`,
+                              eventForm.selectedRoleId === role._id
+                                ? `text-white`
+                                : `text-gray-700`
+                            )}
+                          >
+                            {role.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
+
+            {/* Action Buttons */}
+            <View style={tw`flex-row mt-4`}>
+              <TouchableOpacity
+                style={tw`flex-1 bg-gray-200 py-2 rounded-lg mr-2`}
+                onPress={closeCreateEventModal}
+              >
+                <Text style={tw`text-gray-800 text-center font-semibold`}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={tw`flex-1 bg-red-500 py-2 rounded-lg ml-2`}
+                onPress={createEvent}
+                disabled={submittingEvent}
+              >
+                <Text style={tw`text-white text-center font-semibold`}>
+                  {submittingEvent ? "Creating..." : "Create Event"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Date Pickers */}
+          {showStartDatePicker && (
+            <DateTimePicker
+              value={eventForm.startDate}
+              mode="date"
+              display="default"
+              onChange={onStartDateChange}
+            />
+          )}
+
+          {showEndDatePicker && (
+            <DateTimePicker
+              value={eventForm.endDate}
+              mode="date"
+              display="default"
+              onChange={onEndDateChange}
+            />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
-
-
-
-
-
