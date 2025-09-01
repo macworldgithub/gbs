@@ -130,7 +130,7 @@ export default function Onboarding({ navigation }) {
           </Text>
         </View>
       </SafeAreaView>
-      <Text >Onboarding Screen</Text>
+      <Text>Onboarding Screen</Text>
     </ImageBackground>
   );
 }

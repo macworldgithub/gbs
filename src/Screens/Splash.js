@@ -7,11 +7,11 @@ const { width } = Dimensions.get("window");
 export default function Splash() {
   return (
     <LinearGradient
-      colors={["#ed292e", "#f07373"]}
+      colors={["#000000", "#434343"]}
       style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
     >
       <Image
-        source={require("../../assets/Splash.png")}
+        source={require("../../assets/blokes.png")}
         style={{
           width: width * 0.5, 
           height: undefined,

@@ -311,10 +311,6 @@
 //   );
 // }
 
-
-
-
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -371,6 +367,7 @@ export default function MembersDirectory({ navigation }) {
           email: user.email,
           phone: user.phone,
           role: user?.activatedPackage?.role?.label || "Member",
+          avatarUrl: user.avatarUrl || null,
           image: user.avatarUrl
             ? { uri: user.avatarUrl }
             : require("../../assets/user.jpg"),
@@ -449,9 +446,12 @@ export default function MembersDirectory({ navigation }) {
       if (!token || !myUserId) return;
 
       try {
-        const res = await fetch(`${API_BASE_URL}/messages/conversations?page=1&limit=100`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${API_BASE_URL}/messages/conversations?page=1&limit=100`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const data = await res.json();
         if (res.ok && data?.conversations) {
           const statusMap = {};
@@ -525,7 +525,7 @@ export default function MembersDirectory({ navigation }) {
         user: {
           id: user.id,
           name: user.name,
-          avatarUrl: user.avatarUrl, // 👈 pass it
+          avatarUrl: user?.avatarUrl, // 👈 pass it
         },
         conversationId: conv?._id,
       });
@@ -624,15 +624,15 @@ export default function MembersDirectory({ navigation }) {
                   {item.role} • {item.state}
                 </Text> */}
 
+                <Text style={tw`text-gray-500 text-xs mt-1`}>{item.role} </Text>
+
                 <Text style={tw`text-gray-500 text-xs mt-1`}>
-  {item.role} </Text>
-
-           <Text style={tw`text-gray-500 text-xs mt-1`}>
-  <Text style={tw`text-black`}>State:</Text><Text style={tw`text-red-500`}> {item.state ? item.state : "N/A"}</Text>
-</Text>
-
-
-
+                  <Text style={tw`text-black`}>State:</Text>
+                  <Text style={tw`text-red-500`}>
+                    {" "}
+                    {item.state ? item.state : "N/A"}
+                  </Text>
+                </Text>
               </View>
 
               <TouchableOpacity onPress={() => toggleLike(item.id)}>
@@ -659,6 +659,3 @@ export default function MembersDirectory({ navigation }) {
     </View>
   );
 }
-
-
-

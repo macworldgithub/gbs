@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, ActivityIndicator, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  Pressable,
+} from "react-native";
 import tw from "twrnc";
 
 const BASE_API_URL = "https://gbs.westsidecarcare.com.au/events";
@@ -94,7 +100,9 @@ const Cards = ({ stateFilter }) => {
       ) : (
         <FlatList
           data={events}
-          keyExtractor={(item, index) => item?._id?.toString() || index.toString()}
+          keyExtractor={(item, index) =>
+            item?._id?.toString() || index.toString()
+          }
           renderItem={renderEvent}
           contentContainerStyle={tw`p-2`}
           ListEmptyComponent={

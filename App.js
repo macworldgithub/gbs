@@ -75,11 +75,11 @@ export default function App() {
         if (userData) {
           setInitialRoute("Tabs");
         } else {
-          setInitialRoute("Onboarding");
+          setInitialRoute("OnboardingTwo");
         }
       } catch (err) {
         console.log("Error checking login:", err);
-        setInitialRoute("Onboarding");
+        setInitialRoute("OnboardingTwo");
       }
     };
 

@@ -584,29 +584,29 @@ export default function Chat({ navigation }) {
     }
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={tw`flex-1`}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
-    >
-      <View style={tw`flex-1 bg-white pt-8 pb-2`}>
-        {/* Header */}
-        <View
-          style={tw`flex-row items-center justify-between px-4 py-3 border-b`}
-        >
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} />
-          </TouchableOpacity>
-          <View style={tw`flex-row items-center mr-16`}>
-            <Image
-              source={
-                chatUser?.avatarUrl
-                  ? { uri: chatUser.avatarUrl }
-                  : require("../../assets/user.jpg")
-              }
-              style={tw`w-10 h-10 rounded-full mr-2`}
-            />
+    return (
+      <KeyboardAvoidingView
+        style={tw`flex-1`}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+      >
+        <View style={tw`flex-1 bg-white pt-8 pb-2`}>
+          {/* Header */}
+          <View
+            style={tw`flex-row items-center justify-between px-4 py-3 border-b`}
+          >
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={24} />
+            </TouchableOpacity>
+            <View style={tw`flex-row items-center mr-16`}>
+              <Image
+                source={
+                  chatUser?.avatarUrl
+                    ? { uri: chatUser.avatarUrl }
+                    : require("../../assets/user.jpg")
+                }
+                style={tw`w-10 h-10 rounded-full mr-2`}
+              />
 
             <View>
               <Text style={tw`font-semibold`}>{chatUser?.name ?? "Guest"}</Text>
