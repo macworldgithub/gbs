@@ -339,26 +339,56 @@ const Offers = ({ navigation }) => {
 
       console.log(`${action} Offer Response:`, res.status, res.data);
 
-      if (res.status === 200 || res.status === 201) {
-        setOffers((prevOffers) =>
-          prevOffers.map((offer) =>
-            offer._id === offerId
-              ? {
-                  ...offer,
-                  savedBy:
-                    action === "save"
-                      ? [...(offer.savedBy || []), userId]
-                      : offer.savedBy.filter((id) => id !== userId),
-                }
-              : offer
-          )
-        );
-        if (action === "unsave") {
-          Alert.alert("Success", "This offer is unsaved");
-        }
-      } else {
-        Alert.alert("Error", `Failed to ${action} offer`);
-      }
+      // if (res.status === 200 || res.status === 201) {
+      //   setOffers((prevOffers) =>
+      //     prevOffers.map((offer) =>
+      //       offer._id === offerId
+      //         ? {
+      //             ...offer,
+      //             savedBy:
+      //               action === "save"
+      //                 ? [...(offer.savedBy || []), userId]
+      //                 : offer.savedBy.filter((id) => id !== userId),
+      //           }
+      //         : offer
+      //     )
+      //   );
+      //   if (action === "unsave") {
+      //     Alert.alert("Success", "This offer is unsaved");
+      //   }
+
+      
+      // } else {
+      //   Alert.alert("Error", `Failed to ${action} offer`);
+      // }
+
+
+if (res.status === 200 || res.status === 201) {
+  setOffers((prevOffers) =>
+    prevOffers.map((offer) =>
+      offer._id === offerId
+        ? {
+            ...offer,
+            savedBy:
+              action === "save"
+                ? [...(offer.savedBy || []), userId]
+                : offer.savedBy.filter((id) => id !== userId),
+          }
+        : offer
+    )
+  );
+
+  if (action === "save") {
+    Alert.alert("Success", "This offer is saved");
+  } else {
+    Alert.alert("Success", "This offer is unsaved");
+  }
+} else {
+  Alert.alert("Error", `Failed to ${action} offer`);
+}
+
+
+
     } catch (err) {
       console.error(
         `Error ${isSaved ? "unsaving" : "saving"} offer:`,

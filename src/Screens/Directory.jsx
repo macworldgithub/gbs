@@ -311,6 +311,10 @@
 //   );
 // }
 
+
+
+
+
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -584,9 +588,19 @@ export default function MembersDirectory({ navigation }) {
                   {item.name}
                 </Text>
                 <Text style={tw`text-red-500 text-sm`}>{item.email}</Text>
-                <Text style={tw`text-gray-500 text-xs`}>
+                {/* <Text style={tw`text-gray-500 text-xs`}>
                   {item.role} • {item.state}
-                </Text>
+                </Text> */}
+
+                <Text style={tw`text-gray-500 text-xs mt-1`}>
+  {item.role} </Text>
+
+           <Text style={tw`text-gray-500 text-xs mt-1`}>
+  <Text style={tw`text-black`}>State:</Text><Text style={tw`text-red-500`}> {item.state ? item.state : "N/A"}</Text>
+</Text>
+
+
+
               </View>
 
               <TouchableOpacity onPress={() => toggleLike(item.id)}>
@@ -613,3 +627,6 @@ export default function MembersDirectory({ navigation }) {
     </View>
   );
 }
+
+
+

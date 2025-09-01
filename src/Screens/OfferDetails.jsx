@@ -212,7 +212,7 @@ const OfferDetails = ({ route, navigation }) => {
   if (!offer) return null;
 
   return (
-    <View style={tw`flex-1 bg-white `}>
+    <View style={tw`flex-1 bg-white mt-8`}>
       {/* Top Header */}
       <View style={tw`flex-row items-center bg-red-500 px-4 py-3 `}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={tw`mr-3`}>
@@ -297,12 +297,12 @@ const OfferDetails = ({ route, navigation }) => {
         </View>
 
         {/* ⭐ Rating & Comment Section */}
-        <View style={tw`mt-8 bg-gray-50 p-4 rounded-lg shadow`}>
+        {/* <View style={tw`mt-8 bg-gray-50 p-4 rounded-lg shadow`}>
           <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>
             Rate this Offer
           </Text>
 
-          {/* Stars */}
+         
           <View style={tw`flex-row mb-4`}>
             {[1, 2, 3, 4, 5].map((star) => (
               <TouchableOpacity key={star} onPress={() => setRating(star)}>
@@ -316,7 +316,7 @@ const OfferDetails = ({ route, navigation }) => {
             ))}
           </View>
 
-          {/* Comment Box */}
+         
           <TextInput
             placeholder="Write your comment here..."
             value={comment}
@@ -325,17 +325,18 @@ const OfferDetails = ({ route, navigation }) => {
             style={tw`border border-gray-300 rounded-lg p-3 text-gray-700 bg-white`}
           />
 
-          {/* Submit Button (UI only, no action) */}
+          
           <TouchableOpacity
             style={tw`bg-red-500 py-3 rounded-lg mt-4`}
             onPress={() => Alert.alert("Info", "Submit action not implemented")}
           >
             <Text style={tw`text-white text-center font-bold`}>Submit</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </ScrollView>
     </View>
   );
 };
 
 export default OfferDetails;
+   
