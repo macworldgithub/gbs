@@ -42,11 +42,11 @@ const upcomingEvents = [
 ];
 
 const tabs = [
-  { key: "all", label: "All" },
-  { key: "VIC", label: "VIC" },
-  { key: "NSW", label: "NSW" },
-  { key: "QLD", label: "QLD" },
-  { key: "SA", label: "SA" },
+  { key: "all", label: "All", icon: "apps" },
+  { key: "VIC", label: "VIC", icon: "location-on" },
+  { key: "NSW", label: "NSW", icon: "location-on" },
+  { key: "QLD", label: "QLD", icon: "location-on" },
+  { key: "SA", label: "SA", icon: "location-on" },
 ];
 
 export default function Home() {
@@ -207,20 +207,14 @@ export default function Home() {
 
   const handleTabPress = (key) => {
     setActiveTab(key);
-    switch (key) {
-      case "upcoming":
-        navigation.navigate("UpcomingEvent");
-        break;
-      case "popular":
-        navigation.navigate("PopularEvent");
-        break;
-      case "live":
-        navigation.navigate("LiveEvent");
-        break;
-      default:
-        break;
-    }
+    console.log(`[Home] Tab changed to: ${key}`);
+    // No need for navigation since we're filtering events locally
   };
+
+  // Log activeTab changes for debugging
+  useEffect(() => {
+    console.log(`[Home] activeTab changed to: ${activeTab}`);
+  }, [activeTab]);
 
   // Debounced search
   useEffect(() => {
@@ -401,37 +395,33 @@ export default function Home() {
       )}
 
       {/* Scrollable Tabs */}
-      <FlatList
-        data={tabs}
-        keyExtractor={(item) => item.key}
+      <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (
+        style={tw`mb-4`}
+      >
+        {tabs.map((item) => (
           <TouchableOpacity
+            key={item.key}
             onPress={() => handleTabPress(item.key)}
             style={tw.style(
-              `flex-row items-center px-4 py-2 rounded-md mt-4 mr-2 mb-2 border-gray-400 border`,
-              activeTab === item.key ? `bg-red-100` : `bg-gray-100`
+              `px-4 py-2 mr-2 rounded-md border`,
+              activeTab === item.key
+                ? "bg-red-100 border-red-500"
+                : "bg-white border-gray-300"
             )}
           >
-            <FontAwesome5
-              name={item.icon}
-              size={14}
-              color={activeTab === item.key ? "#EF4444" : "#6B7280"}
-              style={tw`mr-2`}
-            />
             <Text
               style={tw.style(
-                `text-sm`,
-                activeTab === item.key ? `text-red-500` : `text-gray-600`
+                `text-sm font-medium`,
+                activeTab === item.key ? "text-red-600" : "text-gray-700"
               )}
             >
               {item.label}
             </Text>
           </TouchableOpacity>
-        )}
-        style={tw`mb-4`}
-      />
+        ))}
+      </ScrollView>
 
       {/* Upcoming Events Section */}
       <View style={tw`mb-2`}>
@@ -471,7 +461,9 @@ export default function Home() {
         renderItem={() => (
           <View style={tw`px-4`}>
             <View style={tw`flex-row justify-between mb-2`}>
-              <Text style={tw`font-semibold`}>Events</Text>
+              <Text style={tw`font-semibold`}>
+                {activeTab === "all" ? "All Events" : `${activeTab} Events`}
+              </Text>
               <TouchableOpacity
                 onPress={() => {
                   navigation.navigate("social");
@@ -480,7 +472,7 @@ export default function Home() {
                 <Text style={tw`text-red-500 text-sm`}>See all Events</Text>
               </TouchableOpacity>
             </View>
-            <Cards />
+            <Cards stateFilter={activeTab} />
           </View>
         )}
         keyExtractor={() => "footer"}
