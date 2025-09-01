@@ -266,6 +266,10 @@ export default function Chat({ navigation }) {
           }
           return next;
         });
+        // Refresh to replace local file:// URLs with signedUrl from backend
+        setTimeout(() => {
+          fetchMessages();
+        }, 200);
       } catch {}
     });
     s.on("messageRead", (data) => {
@@ -376,12 +380,98 @@ export default function Chat({ navigation }) {
     });
   };
 
+  // const sendMediaMessage = async (file) => {
+  //   console.log("📤 Sending media - File details:", {
+  //     uri: file.uri,
+  //     type: file.type,
+  //     fileName: file.fileName,
+  //     fileSize: file.fileSize,
+  //     width: file.width,
+  //     height: file.height,
+  //   });
+
+  //   // Handle camera images which might have different properties
+  //   const mimeType = file.type || (file.mimeType ?? "image/jpeg");
+  //   const extension = mimeType.split("/")[1] || "jpg";
+  //   const displayType = mimeType.startsWith("video")
+  //     ? "VIDEO"
+  //     : mimeType.startsWith("image")
+  //       ? "IMAGE"
+  //       : "FILE";
+
+  //   // For camera images, create a better filename
+  //   const fileName = file.fileName || `camera-${Date.now()}.${extension}`;
+
+  //   // Dedupe: prevent rapid double-send of same asset
+  //   const fingerprint = file.assetId || file.uri;
+  //   const fpKey = fingerprint || `${file.uri}-${extension}`;
+  //   if (sendingMediaSetRef.current.has(fpKey)) {
+  //     console.log("⏭️ Skipping duplicate media send for:", fpKey);
+  //     return;
+  //   }
+  //   sendingMediaSetRef.current.add(fpKey);
+
+  //   // Optimistic UI
+  //   const tempId = `local-${Date.now()}`;
+  //   setMessages((prev) => [
+  //     ...prev,
+  //     {
+  //       id: tempId,
+  //       url: file.uri,
+  //       type: displayType,
+  //       fromMe: true,
+  //       status: "sending",
+  //       fileName: fileName,
+  //       createdAt: new Date().toISOString(),
+  //     },
+  //   ]);
+
+  //   try {
+  //     const fileUri =
+  //       Platform.OS === "android" ? file.uri : file.uri.replace("file://", "");
+  //     const base64 = await FileSystem.readAsStringAsync(fileUri, {
+  //       encoding: FileSystem.EncodingType.Base64,
+  //     });
+
+  //     if (!socketRef.current) throw new Error("Socket not connected");
+
+  //     socketRef.current.emit("sendMessage", {
+  //       recipientId: chatUser._id,
+  //       file: {
+  //         name: fileName,
+  //         type: mimeType,
+  //         data: `data:${mimeType};base64,${base64}`,
+  //       },
+  //     });
+
+  //     // The message will be replaced by the incoming 'newMessage' event.
+  //     setTimeout(() => {
+  //       setMessages((prev) =>
+  //         prev.map((m) => (m.id === tempId ? { ...m, status: "sent" } : m))
+  //       );
+  //     }, 8000);
+  //   } catch (err) {
+  //     console.error("❌ Upload error:", err);
+  //     setMessages((prev) => prev.filter((m) => m.id !== tempId));
+  //     Alert.alert("Error", "Failed to send image");
+  //   } finally {
+  //     // allow resending after short cooldown
+  //     setTimeout(() => {
+  //       sendingMediaSetRef.current.delete(fpKey);
+  //     }, 1500);
+  //   }
+  // };
   const sendMediaMessage = async (file) => {
+    // convert size into KB/MB
+    const sizeInBytes = file.fileSize || 0;
+    const sizeInKB = (sizeInBytes / 1024).toFixed(2);
+    const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(2);
+
     console.log("📤 Sending media - File details:", {
       uri: file.uri,
       type: file.type,
       fileName: file.fileName,
-      fileSize: file.fileSize,
+      fileSize: `${sizeInBytes} bytes (${sizeInKB} KB / ${sizeInMB} MB)`,
       width: file.width,
       height: file.height,
     });
@@ -430,6 +520,10 @@ export default function Chat({ navigation }) {
       });
 
       if (!socketRef.current) throw new Error("Socket not connected");
+
+      console.log(
+        `🚀 Emitting socket message with ${displayType}, size: ${sizeInMB} MB`
+      );
 
       socketRef.current.emit("sendMessage", {
         recipientId: chatUser._id,

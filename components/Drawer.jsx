@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Dimensions, Animated, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Dimensions,
+  Animated,
+  Alert,
+  ScrollView,
+  Image,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { API_BASE_URL } from "../src/utils/config";
 import { getUserData } from "../src/utils/storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
@@ -30,13 +40,18 @@ const menuItems = [
   },
   { title: "My Business" },
   { title: "Saved offers" },
-  { title: "Delete User Package" }
+  { title: "Profile" },
+  { title: "Upgrade Package" },
+  { title: "Delete User Package" },
 ];
 
 export default function Drawer({ isOpen, onClose }) {
   const slideAnim = useState(new Animated.Value(-width))[0];
   const [expandedItems, setExpandedItems] = useState({});
   const navigation = useNavigation();
+  const [roleLabel, setRoleLabel] = useState(null);
+  const [userProfile, setUserProfile] = useState({ name: "", avatarUrl: null });
+  console.log(userProfile, "drawer");
 
   const toggleExpand = (title) => {
     setExpandedItems((prev) => ({
@@ -44,6 +59,57 @@ export default function Drawer({ isOpen, onClose }) {
       [title]: !prev[title],
     }));
   };
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("currentPackage");
+        if (stored) {
+          const pkg = JSON.parse(stored);
+          setRoleLabel(pkg?.role?.label || null);
+        } else {
+          const ud = await getUserData();
+          setRoleLabel(ud?.activatedPackage?.role?.label || null);
+        }
+
+        // Load user profile data with signed URL (same logic as Profile.js)
+        const userData = await getUserData();
+        if (userData) {
+          let profilePicUri = null;
+
+          // Check both avatarUrl and profilePicKey like in Profile.js
+          const fileKey = userData.profilePicKey || userData.avatarUrl;
+
+          if (fileKey && userData._id) {
+            try {
+              const res = await axios.get(
+                `${API_BASE_URL}/user/${userData._id}/profile-picture`
+              );
+              if (res.data && res.data.url) {
+                profilePicUri = res.data.url;
+              }
+            } catch (err) {
+              console.error(
+                "Error fetching signed profile picture in drawer:",
+                err
+              );
+              // Fallback to direct avatarUrl if API fails
+              profilePicUri = userData.avatarUrl;
+            }
+          }
+
+          setUserProfile({
+            name: userData.name || "",
+            avatarUrl: profilePicUri,
+          });
+        }
+      } catch (e) {
+        setRoleLabel(null);
+        setUserProfile({ name: "", avatarUrl: null });
+      }
+    };
+    loadUserData();
+  }, [isOpen]);
 
   // Delete user package function
   const deleteUserPackage = async () => {
@@ -63,35 +129,61 @@ export default function Drawer({ isOpen, onClose }) {
         [
           {
             text: "Cancel",
-            style: "cancel"
+            style: "cancel",
           },
           {
             text: "Delete",
             style: "destructive",
             onPress: async () => {
               try {
-                const response = await axios.delete(`${API_BASE_URL}/user-package`, {
-                  headers: { 
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                  },
-                });
+                const response = await axios.delete(
+                  `${API_BASE_URL}/user-package`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
 
                 console.log("Package deletion response:", response.data);
-                Alert.alert("Success", "Your package has been deleted successfully!");
-                
+
+                // Update stored user data to remove the activated package
+                const currentUserData = await getUserData();
+                if (currentUserData) {
+                  const updatedUserData = { ...currentUserData };
+                  delete updatedUserData.activatedPackage;
+                  await AsyncStorage.setItem(
+                    "userData",
+                    JSON.stringify(updatedUserData)
+                  );
+                }
+
+                // Also clear persisted current package key
+                await AsyncStorage.removeItem("currentPackage");
+                console.log(
+                  "[Drawer] Cleared currentPackage from storage after deletion"
+                );
+
+                Alert.alert(
+                  "Success",
+                  "Your package has been deleted successfully!"
+                );
+
                 // Close drawer after successful deletion
                 onClose();
-                
-                // Navigate to Business tab to refresh the page
-                navigation.navigate("Business");
-                
               } catch (error) {
-                console.error("Error deleting package:", error.response?.data || error.message);
-                Alert.alert("Error", "Failed to delete package. Please try again.");
+                console.error(
+                  "Error deleting package:",
+                  error.response?.data || error.message
+                );
+                Alert.alert(
+                  "Error",
+                  "Failed to delete package. Please try again."
+                );
               }
-            }
-          }
+            },
+          },
         ]
       );
     } catch (error) {
@@ -114,9 +206,15 @@ export default function Drawer({ isOpen, onClose }) {
     const handlePress = () => {
       if (item.title === "My Business") {
         onClose(); // close drawer
-        navigation.navigate("MyBusiness"); 
+        navigation.navigate("MyBusiness");
       } else if (item.title === "Saved offers") {
         navigation.navigate("SavedOffers");
+      } else if (item.title === "Profile") {
+        onClose();
+        navigation.navigate("Profile");
+      } else if (item.title === "Upgrade Package") {
+        onClose();
+        navigation.navigate("UpgradePackage");
       } else if (item.title === "Delete User Package") {
         deleteUserPackage();
       } else if (item.subItems) {
@@ -130,17 +228,25 @@ export default function Drawer({ isOpen, onClose }) {
           onPress={handlePress}
           style={[
             tw`flex-row items-center py-3`,
-            { paddingLeft: level * 16, borderBottomWidth: 0.5, borderColor: "#fff3" },
+            {
+              paddingLeft: level * 16,
+              borderBottomWidth: 0.5,
+              borderColor: "#fff3",
+            },
           ]}
         >
-          <Text style={[
-            tw`text-black text-base flex-1`, 
-            { 
-              fontWeight: "500",
-              color: item.title === "Delete User Package" ? "#DC2626" : "black"
-            }
-          ]}>
+          <Text
+            style={[
+              tw`text-black text-base flex-1`,
+              {
+                fontWeight: "500",
+                color:
+                  item.title === "Delete User Package" ? "#DC2626" : "black",
+              },
+            ]}
+          >
             {item.title}
+            {item.title === "Chat Groups"}
           </Text>
           {item.subItems && (
             <Ionicons
@@ -152,7 +258,9 @@ export default function Drawer({ isOpen, onClose }) {
         </TouchableOpacity>
 
         {isExpanded && item.subItems && (
-          <View>{item.subItems.map((sub) => renderMenuItem(sub, level + 1))}</View>
+          <View>
+            {item.subItems.map((sub) => renderMenuItem(sub, level + 1))}
+          </View>
         )}
       </View>
     );
@@ -162,7 +270,9 @@ export default function Drawer({ isOpen, onClose }) {
     <>
       {isOpen && (
         <TouchableOpacity
-          style={[tw`absolute top-0 left-0 w-full h-full bg-black bg-opacity-50`]}
+          style={[
+            tw`absolute top-0 left-0 w-full h-full bg-black bg-opacity-50`,
+          ]}
           onPress={onClose}
           activeOpacity={1}
         />
@@ -180,11 +290,44 @@ export default function Drawer({ isOpen, onClose }) {
         <View
           style={[
             tw`h-full`,
-            { width: width * 0.75, backgroundColor: "#fdfdfdff", paddingTop: 60, paddingLeft: 15 },
+            {
+              width: width * 0.75,
+              backgroundColor: "#fdfdfdff",
+              paddingTop: 60,
+            },
           ]}
         >
-          <Text style={[tw`text-black text-xl font-bold px-5 mb-4`]}>Menu</Text>
-          {menuItems.map((menu) => renderMenuItem(menu))}
+          {/* User Profile Section */}
+          <View style={tw`px-5 mb-4 flex-row items-center`}>
+            <Image
+              source={
+                userProfile.avatarUrl
+                  ? { uri: userProfile.avatarUrl }
+                  : require("../assets/user.png")
+              }
+              style={tw`w-12 h-12 rounded-full mr-3`}
+            />
+            <View>
+              <Text style={tw`text-black text-lg font-bold`}>
+                {userProfile.name || "User"}
+              </Text>
+              {roleLabel && (
+                <Text style={tw`text-xs text-gray-500`}>{roleLabel}</Text>
+              )}
+            </View>
+          </View>
+
+          <Text style={[tw`text-black text-xl font-bold px-5 mb-4 ml-4`]}>
+            Menu
+          </Text>
+
+          {/* Scrollable Menu Items */}
+          <ScrollView
+            style={tw`flex-1 px-3 ml-4`}
+            showsVerticalScrollIndicator={false}
+          >
+            {menuItems.map((menu) => renderMenuItem(menu))}
+          </ScrollView>
         </View>
       </Animated.View>
     </>

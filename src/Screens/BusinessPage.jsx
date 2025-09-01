@@ -4,6 +4,7 @@ import { API_BASE_URL } from "../../src/utils/config";
 import { getUserData } from "../../src/utils/storage";
 import { useIsFocused } from "@react-navigation/native";
 import { Image } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
   View,
@@ -40,14 +41,33 @@ const BusinessPage = ({ navigation }) => {
 
   useEffect(() => {
     if (isFocused) {
+      // Log current package from storage when page gains focus
+      (async () => {
+        try {
+          const stored = await AsyncStorage.getItem("currentPackage");
+          if (stored) {
+            console.log(
+              "[BusinessPage] currentPackage (focus):",
+              JSON.parse(stored)
+            );
+          } else {
+            console.log("[BusinessPage] currentPackage (focus): none");
+          }
+        } catch (e) {
+          console.log("[BusinessPage] Error reading currentPackage:", e);
+        }
+      })();
       fetchBusinesses();
     }
   }, [isFocused]);
 
   // Listen for focus events to refresh when coming back from other screens
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchBusinesses();
+    const unsubscribe = navigation.addListener("focus", () => {
+      // Force refresh user data and check package status when screen comes into focus
+      refreshUserData().then(() => {
+        fetchBusinesses();
+      });
     });
 
     return unsubscribe;
@@ -70,13 +90,16 @@ const BusinessPage = ({ navigation }) => {
       });
 
       // Filter only Business and Top Tier Business roles
-      const businessRoles = response.data.filter(role => 
-        role.name === "business" || role.name === "top_tier_business"
+      const businessRoles = response.data.filter(
+        (role) => role.name === "business" || role.name === "top_tier_business"
       );
-      
+
       setRoles(businessRoles);
     } catch (error) {
-      console.error("Error fetching roles:", error.response?.data || error.message);
+      console.error(
+        "Error fetching roles:",
+        error.response?.data || error.message
+      );
       setError("Failed to fetch package options");
     } finally {
       setRolesLoading(false);
@@ -89,7 +112,7 @@ const BusinessPage = ({ navigation }) => {
       // Set selected package for visual feedback first
       setSelectedPackage(role);
       setPackageLoading(true);
-      
+
       const userData = await getUserData();
       const token = userData?.token;
 
@@ -103,27 +126,71 @@ const BusinessPage = ({ navigation }) => {
         role: role._id,
         startDate: new Date().toISOString(),
         months: 3,
-        trial: false
+        trial: false,
       };
 
-      const response = await axios.post(`${API_BASE_URL}/user-package`, requestBody, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/user-package`,
+        requestBody,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       console.log("Package selection response:", response.data);
-      
+
       // Close modal and refresh businesses
       setPackagesModalVisible(false);
       setSelectedPackage(null);
-      fetchBusinesses();
-      
+
+      // Persist selected package immediately to AsyncStorage to avoid waiting on refresh
+      try {
+        const existingUser = await getUserData();
+        const serverPkg =
+          response?.data?.activatedPackage ||
+          response?.data?.userPackage ||
+          null;
+        const constructedPkg = serverPkg || {
+          role: { _id: role._id, name: role.name, label: role.label },
+          startDate: new Date().toISOString(),
+          endDate: new Date(
+            new Date().setMonth(new Date().getMonth() + 3)
+          ).toISOString(),
+        };
+
+        const mergedUser = existingUser
+          ? { ...existingUser, activatedPackage: constructedPkg }
+          : { activatedPackage: constructedPkg };
+        await AsyncStorage.setItem("userData", JSON.stringify(mergedUser));
+        await AsyncStorage.setItem(
+          "currentPackage",
+          JSON.stringify(constructedPkg)
+        );
+        console.log(
+          "[BusinessPage] Persisted currentPackage immediately:",
+          constructedPkg
+        );
+      } catch (persistErr) {
+        console.log(
+          "[BusinessPage] Failed to persist currentPackage:",
+          persistErr
+        );
+      }
+
+      // Try to refresh in background (best-effort) and then reload listings
+      refreshUserData().finally(() => {
+        fetchBusinesses();
+      });
+
       Alert.alert("Success", "Package selected successfully!");
-      
     } catch (error) {
-      console.error("Error selecting package:", error.response?.data || error.message);
+      console.error(
+        "Error selecting package:",
+        error.response?.data || error.message
+      );
       Alert.alert("Error", "Failed to select package. Please try again.");
       // Reset selected package on error
       setSelectedPackage(null);
@@ -132,6 +199,105 @@ const BusinessPage = ({ navigation }) => {
     }
   };
 
+  // Refresh user data from server (via /user?id=<userId>)
+  const refreshUserData = async () => {
+    try {
+      const userData = await getUserData();
+      const token = userData?.token;
+      const userId = userData?._id;
+
+      if (!token || !userId) {
+        return null;
+      }
+
+      // Fetch fresh user data from server using query param id
+      const response = await axios.get(`${API_BASE_URL}/user`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { id: userId },
+      });
+
+      if (response.data) {
+        // Update stored user data
+        const updatedUserData = { ...userData, ...response.data };
+        await AsyncStorage.setItem("userData", JSON.stringify(updatedUserData));
+        return updatedUserData;
+      }
+
+      return userData;
+    } catch (error) {
+      console.error("Error refreshing user data:", error);
+      return null;
+    }
+  };
+
+  // Check if user has an active package
+  const checkUserPackage = async () => {
+    try {
+      // First try to refresh user data to get the latest package information
+      let userData = await refreshUserData();
+      if (!userData) {
+        userData = await getUserData();
+      }
+
+      const token = userData?.token;
+
+      if (!token) {
+        setError("No token found, please login again.");
+        return false;
+      }
+
+      // Check if user has an activated package
+      if (!userData.activatedPackage) {
+        console.log("No activated package found in user data");
+        setNoPackage(true);
+        setBusinessListings([]);
+        setLoading(false); // Ensure loading is set to false
+        return false;
+      }
+
+      // Check if package has required fields
+      if (
+        !userData.activatedPackage.role ||
+        !userData.activatedPackage.endDate
+      ) {
+        console.log(
+          "Package missing required fields:",
+          userData.activatedPackage
+        );
+        setNoPackage(true);
+        setBusinessListings([]);
+        setLoading(false); // Ensure loading is set to false
+        return false;
+      }
+
+      // Additional check: verify package is still active
+      const currentDate = new Date();
+      const packageEndDate = new Date(userData.activatedPackage.endDate);
+
+      if (currentDate > packageEndDate) {
+        console.log(
+          "Package has expired. Current date:",
+          currentDate,
+          "Package end date:",
+          packageEndDate
+        );
+        setNoPackage(true);
+        setBusinessListings([]);
+        setLoading(false); // Ensure loading is set to false
+        return false;
+      }
+
+      console.log(
+        "User has active package:",
+        userData.activatedPackage.role.label
+      );
+      return true;
+    } catch (error) {
+      console.error("Error checking user package:", error);
+      setError("Failed to verify package status");
+      return false;
+    }
+  };
 
   // 🔍 Fetch Businesses (with search + filters)
   const fetchBusinesses = async () => {
@@ -139,6 +305,16 @@ const BusinessPage = ({ navigation }) => {
       setLoading(true);
       setError(null);
       setNoPackage(false);
+
+      // Always refresh user data first to get the latest package status
+      await refreshUserData();
+
+      // Check if user has an active package before making the API call
+      const hasActivePackage = await checkUserPackage();
+      if (!hasActivePackage) {
+        setLoading(false);
+        return;
+      }
 
       const userData = await getUserData();
       const token = userData?.token;
@@ -170,15 +346,20 @@ const BusinessPage = ({ navigation }) => {
       // reference API returns `{ businesses: [...] }`
       setBusinessListings(response.data.businesses || []);
     } catch (error) {
-      console.error("Error fetching businesses:", error.response?.data || error.message);
+      console.error(
+        "Error fetching businesses:",
+        error.response?.data || error.message
+      );
 
-      if (error.response?.data?.message?.toLowerCase().includes("no active package")) {
+      if (
+        error.response?.data?.message
+          ?.toLowerCase()
+          .includes("no active package")
+      ) {
         setNoPackage(true);
       } else {
         setError("Failed to fetch business listings");
       }
-
-
     } finally {
       setLoading(false);
     }
@@ -212,12 +393,15 @@ const BusinessPage = ({ navigation }) => {
         />
 
         <Text style={tw`text-sm text-gray-600 mb-4`}>
-          Connect with business professionals, access industry insights, and explore partnership opportunities.
+          Connect with business professionals, access industry insights, and
+          explore partnership opportunities.
         </Text>
       </View>
 
       {/* Search Bar */}
-      <View style={tw`bg-gray-100 rounded-lg px-4 py-2 mb-4 border border-red-500`}>
+      <View
+        style={tw`bg-gray-100 rounded-lg px-4 py-2 mb-4 border border-red-500`}
+      >
         <TextInput
           placeholder="Search business...."
           style={tw`text-gray-700`}
@@ -227,14 +411,20 @@ const BusinessPage = ({ navigation }) => {
       </View>
 
       {/* Location Filters */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={tw`mb-4`}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={tw`mb-4`}
+      >
         {["All", "VIC", "NSW", "QLD", "SA", "WA"].map((location) => (
           <TouchableOpacity
             key={location}
             style={tw`px-4 py-2 mr-2 rounded-md ${selectedState === location ? "bg-red-500" : "bg-gray-100"}`}
             onPress={() => setSelectedState(location)}
           >
-            <Text style={tw`${selectedState === location ? "text-white" : "text-gray-700"}`}>
+            <Text
+              style={tw`${selectedState === location ? "text-white" : "text-gray-700"}`}
+            >
               {location}
             </Text>
           </TouchableOpacity>
@@ -251,7 +441,8 @@ const BusinessPage = ({ navigation }) => {
             No Active Package Found
           </Text>
           <Text style={tw`text-sm text-gray-600 mt-1 text-center px-6`}>
-            You don’t have an active package. Please purchase a package to view business listings.
+            You don’t have an active package. Please purchase a package to view
+            business listings.
           </Text>
 
           <TouchableOpacity
@@ -266,7 +457,6 @@ const BusinessPage = ({ navigation }) => {
         </View>
       )}
 
-
       {error && <Text style={tw`text-center text-red-500`}>{error}</Text>}
 
       {/* Business Listings */}
@@ -274,14 +464,18 @@ const BusinessPage = ({ navigation }) => {
         <TouchableOpacity
           key={business._id}
           style={tw`bg-gray-50 rounded-lg p-4 mb-4`}
-          onPress={() => navigation.navigate("BusinessDetail", { id: business._id })}
+          onPress={() =>
+            navigation.navigate("BusinessDetail", { id: business._id })
+          }
         >
-
-
           {/* Company Info */}
           <View style={tw`flex-row items-center mb-2`}>
             <Image
-              source={business.logo ? { uri: business.logo } : require("../../assets/profile.png")}
+              source={
+                business.logo
+                  ? { uri: business.logo }
+                  : require("../../assets/profile.png")
+              }
               style={tw`w-12 h-12 rounded-full mr-3`}
             />
             <View>
@@ -294,11 +488,12 @@ const BusinessPage = ({ navigation }) => {
             </View>
           </View>
 
-
           {/* Rating & Location */}
           <View style={tw`flex-row items-center`}>
             <MaterialIcons name="star" size={16} color="#F59E0B" />
-            <Text style={tw`text-xs text-gray-700 ml-1`}>{business.rating}</Text>
+            <Text style={tw`text-xs text-gray-700 ml-1`}>
+              {business.rating}
+            </Text>
             <Text style={tw`text-xs text-gray-500 ml-2`}>
               {business.city}, {business.state}
             </Text>
@@ -311,7 +506,10 @@ const BusinessPage = ({ navigation }) => {
           <View style={tw`flex-row flex-wrap mb-3`}>
             {business.services &&
               business.services.map((service) => (
-                <View key={service} style={tw`bg-gray-200 rounded-full px-3 py-1 mr-2 mb-2`}>
+                <View
+                  key={service}
+                  style={tw`bg-gray-200 rounded-full px-3 py-1 mr-2 mb-2`}
+                >
                   <Text style={tw`text-xs text-gray-700`}>{service}</Text>
                 </View>
               ))}
@@ -325,12 +523,24 @@ const BusinessPage = ({ navigation }) => {
                 let iconType = "FontAwesome5";
 
                 switch (link.platform?.toLowerCase()) {
-                  case "linkedin": iconName = "linkedin"; break;
-                  case "facebook": iconName = "facebook"; break;
-                  case "instagram": iconName = "instagram"; break;
-                  case "twitter": iconName = "twitter"; break;
-                  case "youtube": iconName = "youtube"; break;
-                  default: iconName = "link"; iconType = "MaterialIcons";
+                  case "linkedin":
+                    iconName = "linkedin";
+                    break;
+                  case "facebook":
+                    iconName = "facebook";
+                    break;
+                  case "instagram":
+                    iconName = "instagram";
+                    break;
+                  case "twitter":
+                    iconName = "twitter";
+                    break;
+                  case "youtube":
+                    iconName = "youtube";
+                    break;
+                  default:
+                    iconName = "link";
+                    iconType = "MaterialIcons";
                 }
 
                 return (
@@ -342,7 +552,11 @@ const BusinessPage = ({ navigation }) => {
                     {iconType === "FontAwesome5" ? (
                       <FontAwesome5 name={iconName} size={20} color="#DC2626" />
                     ) : (
-                      <MaterialIcons name={iconName} size={20} color="#DC2626" />
+                      <MaterialIcons
+                        name={iconName}
+                        size={20}
+                        color="#DC2626"
+                      />
                     )}
                   </TouchableOpacity>
                 );
@@ -352,7 +566,9 @@ const BusinessPage = ({ navigation }) => {
 
           {business.gallery && business.gallery.length > 0 && (
             <View style={tw`mb-3`}>
-              <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>Gallery</Text>
+              <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>
+                Gallery
+              </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {business.gallery.slice(0, 2).map((img, idx) => (
                   <Image
@@ -364,9 +580,15 @@ const BusinessPage = ({ navigation }) => {
                 {business.gallery.length > 2 && (
                   <TouchableOpacity
                     style={tw`w-20 h-20 rounded-lg mr-2 justify-center items-center`}
-                    onPress={() => navigation.navigate("BusinessDetail", { id: business._id })}
+                    onPress={() =>
+                      navigation.navigate("BusinessDetail", {
+                        id: business._id,
+                      })
+                    }
                   >
-                    <Text style={tw`text-blue-600 font-medium underline`}>View More</Text>
+                    <Text style={tw`text-blue-600 font-medium underline`}>
+                      View More
+                    </Text>
                   </TouchableOpacity>
                 )}
               </ScrollView>
@@ -416,77 +638,86 @@ const BusinessPage = ({ navigation }) => {
       ))}
 
       {packagesModalVisible && (
-  <Modal
-    visible={packagesModalVisible}
-    animationType="fade"
-    transparent={true} // 👈 Important: so it won't take full screen solid white
-  >
-    <View style={tw`flex-1 bg-black bg-opacity-50 justify-center items-center`}>
-      <View style={tw`bg-white rounded-2xl w-11/12 max-w-md p-6`}>
-        {/* Header */}
-        <Text style={tw`text-lg font-bold text-gray-800 mb-4 text-center`}>
-          Upgrade Your Business
-        </Text>
-
-        {/* Selected Package Display */}
-        {selectedPackage && (
-          <Text style={tw`text-sm text-green-600 mb-4 text-center`}>
-            Selected Package: {selectedPackage.label}
-          </Text>
-        )}
-
-        {/* Loading State */}
-        {packageLoading && (
-          <Text style={tw`text-sm text-blue-600 mb-4 text-center`}>
-            Processing package selection...
-          </Text>
-        )}
-
-        {/* Package Selection Buttons */}
-        {rolesLoading ? (
-          <Text style={tw`text-center text-gray-500`}>Loading packages...</Text>
-        ) : roles.length === 0 ? (
-          <Text style={tw`text-center text-gray-500`}>No package options available.</Text>
-        ) : (
-                     roles.map((role) => (
-             <TouchableOpacity
-               key={role._id}
-               style={tw`rounded-lg p-3 mb-3 ${
-                 selectedPackage?._id === role._id ? "bg-red-500" : "bg-gray-200"
-               }`}
-               onPress={() => handlePackageSelection(role)}
-               disabled={packageLoading}
-             >
-               <Text
-                 style={tw`font-medium text-center ${
-                   selectedPackage?._id === role._id ? "text-white" : "text-gray-800"
-                 }`}
-               >
-                 {role.label}
-               </Text>
-             </TouchableOpacity>
-           ))
-        )}
-
-
-
-        {/* Close Button */}
-        <TouchableOpacity
-          style={tw`mt-4`}
-          onPress={() => {
-            setPackagesModalVisible(false);
-            setSelectedPackage(null);
-          }}
+        <Modal
+          visible={packagesModalVisible}
+          animationType="fade"
+          transparent={true} // 👈 Important: so it won't take full screen solid white
         >
-          <Text style={tw`text-red-500 text-center font-medium`}>Close</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </Modal>
-)}
+          <View
+            style={tw`flex-1 bg-black bg-opacity-50 justify-center items-center`}
+          >
+            <View style={tw`bg-white rounded-2xl w-11/12 max-w-md p-6`}>
+              {/* Header */}
+              <Text
+                style={tw`text-lg font-bold text-gray-800 mb-4 text-center`}
+              >
+                Upgrade Your Business
+              </Text>
 
+              {/* Selected Package Display */}
+              {selectedPackage && (
+                <Text style={tw`text-sm text-green-600 mb-4 text-center`}>
+                  Selected Package: {selectedPackage.label}
+                </Text>
+              )}
 
+              {/* Loading State */}
+              {packageLoading && (
+                <Text style={tw`text-sm text-blue-600 mb-4 text-center`}>
+                  Processing package selection...
+                </Text>
+              )}
 
+              {/* Package Selection Buttons */}
+              {rolesLoading ? (
+                <Text style={tw`text-center text-gray-500`}>
+                  Loading packages...
+                </Text>
+              ) : roles.length === 0 ? (
+                <Text style={tw`text-center text-gray-500`}>
+                  No package options available.
+                </Text>
+              ) : (
+                roles.map((role) => (
+                  <TouchableOpacity
+                    key={role._id}
+                    style={tw`rounded-lg p-3 mb-3 ${
+                      selectedPackage?._id === role._id
+                        ? "bg-red-500"
+                        : "bg-gray-200"
+                    }`}
+                    onPress={() => handlePackageSelection(role)}
+                    disabled={packageLoading}
+                  >
+                    <Text
+                      style={tw`font-medium text-center ${
+                        selectedPackage?._id === role._id
+                          ? "text-white"
+                          : "text-gray-800"
+                      }`}
+                    >
+                      {role.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              )}
+
+              {/* Close Button */}
+              <TouchableOpacity
+                style={tw`mt-4`}
+                onPress={() => {
+                  setPackagesModalVisible(false);
+                  setSelectedPackage(null);
+                }}
+              >
+                <Text style={tw`text-red-500 text-center font-medium`}>
+                  Close
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </ScrollView>
   );
 };

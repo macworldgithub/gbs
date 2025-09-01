@@ -26,14 +26,10 @@ export default function AuthTabs() {
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="Directory" component={MembersDirectory} />
       <Tab.Screen name="Business" component={BusinessPage} />
-      <Tab.Screen name="Social" component={SocialPage} />
-      {/* <Tab.Screen name="Wellbeing" component={WellbeingScreen} /> */}
-      <Tab.Screen name="Profile" component={Profile} />
+      {/* <Tab.Screen name="Social" component={SocialPage} /> */}
+      <Tab.Screen name="Social" component={Conversations} />
+      <Tab.Screen name="Wellbeing" component={WellbeingScreen} />
       <Tab.Screen name="Offers" component={Offers} />
-     
-
     </Tab.Navigator>
   );
 }
-
-
