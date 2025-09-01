@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Linking, Alert, Image } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Linking,
+  Alert,
+  Image,
+} from "react-native";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import axios from "axios";
 import tw from "tailwind-react-native-classnames";
@@ -29,7 +37,10 @@ const BusinessDetail = ({ route, navigation }) => {
 
       setBusiness(res.data);
     } catch (err) {
-      console.error("Business detail error:", err.response?.data || err.message);
+      console.error(
+        "Business detail error:",
+        err.response?.data || err.message
+      );
       Alert.alert("Error", "Failed to fetch business details");
     } finally {
       setLoading(false);
@@ -75,7 +86,9 @@ const BusinessDetail = ({ route, navigation }) => {
   if (!business) {
     return (
       <View style={tw`flex-1 bg-white justify-center items-center px-4`}>
-        <Text style={tw`text-lg text-gray-600 text-center mb-4`}>No details found</Text>
+        <Text style={tw`text-lg text-gray-600 text-center mb-4`}>
+          No details found
+        </Text>
         <TouchableOpacity
           style={tw`bg-red-500 px-6 py-3 rounded-lg`}
           onPress={() => navigation.goBack()}
@@ -96,7 +109,9 @@ const BusinessDetail = ({ route, navigation }) => {
         >
           <MaterialIcons name="arrow-back" size={24} color="#DC2626" />
         </TouchableOpacity>
-        <Text style={tw`text-center text-lg font-bold text-gray-800`}>Business Details</Text>
+        <Text style={tw`text-center text-lg font-bold text-gray-800`}>
+          Business Details
+        </Text>
       </View>
 
       <ScrollView style={tw`flex-1 px-4 py-4`}>
@@ -109,14 +124,20 @@ const BusinessDetail = ({ route, navigation }) => {
                 style={tw`w-16 h-16 rounded-xl mr-4`}
               />
             ) : (
-              <View style={tw`w-16 h-16 rounded-xl mr-4 bg-gray-200 justify-center items-center`}>
+              <View
+                style={tw`w-16 h-16 rounded-xl mr-4 bg-gray-200 justify-center items-center`}
+              >
                 <MaterialIcons name="business" size={24} color="#6B7280" />
               </View>
             )}
 
             <View style={tw`flex-1`}>
-              <Text style={tw`text-xl font-bold text-gray-800 mb-1`}>{business.companyName}</Text>
-              <Text style={tw`text-sm text-gray-500`}>by {business.user?.name}</Text>
+              <Text style={tw`text-xl font-bold text-gray-800 mb-1`}>
+                {business.companyName}
+              </Text>
+              <Text style={tw`text-sm text-gray-500`}>
+                by {business.user?.name}
+              </Text>
             </View>
           </View>
 
@@ -124,7 +145,9 @@ const BusinessDetail = ({ route, navigation }) => {
           <View style={tw`flex-row items-center mb-4`}>
             <View style={tw`flex-row items-center mr-4`}>
               <MaterialIcons name="star" size={16} color="#F59E0B" />
-              <Text style={tw`text-sm text-gray-700 ml-1`}>{business.rating || "N/A"}</Text>
+              <Text style={tw`text-sm text-gray-700 ml-1`}>
+                {business.rating || "N/A"}
+              </Text>
             </View>
             <View style={tw`flex-row items-center`}>
               <MaterialIcons name="location-on" size={16} color="#6B7280" />
@@ -135,13 +158,17 @@ const BusinessDetail = ({ route, navigation }) => {
           </View>
 
           {/* About */}
-          <Text style={tw`text-base text-gray-700 leading-6`}>{business.about}</Text>
+          <Text style={tw`text-base text-gray-700 leading-6`}>
+            {business.about}
+          </Text>
         </View>
 
         {/* Services */}
         {business.services && business.services.length > 0 && (
           <View style={tw`mb-6`}>
-            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Services</Text>
+            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>
+              Services
+            </Text>
             <View style={tw`flex-row flex-wrap`}>
               {business.services.map((service, index) => (
                 <View
@@ -158,7 +185,9 @@ const BusinessDetail = ({ route, navigation }) => {
         {/* Industries Served */}
         {business.industriesServed && business.industriesServed.length > 0 && (
           <View style={tw`mb-6`}>
-            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Industries Served</Text>
+            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>
+              Industries Served
+            </Text>
             <View style={tw`flex-row flex-wrap`}>
               {business.industriesServed.map((industry, index) => (
                 <View
@@ -175,8 +204,12 @@ const BusinessDetail = ({ route, navigation }) => {
         {/* Looking For */}
         {business.lookingFor && (
           <View style={tw`mb-6`}>
-            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Looking For</Text>
-            <Text style={tw`text-base text-gray-700 leading-6`}>{business.lookingFor}</Text>
+            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>
+              Looking For
+            </Text>
+            <Text style={tw`text-base text-gray-700 leading-6`}>
+              {business.lookingFor}
+            </Text>
           </View>
         )}
 
@@ -185,20 +218,27 @@ const BusinessDetail = ({ route, navigation }) => {
           {offersLoading ? (
             <Text style={tw`text-sm text-gray-600`}>Loading offers...</Text>
           ) : offers.length > 0 ? (
-            offers.map((offer) => <OfferCard key={offer._id} offer={offer}
-              onOfferUpdated={fetchOffers}   // refresh after update
-              onOfferDeleted={(deletedId) => setOffers((prev) => prev.filter(o => o._id !== deletedId))}
-            />)
+            offers.map((offer) => (
+              <OfferCard
+                key={offer._id}
+                offer={offer}
+                onOfferUpdated={fetchOffers} // refresh after update
+                onOfferDeleted={(deletedId) =>
+                  setOffers((prev) => prev.filter((o) => o._id !== deletedId))
+                }
+              />
+            ))
           ) : (
             <Text style={tw`text-sm text-gray-600`}>No offers available</Text>
           )}
         </View>
 
-
         {/* Social Links */}
         {business.socialLinks && business.socialLinks.length > 0 && (
           <View style={tw`mb-6`}>
-            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Social Links</Text>
+            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>
+              Social Links
+            </Text>
             <View style={tw`flex-row flex-wrap`}>
               {business.socialLinks.map((link) => {
                 let iconName;
@@ -234,7 +274,11 @@ const BusinessDetail = ({ route, navigation }) => {
                     {iconType === "FontAwesome5" ? (
                       <FontAwesome5 name={iconName} size={24} color="#DC2626" />
                     ) : (
-                      <MaterialIcons name={iconName} size={24} color="#DC2626" />
+                      <MaterialIcons
+                        name={iconName}
+                        size={24}
+                        color="#DC2626"
+                      />
                     )}
                   </TouchableOpacity>
                 );
@@ -253,7 +297,10 @@ const BusinessDetail = ({ route, navigation }) => {
                 if (business.phone) {
                   Linking.openURL(`tel:${business.phone}`);
                 } else {
-                  Alert.alert("No phone available", "This business doesn't have a phone number listed.");
+                  Alert.alert(
+                    "No phone available",
+                    "This business doesn't have a phone number listed."
+                  );
                 }
               }}
             >
@@ -266,7 +313,10 @@ const BusinessDetail = ({ route, navigation }) => {
                 if (business.email) {
                   Linking.openURL(`mailto:${business.email}`);
                 } else {
-                  Alert.alert("No email available", "This business doesn't have an email listed.");
+                  Alert.alert(
+                    "No email available",
+                    "This business doesn't have an email listed."
+                  );
                 }
               }}
             >
@@ -287,7 +337,9 @@ const BusinessDetail = ({ route, navigation }) => {
 
         {business.gallery && business.gallery.length > 0 && (
           <View style={tw`mb-6`}>
-            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Gallery</Text>
+            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>
+              Gallery
+            </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {business.gallery.map((imgUrl, index) => (
                 <Image
@@ -304,7 +356,9 @@ const BusinessDetail = ({ route, navigation }) => {
         {/* Testimonials */}
         {business.testimonials && business.testimonials.length > 0 && (
           <View style={tw`mb-6`}>
-            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Testimonials</Text>
+            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>
+              Testimonials
+            </Text>
             {business.testimonials.map((testimonial, index) => (
               <View key={testimonial._id || index} style={tw`mb-4 last:mb-0`}>
                 <Text style={tw`text-gray-700 italic text-base leading-6 mb-2`}>
