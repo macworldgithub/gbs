@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import {
-  View,
-  Text,
-  Modal,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-  Image,
-  TextInput,
+    View,
+    Text,
+    Modal,
+    TouchableOpacity,
+    ScrollView,
+    ActivityIndicator,
+    Alert,
+    Image,
+    TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { launchImageLibrary } from "react-native-image-picker";
@@ -23,35 +23,35 @@ const states = ["All", "VIC", "NSW", "QLD", "SA", "WA"];
 const API_URL = "https://gbs.westsidecarcare.com.au/events";
 
 const Social = () => {
-  const [activeTab, setActiveTab] = useState("Events");
-  const [selectedState, setSelectedState] = useState("All");
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [expandedEvent, setExpandedEvent] = useState(null);
-  const [user, setUser] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null);
-  const [booked, setBooked] = useState(false);
-  const loggedInUserId = user?.user?._id || user?._id || user?.sub;
+    const [activeTab, setActiveTab] = useState("Events");
+    const [selectedState, setSelectedState] = useState("All");
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [expandedEvent, setExpandedEvent] = useState(null);
+    const [user, setUser] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [editingEvent, setEditingEvent] = useState(null);
+    const [booked, setBooked] = useState(false);
+    const loggedInUserId = user?.user?._id || user?._id || user?.sub;
 
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    state: "",
-    startDate: "",
-    endDate: "",
-    imageUrl: "",
-  });
-  const navigation = useNavigation();
+    const [form, setForm] = useState({
+        title: "",
+        description: "",
+        state: "",
+        startDate: "",
+        endDate: "",
+        imageUrl: "",
+    });
+    const navigation = useNavigation();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const u = await getUserData();
-      console.log("Fetched user data:", u);
-      setUser(u);
-    };
-    fetchUser();
-  }, []);
+    useEffect(() => {
+        const fetchUser = async () => {
+            const u = await getUserData();
+            console.log("Fetched user data:", u);
+            setUser(u);
+        };
+        fetchUser();
+    }, []);
 
 
     const fetchEvents = async (stateFilter = "All") => {
@@ -71,21 +71,21 @@ const Social = () => {
             const data = await res.json();
             console.log("Fetched events data:", data);
 
-      if (res.ok) {
-        setEvents(data);
-      } else {
-        Alert.alert("Error", data.message || "Failed to load events");
-      }
-    } catch (error) {
-      Alert.alert("Error", error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+            if (res.ok) {
+                setEvents(data);
+            } else {
+                Alert.alert("Error", data.message || "Failed to load events");
+            }
+        } catch (error) {
+            Alert.alert("Error", error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  useEffect(() => {
-    fetchEvents(selectedState);
-  }, [selectedState]);
+    useEffect(() => {
+        fetchEvents(selectedState);
+    }, [selectedState]);
 
     const openEditModal = (event) => {
         setEditingEvent(event);
@@ -154,89 +154,89 @@ const Social = () => {
 
 
     const submitUpdate = async () => {
-    if (!editingEvent) return;
+        if (!editingEvent) return;
 
-    try {
-        const res = await fetch(`${API_URL}/${editingEvent._id}`, {
-            method: "PUT",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${user?.token}`,
-            },
-            body: JSON.stringify({
-                title: form.title,
-                description: form.description,
-                state: form.state,
-                area: {
-                    type: "MultiPolygon",
-                    coordinates: [
-                        [
-                            [151.2093, -33.8688],
-                            [151.2094, -33.8689],
-                            [151.2095, -33.8688],
-                            [151.2093, -33.8688],
-                        ],
-                    ],
+        try {
+            const res = await fetch(`${API_URL}/${editingEvent._id}`, {
+                method: "PUT",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${user?.token}`,
                 },
-                openToAll: true,
-                startDate: form.startDate,
-                endDate: form.endDate,
-                roles: ["60f8a2f0e1d3c2001cf6b1e7"],
-                // NEW: Removed imageUrl – it's handled separately via /image endpoints
-            }),
-        });
+                body: JSON.stringify({
+                    title: form.title,
+                    description: form.description,
+                    state: form.state,
+                    area: {
+                        type: "MultiPolygon",
+                        coordinates: [
+                            [
+                                [151.2093, -33.8688],
+                                [151.2094, -33.8689],
+                                [151.2095, -33.8688],
+                                [151.2093, -33.8688],
+                            ],
+                        ],
+                    },
+                    openToAll: true,
+                    startDate: form.startDate,
+                    endDate: form.endDate,
+                    roles: ["60f8a2f0e1d3c2001cf6b1e7"],
+                    // NEW: Removed imageUrl – it's handled separately via /image endpoints
+                }),
+            });
 
-        if (res.ok) {
-            const updatedEvent = await res.json(); // Server se updated event data get karo
-            console.log("Updated Event from PUT:", updatedEvent); // NEW: Debug log to check if imageUrl is in response
-            setEvents(events.map(event => event._id === updatedEvent._id ? updatedEvent : event)); // Local events state update karo
-            Alert.alert("Success", "Event updated successfully!");
-            setModalVisible(false);
-            fetchEvents(selectedState); // NEW: Call fetchEvents for full refresh/sync from server
-        } else {
-            const err = await res.json();
-            Alert.alert("Error", err.message || "Update failed");
+            if (res.ok) {
+                const updatedEvent = await res.json(); // Server se updated event data get karo
+                console.log("Updated Event from PUT:", updatedEvent); // NEW: Debug log to check if imageUrl is in response
+                setEvents(events.map(event => event._id === updatedEvent._id ? updatedEvent : event)); // Local events state update karo
+                Alert.alert("Success", "Event updated successfully!");
+                setModalVisible(false);
+                fetchEvents(selectedState); // NEW: Call fetchEvents for full refresh/sync from server
+            } else {
+                const err = await res.json();
+                Alert.alert("Error", err.message || "Update failed");
+            }
+        } catch (error) {
+            Alert.alert("Error", error.message);
         }
-    } catch (error) {
-        Alert.alert("Error", error.message);
-    }
-};
+    };
 
 
 
-  const handleDelete = async (event) => {
-    const loggedInUserId = user?.user?._id || user?._id || user?.sub;
+    const handleDelete = async (event) => {
+        const loggedInUserId = user?.user?._id || user?._id || user?.sub;
 
-    if (event.creator?._id !== loggedInUserId) {
-      Alert.alert("Only the event creator can delete this event");
-      return;
-    }
+        if (event.creator?._id !== loggedInUserId) {
+            Alert.alert("Only the event creator can delete this event");
+            return;
+        }
 
-    try {
-      const res = await fetch(`${API_URL}/${event._id}`, {
-        method: "DELETE",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${user?.token}`,
-        },
-      });
+        try {
+            const res = await fetch(`${API_URL}/${event._id}`, {
+                method: "DELETE",
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Bearer ${user?.token}`,
+                },
+            });
 
-      if (res.ok) {
-        Alert.alert("Deleted", "Event deleted successfully!");
-        fetchEvents(selectedState);
-      } else {
-        const err = await res.json();
-        Alert.alert("Error", err.message || "Delete failed");
-      }
-    } catch (error) {
-      Alert.alert("Error", error.message);
-    }
-  };
+            if (res.ok) {
+                Alert.alert("Deleted", "Event deleted successfully!");
+                fetchEvents(selectedState);
+            } else {
+                const err = await res.json();
+                Alert.alert("Error", err.message || "Delete failed");
+            }
+        } catch (error) {
+            Alert.alert("Error", error.message);
+        }
+    };
 
-  const handleBookEvent = async (eventId) => {
-    try {
-      const token = user?.token || user?.accessToken || user?.idToken;
+    const handleBookEvent = async (eventId) => {
+        try {
+            const token = user?.token || user?.accessToken || user?.idToken;
 
             if (!token) {
                 Alert.alert("Error", "You must be logged in to book an event.");
@@ -267,227 +267,149 @@ const Social = () => {
             Alert.alert("Error", error.message);
         }
     };
+    const handleImageUpload = (eventId) => {
+        const options = {
+            mediaType: "photo",
+            quality: 1,
+        };
 
-    // const handleImageUpload = (eventId) => {
-    //     const options = {
-    //         mediaType: "photo",
-    //         quality: 1,
-    //     };
+        launchImageLibrary(options, async (response) => {
+            if (response.didCancel) {
+                return;
+            }
+            if (response.errorCode) {
+                Alert.alert("Error", response.errorMessage);
+                return;
+            }
 
-    //     launchImageLibrary(options, async (response) => {
-    //         if (response.didCancel) {
-    //             return;
-    //         }
-    //         if (response.errorCode) {
-    //             Alert.alert("Error", response.errorMessage);
-    //             return;
-    //         }
+            try {
+                const asset = response.assets[0];
+                const fileUri = asset.uri;
+                const fileName = asset.fileName || fileUri.split("/").pop();
+                const fileType = asset.type || "image/jpeg";
 
-    //         try {
-    //             const asset = response.assets[0];
-    //             const fileUri = asset.uri;
-    //             const fileName = asset.fileName || fileUri.split("/").pop();
-    //             const fileType = asset.type || "image/jpeg";
+                const token = user?.token || user?.accessToken || user?.idToken;
 
-    //             const token = user?.token || user?.accessToken || user?.idToken;
+                // Step 2: Get Presigned URL
+                const presignedRes = await fetch(
+                    `${API_URL}/${eventId}/image/upload-url?fileName=${fileName}&fileType=${fileType}`,
+                    {
+                        method: "GET",
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+                const { url, key } = await presignedRes.json();
 
-    //             // Step 2: Get Presigned URL
-    //             const presignedRes = await fetch(
-    //                 `${API_URL}/${eventId}/image/upload-url?fileName=${fileName}&fileType=${fileType}`,
-    //                 {
-    //                     method: "GET",
-    //                     headers: { Authorization: `Bearer ${token}` },
-    //                 }
-    //             );
-    //             const { url, key } = await presignedRes.json();
+                console.log("Presigned URL:", url);
+                console.log("File Key:", key);
 
-    //             console.log("Presigned URL:", url);
-    //             console.log("File Key:", key);
+                // Step 3: Upload to S3
+                const img = await fetch(fileUri);
+                const blob = await img.blob();
 
-    //             // Step 3: Upload to S3
-    //             const img = await fetch(fileUri);
-    //             const blob = await img.blob();
+                await fetch(url, {
+                    method: "PUT",
+                    headers: { "Content-Type": fileType },
+                    body: blob,
+                });
 
-    //             await fetch(url, {
-    //                 method: "PUT",
-    //                 headers: { "Content-Type": fileType },
-    //                 body: blob,
-    //             });
+                // Step 4: Save fileKey in DB
+                await fetch(`${API_URL}/${eventId}/image`, {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ fileKey: key }),
+                });
 
-    //             // Step 4: Save fileKey in DB
-    //             await fetch(`${API_URL}/${eventId}/image`, {
-    //                 method: "POST",
-    //                 headers: {
-    //                     Authorization: `Bearer ${token}`,
-    //                     "Content-Type": "application/json",
-    //                 },
-    //                 body: JSON.stringify({ fileKey: key }),
-    //             });
-
-    //             // Step 5: Fetch final image URL
-    //             const finalRes = await fetch(`${API_URL}/${eventId}/image`, {
-    //                 method: "GET",
-    //                 headers: { Authorization: `Bearer ${token}` },
-    //             });
-
-    //             const finalData = await finalRes.json();
-    //             console.log("Final Image URL:", finalData.url);
-
-    //             setForm({ ...form, imageUrl: finalData.url });
-    //             Alert.alert("Success", "Image uploaded successfully!");
-    //         } catch (err) {
-    //             console.error(err);
-    //             Alert.alert("Error", err.message);
-    //         }
-    //     });
-    // };
-   const handleImageUpload = (eventId) => {
-    const options = {
-        mediaType: "photo",
-        quality: 1,
-    };
-
-    launchImageLibrary(options, async (response) => {
-        if (response.didCancel) {
-            return;
-        }
-        if (response.errorCode) {
-            Alert.alert("Error", response.errorMessage);
-            return;
-        }
-
-        try {
-            const asset = response.assets[0];
-            const fileUri = asset.uri;
-            const fileName = asset.fileName || fileUri.split("/").pop();
-            const fileType = asset.type || "image/jpeg";
-
-            const token = user?.token || user?.accessToken || user?.idToken;
-
-            // Step 2: Get Presigned URL
-            const presignedRes = await fetch(
-                `${API_URL}/${eventId}/image/upload-url?fileName=${fileName}&fileType=${fileType}`,
-                {
+                // Step 5: Fetch final image URL
+                const finalRes = await fetch(`${API_URL}/${eventId}/image`, {
                     method: "GET",
                     headers: { Authorization: `Bearer ${token}` },
-                }
-            );
-            const { url, key } = await presignedRes.json();
+                });
 
-            console.log("Presigned URL:", url);
-            console.log("File Key:", key);
+                const finalData = await finalRes.json();
+                console.log("Final Image URL:", finalData.url);
 
-            // Step 3: Upload to S3
-            const img = await fetch(fileUri);
-            const blob = await img.blob();
+                // Update form for modal preview
+                setForm({ ...form, imageUrl: finalData.url });
 
-            await fetch(url, {
-                method: "PUT",
-                headers: { "Content-Type": fileType },
-                body: blob,
-            });
+                // NEW: Update local events state immediately to reflect image in card
+                setEvents(events.map(e => e._id === eventId ? { ...e, imageUrl: finalData.url } : e));
 
-            // Step 4: Save fileKey in DB
-            await fetch(`${API_URL}/${eventId}/image`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ fileKey: key }),
-            });
+                Alert.alert("Success", "Image uploaded successfully!");
+            } catch (err) {
+                console.error(err);
+                Alert.alert("Error", err.message);
+            }
+        });
+    };
 
-            // Step 5: Fetch final image URL
-            const finalRes = await fetch(`${API_URL}/${eventId}/image`, {
-                method: "GET",
-                headers: { Authorization: `Bearer ${token}` },
-            });
 
-            const finalData = await finalRes.json();
-            console.log("Final Image URL:", finalData.url);
+    return (
+        <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
+            {/* Header */}
+            <View style={tw`flex-row items-center justify-between mt-14 mb-2`}>
+                <View>
+                    <Text style={tw`text-xl font-bold text-gray-800`}>Social</Text>
+                    <Text style={tw`text-sm text-gray-600`}>Community & Events</Text>
+                </View>
+            </View>
 
-            // Update form for modal preview
-            setForm({ ...form, imageUrl: finalData.url });
-            
-            // NEW: Update local events state immediately to reflect image in card
-            setEvents(events.map(e => e._id === eventId ? { ...e, imageUrl: finalData.url } : e));
-            
-            Alert.alert("Success", "Image uploaded successfully!");
-        } catch (err) {
-            console.error(err);
-            Alert.alert("Error", err.message);
-        }
-    });
-};
-   
+            {/* Tabs */}
+            <View style={tw`flex-row mb-4`}>
+                {tabs.map((tab) => (
+                    <TouchableOpacity
+                        key={tab}
+                        onPress={() => setActiveTab(tab)}
+                        style={tw`px-4 py-2 mr-2 rounded-md ${activeTab === tab ? "bg-red-500" : "bg-gray-100"
+                            }`}
+                    >
+                        <Text
+                            style={tw`text-sm ${activeTab === tab ? "text-white" : "text-gray-700"
+                                }`}
+                        >
+                            {tab}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
 
-  return (
-    <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
-      {/* Header */}
-      <View style={tw`flex-row items-center justify-between mt-14 mb-2`}>
-        <View>
-          <Text style={tw`text-xl font-bold text-gray-800`}>Social</Text>
-          <Text style={tw`text-sm text-gray-600`}>Community & Events</Text>
-        </View>
-      </View>
-
-      {/* Tabs */}
-      <View style={tw`flex-row mb-4`}>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            style={tw`px-4 py-2 mr-2 rounded-md ${
-              activeTab === tab ? "bg-red-500" : "bg-gray-100"
-            }`}
-          >
-            <Text
-              style={tw`text-sm ${
-                activeTab === tab ? "text-white" : "text-gray-700"
-              }`}
+            {/* States Filter */}
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={tw`mb-4`}
             >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+                {states.map((st) => (
+                    <TouchableOpacity
+                        key={st}
+                        onPress={() => setSelectedState(st)}
+                        style={tw`px-4 py-2 mr-2 rounded-md border ${selectedState === st
+                                ? "bg-red-100 border-red-500"
+                                : "bg-white border-gray-300"
+                            }`}
+                    >
+                        <Text
+                            style={tw`text-sm ${selectedState === st ? "text-red-600" : "text-gray-700"
+                                }`}
+                        >
+                            {st}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
 
-      {/* States Filter */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={tw`mb-4`}
-      >
-        {states.map((st) => (
-          <TouchableOpacity
-            key={st}
-            onPress={() => setSelectedState(st)}
-            style={tw`px-4 py-2 mr-2 rounded-md border ${
-              selectedState === st
-                ? "bg-red-100 border-red-500"
-                : "bg-white border-gray-300"
-            }`}
-          >
-            <Text
-              style={tw`text-sm ${
-                selectedState === st ? "text-red-600" : "text-gray-700"
-              }`}
-            >
-              {st}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+            {/* Loader */}
+            {loading && (
+                <ActivityIndicator size="large" color="red" style={tw`mt-4`} />
+            )}
 
-      {/* Loader */}
-      {loading && (
-        <ActivityIndicator size="large" color="red" style={tw`mt-4`} />
-      )}
-
-      {/* Events */}
-      {activeTab === "Events" && !loading && events.length === 0 && (
-        <Text style={tw`text-gray-500 text-center mt-6`}>No events found</Text>
-      )}
+            {/* Events */}
+            {activeTab === "Events" && !loading && events.length === 0 && (
+                <Text style={tw`text-gray-500 text-center mt-6`}>No events found</Text>
+            )}
 
             {activeTab === "Events" &&
                 events.map((event) => (
@@ -502,11 +424,12 @@ const Social = () => {
                                 resizeMode="cover"
                             />
                         ) : (
-                            <View style={tw`w-full h-40 bg-gray-600 items-center justify-center`}>
-                                <Ionicons name="image-outline" size={40} color="gray" />
-                            </View>
+                            <Image
+                                source={fallbackImage}
+                                style={tw`w-full h-40`}
+                                resizeMode="cover"
+                            />
                         )}
-
                         <View style={tw`flex-row justify-between items-center`}>
                             <Text style={tw`text-base font-bold text-gray-800`}>
                                 {event.title}
@@ -526,118 +449,118 @@ const Social = () => {
                             </View>
                         </View>
 
-            {/* Date */}
-            <View style={tw`flex-row items-center mt-2`}>
-              <MaterialIcons name="event" size={16} color="gray" />
-              <Text style={tw`text-sm text-gray-600 ml-2`}>
-                {new Date(event.startDate).toDateString()}
-              </Text>
-            </View>
+                        {/* Date */}
+                        <View style={tw`flex-row items-center mt-2`}>
+                            <MaterialIcons name="event" size={16} color="gray" />
+                            <Text style={tw`text-sm text-gray-600 ml-2`}>
+                                {new Date(event.startDate).toDateString()}
+                            </Text>
+                        </View>
 
-            {/* State */}
-            <View style={tw`flex-row items-center mt-1`}>
-              <Entypo name="map" size={16} color="gray" />
-              <Text style={tw`text-sm text-gray-600 ml-2`}>
-                {typeof event?.state === "string" && event.state.trim() !== ""
-                  ? event.state
-                  : "N/A"}
-              </Text>
-            </View>
+                        {/* State */}
+                        <View style={tw`flex-row items-center mt-1`}>
+                            <Entypo name="map" size={16} color="gray" />
+                            <Text style={tw`text-sm text-gray-600 ml-2`}>
+                                {typeof event?.state === "string" && event.state.trim() !== ""
+                                    ? event.state
+                                    : "N/A"}
+                            </Text>
+                        </View>
 
-            {/* Location */}
-            <View style={tw`flex-row items-center mt-1`}>
-              <MaterialIcons name="location-pin" size={16} color="gray" />
-              <Text
-                style={tw`text-sm text-gray-600 ml-2 flex-1`}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {Array.isArray(event?.locationNames)
-                  ? event.locationNames.length > 0
-                    ? event.locationNames.join(", ")
-                    : "N/A"
-                  : typeof event?.locationNames === "string" &&
-                      event.locationNames.trim() !== ""
-                    ? event.locationNames
-                    : "N/A"}
-              </Text>
-            </View>
+                        {/* Location */}
+                        <View style={tw`flex-row items-center mt-1`}>
+                            <MaterialIcons name="location-pin" size={16} color="gray" />
+                            <Text
+                                style={tw`text-sm text-gray-600 ml-2 flex-1`}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                            >
+                                {Array.isArray(event?.locationNames)
+                                    ? event.locationNames.length > 0
+                                        ? event.locationNames.join(", ")
+                                        : "N/A"
+                                    : typeof event?.locationNames === "string" &&
+                                        event.locationNames.trim() !== ""
+                                        ? event.locationNames
+                                        : "N/A"}
+                            </Text>
+                        </View>
 
-            {/* Creator */}
-            <View style={tw`flex-row items-center mt-1`}>
-              {event.creator?.avatarUrl ? (
-                <Image
-                  source={{ uri: event.creator.avatarUrl }}
-                  style={tw`w-6 h-6 rounded-full mr-2`}
-                />
-              ) : (
-                <MaterialIcons
-                  name="person"
-                  size={20}
-                  color="gray"
-                  style={tw`mr-2`}
-                />
-              )}
-              <Text style={tw`text-sm text-gray-600`}>
-                Created by {event.creator?.name || "Unknown"}
-              </Text>
-            </View>
+                        {/* Creator */}
+                        <View style={tw`flex-row items-center mt-1`}>
+                            {event.creator?.avatarUrl ? (
+                                <Image
+                                    source={{ uri: event.creator.avatarUrl }}
+                                    style={tw`w-6 h-6 rounded-full mr-2`}
+                                />
+                            ) : (
+                                <MaterialIcons
+                                    name="person"
+                                    size={20}
+                                    color="gray"
+                                    style={tw`mr-2`}
+                                />
+                            )}
+                            <Text style={tw`text-sm text-gray-600`}>
+                                Created by {event.creator?.name || "Unknown"}
+                            </Text>
+                        </View>
 
-            {/* Attendees */}
-            <TouchableOpacity
-              style={tw`flex-row items-center mt-2`}
-              onPress={() =>
-                setExpandedEvent(expandedEvent === event._id ? null : event._id)
-              }
-            >
-              <MaterialIcons name="people" size={16} color="gray" />
-              <Text style={tw`text-sm text-gray-600 ml-2`}>
-                {event.attendees?.length || 0} attending
-              </Text>
-              <MaterialIcons
-                name={
-                  expandedEvent === event._id ? "expand-less" : "expand-more"
-                }
-                size={20}
-                color="gray"
-                style={tw`ml-2`}
-              />
-            </TouchableOpacity>
+                        {/* Attendees */}
+                        <TouchableOpacity
+                            style={tw`flex-row items-center mt-2`}
+                            onPress={() =>
+                                setExpandedEvent(expandedEvent === event._id ? null : event._id)
+                            }
+                        >
+                            <MaterialIcons name="people" size={16} color="gray" />
+                            <Text style={tw`text-sm text-gray-600 ml-2`}>
+                                {event.attendees?.length || 0} attending
+                            </Text>
+                            <MaterialIcons
+                                name={
+                                    expandedEvent === event._id ? "expand-less" : "expand-more"
+                                }
+                                size={20}
+                                color="gray"
+                                style={tw`ml-2`}
+                            />
+                        </TouchableOpacity>
 
-            {/* Attendees List */}
-            {expandedEvent === event._id &&
-              event.attendees?.map((att) => (
-                <View key={att._id} style={tw`flex-row items-center mt-2 ml-6`}>
-                  <Image
-                    source={{ uri: att.avatarUrl }}
-                    style={tw`w-6 h-6 rounded-full mr-2`}
-                  />
-                  <Text style={tw`text-sm text-gray-700`}>{att.name}</Text>
-                </View>
-              ))}
-            <TouchableOpacity
-              onPress={() => handleBookEvent(event._id)}
-              style={tw`mt-3 bg-${event.attendees?.some((att) => att._id === loggedInUserId) ? "gray-400" : "red-500"} py-2 px-4 rounded-lg`}
-              disabled={event.attendees?.some(
-                (att) => att._id === loggedInUserId
-              )}
-            >
-              <Text style={tw`text-white text-center text-base`}>
-                {event.attendees?.some((att) => att._id === loggedInUserId)
-                  ? "Booked"
-                  : "Book Event"}
-              </Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        ))}
+                        {/* Attendees List */}
+                        {expandedEvent === event._id &&
+                            event.attendees?.map((att) => (
+                                <View key={att._id} style={tw`flex-row items-center mt-2 ml-6`}>
+                                    <Image
+                                        source={{ uri: att.avatarUrl }}
+                                        style={tw`w-6 h-6 rounded-full mr-2`}
+                                    />
+                                    <Text style={tw`text-sm text-gray-700`}>{att.name}</Text>
+                                </View>
+                            ))}
+                        <TouchableOpacity
+                            onPress={() => handleBookEvent(event._id)}
+                            style={tw`mt-3 bg-${event.attendees?.some((att) => att._id === loggedInUserId) ? "gray-400" : "red-500"} py-2 px-4 rounded-lg`}
+                            disabled={event.attendees?.some(
+                                (att) => att._id === loggedInUserId
+                            )}
+                        >
+                            <Text style={tw`text-white text-center text-base`}>
+                                {event.attendees?.some((att) => att._id === loggedInUserId)
+                                    ? "Booked"
+                                    : "Book Event"}
+                            </Text>
+                        </TouchableOpacity>
+                    </TouchableOpacity>
+                ))}
 
-      {/* ✅ Edit Modal */}
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View
-          style={tw`flex-1 bg-black bg-opacity-50 justify-center items-center`}
-        >
-          <View style={tw`bg-white rounded-lg p-6 w-11/12`}>
-            <Text style={tw`text-lg font-bold mb-4`}>Edit Event</Text>
+            {/* ✅ Edit Modal */}
+            <Modal visible={modalVisible} animationType="slide" transparent>
+                <View
+                    style={tw`flex-1 bg-black bg-opacity-50 justify-center items-center`}
+                >
+                    <View style={tw`bg-white rounded-lg p-6 w-11/12`}>
+                        <Text style={tw`text-lg font-bold mb-4`}>Edit Event</Text>
 
                         <TextInput
                             placeholder="Title"
@@ -686,25 +609,25 @@ const Social = () => {
                             </TouchableOpacity>
                         </View>
 
-            <View style={tw`flex-row justify-end`}>
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                style={tw`px-4 py-2 bg-gray-300 rounded mr-2`}
-              >
-                <Text>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={submitUpdate}
-                style={tw`px-4 py-2 bg-red-500 rounded`}
-              >
-                <Text style={tw`text-white`}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </ScrollView>
-  );
+                        <View style={tw`flex-row justify-end`}>
+                            <TouchableOpacity
+                                onPress={() => setModalVisible(false)}
+                                style={tw`px-4 py-2 bg-gray-300 rounded mr-2`}
+                            >
+                                <Text>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={submitUpdate}
+                                style={tw`px-4 py-2 bg-red-500 rounded`}
+                            >
+                                <Text style={tw`text-white`}>Save</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+        </ScrollView>
+    );
 };
 
 export default Social;
