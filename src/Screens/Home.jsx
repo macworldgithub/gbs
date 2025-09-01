@@ -205,13 +205,6 @@ export default function Home() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("userData");
-    } catch (e) {}
-    navigation.reset({ index: 0, routes: [{ name: "Signin" }] });
-  };
-
   const handleTabPress = (key) => {
     setActiveTab(key);
     switch (key) {

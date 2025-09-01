@@ -23,10 +23,11 @@ export default function OnboardingTwo({ navigation }) {
         />
 
         {/* Main content */}
-        <View style={styles.content} classname=""> 
-
-           <Text style={styles.tagline}>
-            <Text style={styles.boldText} classname="">Business – Social - Wellbeing</Text>
+        <View style={styles.content} classname="">
+          <Text style={styles.tagline}>
+            <Text style={styles.boldText} classname="">
+              Business – Social - Wellbeing
+            </Text>
           </Text>
           <Text style={styles.subheading}>NATIONAL PARTNERS</Text>
 
@@ -35,23 +36,21 @@ export default function OnboardingTwo({ navigation }) {
             <Text style={styles.logoRed}>COURIERS</Text>
           </Text>
 
-       
-
           <Text style={styles.description}>
             Experience the Ultimate in Events and Connection
           </Text>
 
           {/* Join Now Button */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.button}
             onPress={() => navigation.replace("Tabs")}
           >
             <Text style={styles.buttonText}>Join Now</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity
             style={[styles.button, styles.guestButton]}
-            onPress={() => navigation.replace("GuestTabs")}
+            onPress={() => navigation.replace("AuthTabs")}
           >
             <Text style={styles.buttonText}>Guest Login</Text>
           </TouchableOpacity>
@@ -79,17 +78,17 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)", 
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
   },
   content: {
-  width: "100%",
-  alignItems: "center",
-  justifyContent: "center",
-  marginTop: 140, 
-},
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 140,
+  },
 
   logo: {
     fontSize: 24,

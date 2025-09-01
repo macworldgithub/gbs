@@ -319,13 +319,13 @@ export default function Drawer({ isOpen, onClose }) {
               source={
                 userProfile.avatarUrl
                   ? { uri: userProfile.avatarUrl }
-                  : require("../assets/user.png")
+                  : require("../assets/user.jpg")
               }
               style={tw`w-12 h-12 rounded-full mr-3`}
             />
             <View>
               <Text style={tw`text-black text-lg font-bold`}>
-                {userProfile.name || "User"}
+                {userProfile.name || "Guest User"}
               </Text>
               {roleLabel && (
                 <Text style={tw`text-xs text-gray-500 w-44`}>{roleLabel}</Text>
