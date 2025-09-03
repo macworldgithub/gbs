@@ -10,12 +10,15 @@ import {
   Image,
   TextInput,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { launchImageLibrary } from "react-native-image-picker";
 import { MaterialIcons, Entypo } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
 import { getUserData } from "../utils/storage"; // ✅ import your storage.js
 
-const tabs = ["Events", "Chat Group"];
+const fallbackImage = require("../../assets/fallback.png");
+const tabs = [];
 const states = ["All", "VIC", "NSW", "QLD", "SA", "WA"];
 const API_URL = "https://gbs.westsidecarcare.com.au/events";
 
@@ -50,22 +53,23 @@ const Social = () => {
     fetchUser();
   }, []);
 
-  const fetchEvents = async (stateFilter = "All") => {
-    try {
-      setLoading(true);
 
-      let url = `${API_URL}?&limit=100`;
-      if (stateFilter !== "All") {
-        url += `&state=${stateFilter}`;
-      }
+    const fetchEvents = async (stateFilter = "All") => {
+        try {
+            setLoading(true);
 
-      const res = await fetch(url, {
-        headers: {
-          Accept: "application/json",
-        },
-      });
-      const data = await res.json();
-      console.log("Fetched events data:", data);
+            let url = `${API_URL}?&limit=100`;
+            if (stateFilter !== "All") {
+                url += `&state=${stateFilter}`;
+            }
+
+            const res = await fetch(url, {
+                headers: {
+                    Accept: "application/json",
+                },
+            });
+            const data = await res.json();
+            console.log("Fetched events data:", data);
 
       if (res.ok) {
         setEvents(data);
@@ -83,67 +87,123 @@ const Social = () => {
     fetchEvents(selectedState);
   }, [selectedState]);
 
-  const openEditModal = (event) => {
-    setEditingEvent(event);
-    setForm({
-      title: event.title || "",
-      description: event.description || "",
-      state: event.state || "",
-      startDate: event.startDate || "",
-      endDate: event.endDate || "",
-      imageUrl: event.imageUrl || "",
-    });
-    setModalVisible(true);
-  };
+    const openEditModal = (event) => {
+        setEditingEvent(event);
+        setForm({
+            title: event.title || "",
+            description: event.description || "",
+            state: event.state || "",
+            startDate: event.startDate || "",
+            endDate: event.endDate || "",
+            imageUrl: event.imageUrl || "",
+        });
+        setModalVisible(true);
+    };
 
-  const submitUpdate = async () => {
+
+    // const submitUpdate = async () => {
+    //     if (!editingEvent) return;
+
+    //     try {
+    //         const res = await fetch(`${API_URL}/${editingEvent._id}`, {
+    //             method: "PUT",
+    //             headers: {
+    //                 Accept: "application/json",
+    //                 "Content-Type": "application/json",
+    //                 Authorization: `Bearer ${user?.token}`,
+    //             },
+    //             body: JSON.stringify({
+    //                 title: form.title,
+    //                 description: form.description,
+    //                 state: form.state,
+    //                 area: {
+    //                     type: "MultiPolygon",
+    //                     coordinates: [
+    //                         [
+    //                             [
+    //                                 [151.2093, -33.8688],
+    //                                 [151.2094, -33.8689],
+    //                                 [151.2095, -33.8688],
+    //                                 [151.2093, -33.8688],
+    //                             ],
+    //                         ],
+    //                     ],
+    //                 },
+    //                 openToAll: true,
+    //                 startDate: form.startDate,
+    //                 endDate: form.endDate,
+    //                 roles: ["60f8a2f0e1d3c2001cf6b1e7"],
+    //                 imageUrl: form.imageUrl,
+    //             }),
+    //         });
+
+    //         if (res.ok) {
+    //            const updatedEvent = await res.json(); // Server se updated event data get karo
+    //         setEvents(events.map(event => event._id === updatedEvent._id ? updatedEvent : event)); // Local events state update karo
+    //         Alert.alert("Success", "Event updated successfully!");
+    //         setModalVisible(false);
+    //         } else {
+    //             const err = await res.json();
+    //             Alert.alert("Error", err.message || "Update failed");
+    //         }
+    //     } catch (error) {
+    //         Alert.alert("Error", error.message);
+    //     }
+    // };
+
+
+
+    const submitUpdate = async () => {
     if (!editingEvent) return;
 
     try {
-      const res = await fetch(`${API_URL}/${editingEvent._id}`, {
-        method: "PUT",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.token}`,
-        },
-        body: JSON.stringify({
-          title: form.title,
-          description: form.description,
-          state: form.state,
-          area: {
-            type: "MultiPolygon",
-            coordinates: [
-              [
-                [
-                  [151.2093, -33.8688],
-                  [151.2094, -33.8689],
-                  [151.2095, -33.8688],
-                  [151.2093, -33.8688],
-                ],
-              ],
-            ],
-          },
-          openToAll: true,
-          startDate: form.startDate,
-          endDate: form.endDate,
-          roles: ["60f8a2f0e1d3c2001cf6b1e7"],
-          imageUrl: form.imageUrl,
-        }),
-      });
+        const res = await fetch(`${API_URL}/${editingEvent._id}`, {
+            method: "PUT",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${user?.token}`,
+            },
+            body: JSON.stringify({
+                title: form.title,
+                description: form.description,
+                state: form.state,
+                area: {
+                    type: "MultiPolygon",
+                    coordinates: [
+                        [
+                            [151.2093, -33.8688],
+                            [151.2094, -33.8689],
+                            [151.2095, -33.8688],
+                            [151.2093, -33.8688],
+                        ],
+                    ],
+                },
+                openToAll: true,
+                startDate: form.startDate,
+                endDate: form.endDate,
+                roles: ["60f8a2f0e1d3c2001cf6b1e7"],
+                // NEW: Removed imageUrl – it's handled separately via /image endpoints
+            }),
+        });
 
-      if (res.ok) {
-        Alert.alert("Success", "Event updated successfully!");
-        setModalVisible(false);
-        fetchEvents(selectedState);
-      } else {
-        const err = await res.json();
-        Alert.alert("Error", err.message || "Update failed");
-      }
+        if (res.ok) {
+            const updatedEvent = await res.json(); // Server se updated event data get karo
+            console.log("Updated Event from PUT:", updatedEvent); // NEW: Debug log to check if imageUrl is in response
+            setEvents(events.map(event => event._id === updatedEvent._id ? updatedEvent : event)); // Local events state update karo
+            Alert.alert("Success", "Event updated successfully!");
+            setModalVisible(false);
+            fetchEvents(selectedState); // NEW: Call fetchEvents for full refresh/sync from server
+        } else {
+            const err = await res.json();
+            Alert.alert("Error", err.message || "Update failed");
+        }
     } catch (error) {
-      Alert.alert("Error", error.message);
+        Alert.alert("Error", error.message);
     }
-  };
+};
+
+
 
   const handleDelete = async (event) => {
     const loggedInUserId = user?.user?._id || user?._id || user?.sub;
@@ -178,35 +238,188 @@ const Social = () => {
     try {
       const token = user?.token || user?.accessToken || user?.idToken;
 
-      if (!token) {
-        Alert.alert("Error", "You must be logged in to book an event.");
-        return;
-      }
-      const res = await fetch(`${API_URL}/${eventId}/book_event`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
-      });
-      const data = await res.json();
-      console.log("Booking response:", data);
+            if (!token) {
+                Alert.alert("Error", "You must be logged in to book an event.");
+                return;
+            }
+            const res = await fetch(`${API_URL}/${eventId}/book_event`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({}),
+            });
+            const data = await res.json();
+            console.log("Booking response:", data);
 
-      if (res.ok) {
-        Alert.alert("Success", "You have successfully booked this event!");
-        setBooked(true);
-        fetchEvents(selectedState);
-      } else {
-        const err = await res.json();
-        console.log("Booking error:", err);
-        Alert.alert("Error", err.message || "Failed to book event");
-      }
-    } catch (error) {
-      Alert.alert("Error", error.message);
-    }
-  };
+            if (res.ok) {
+                Alert.alert("Success", "You have successfully booked this event!");
+                setBooked(true);
+                fetchEvents(selectedState);
+            } else {
+                const err = await res.json();
+                console.log("Booking error:", err);
+                Alert.alert("Error", err.message || "Failed to book event");
+            }
+        } catch (error) {
+            Alert.alert("Error", error.message);
+        }
+    };
+
+    // const handleImageUpload = (eventId) => {
+    //     const options = {
+    //         mediaType: "photo",
+    //         quality: 1,
+    //     };
+
+    //     launchImageLibrary(options, async (response) => {
+    //         if (response.didCancel) {
+    //             return;
+    //         }
+    //         if (response.errorCode) {
+    //             Alert.alert("Error", response.errorMessage);
+    //             return;
+    //         }
+
+    //         try {
+    //             const asset = response.assets[0];
+    //             const fileUri = asset.uri;
+    //             const fileName = asset.fileName || fileUri.split("/").pop();
+    //             const fileType = asset.type || "image/jpeg";
+
+    //             const token = user?.token || user?.accessToken || user?.idToken;
+
+    //             // Step 2: Get Presigned URL
+    //             const presignedRes = await fetch(
+    //                 `${API_URL}/${eventId}/image/upload-url?fileName=${fileName}&fileType=${fileType}`,
+    //                 {
+    //                     method: "GET",
+    //                     headers: { Authorization: `Bearer ${token}` },
+    //                 }
+    //             );
+    //             const { url, key } = await presignedRes.json();
+
+    //             console.log("Presigned URL:", url);
+    //             console.log("File Key:", key);
+
+    //             // Step 3: Upload to S3
+    //             const img = await fetch(fileUri);
+    //             const blob = await img.blob();
+
+    //             await fetch(url, {
+    //                 method: "PUT",
+    //                 headers: { "Content-Type": fileType },
+    //                 body: blob,
+    //             });
+
+    //             // Step 4: Save fileKey in DB
+    //             await fetch(`${API_URL}/${eventId}/image`, {
+    //                 method: "POST",
+    //                 headers: {
+    //                     Authorization: `Bearer ${token}`,
+    //                     "Content-Type": "application/json",
+    //                 },
+    //                 body: JSON.stringify({ fileKey: key }),
+    //             });
+
+    //             // Step 5: Fetch final image URL
+    //             const finalRes = await fetch(`${API_URL}/${eventId}/image`, {
+    //                 method: "GET",
+    //                 headers: { Authorization: `Bearer ${token}` },
+    //             });
+
+    //             const finalData = await finalRes.json();
+    //             console.log("Final Image URL:", finalData.url);
+
+    //             setForm({ ...form, imageUrl: finalData.url });
+    //             Alert.alert("Success", "Image uploaded successfully!");
+    //         } catch (err) {
+    //             console.error(err);
+    //             Alert.alert("Error", err.message);
+    //         }
+    //     });
+    // };
+   const handleImageUpload = (eventId) => {
+    const options = {
+        mediaType: "photo",
+        quality: 1,
+    };
+
+    launchImageLibrary(options, async (response) => {
+        if (response.didCancel) {
+            return;
+        }
+        if (response.errorCode) {
+            Alert.alert("Error", response.errorMessage);
+            return;
+        }
+
+        try {
+            const asset = response.assets[0];
+            const fileUri = asset.uri;
+            const fileName = asset.fileName || fileUri.split("/").pop();
+            const fileType = asset.type || "image/jpeg";
+
+            const token = user?.token || user?.accessToken || user?.idToken;
+
+            // Step 2: Get Presigned URL
+            const presignedRes = await fetch(
+                `${API_URL}/${eventId}/image/upload-url?fileName=${fileName}&fileType=${fileType}`,
+                {
+                    method: "GET",
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+            const { url, key } = await presignedRes.json();
+
+            console.log("Presigned URL:", url);
+            console.log("File Key:", key);
+
+            // Step 3: Upload to S3
+            const img = await fetch(fileUri);
+            const blob = await img.blob();
+
+            await fetch(url, {
+                method: "PUT",
+                headers: { "Content-Type": fileType },
+                body: blob,
+            });
+
+            // Step 4: Save fileKey in DB
+            await fetch(`${API_URL}/${eventId}/image`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ fileKey: key }),
+            });
+
+            // Step 5: Fetch final image URL
+            const finalRes = await fetch(`${API_URL}/${eventId}/image`, {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            const finalData = await finalRes.json();
+            console.log("Final Image URL:", finalData.url);
+
+            // Update form for modal preview
+            setForm({ ...form, imageUrl: finalData.url });
+            
+            // NEW: Update local events state immediately to reflect image in card
+            setEvents(events.map(e => e._id === eventId ? { ...e, imageUrl: finalData.url } : e));
+            
+            Alert.alert("Success", "Image uploaded successfully!");
+        } catch (err) {
+            console.error(err);
+            Alert.alert("Error", err.message);
+        }
+    });
+};
+   
 
   return (
     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
@@ -276,33 +489,42 @@ const Social = () => {
         <Text style={tw`text-gray-500 text-center mt-6`}>No events found</Text>
       )}
 
-      {activeTab === "Events" &&
-        events.map((event) => (
-          <TouchableOpacity
-            key={event._id}
-            onPress={() =>
-              navigation.navigate("EventDetail", { eventId: event._id })
-            }
-            style={tw`bg-gray-50 rounded-lg p-4 mb-4`}
-          >
-            <View style={tw`flex-row justify-between items-center`}>
-              <Text style={tw`text-base font-bold text-gray-800`}>
-                {event.title}
-              </Text>
-              <View style={tw`flex-row`}>
-                <TouchableOpacity onPress={() => openEditModal(event)}>
-                  <MaterialIcons
-                    name="edit"
-                    size={22}
-                    color="blue"
-                    style={tw`mr-3`}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDelete(event)}>
-                  <MaterialIcons name="delete" size={22} color="red" />
-                </TouchableOpacity>
-              </View>
-            </View>
+            {activeTab === "Events" &&
+                events.map((event) => (
+                    <TouchableOpacity key={event._id}
+                        onPress={() => navigation.navigate("EventDetail", { eventId: event._id })}
+                        style={tw`bg-gray-50 rounded-lg mb-4 overflow-hidden border border-gray-300 p-4`}
+                    >
+                        {event.imageUrl ? (
+                            <Image
+                                source={{ uri: event.imageUrl }}
+                                style={tw`w-full h-40`}
+                                resizeMode="cover"
+                            />
+                        ) : (
+                            <View style={tw`w-full h-40 bg-gray-600 items-center justify-center`}>
+                                <Ionicons name="image-outline" size={40} color="gray" />
+                            </View>
+                        )}
+
+                        <View style={tw`flex-row justify-between items-center`}>
+                            <Text style={tw`text-base font-bold text-gray-800`}>
+                                {event.title}
+                            </Text>
+                            <View style={tw`flex-row`}>
+                                <TouchableOpacity onPress={() => openEditModal(event)}>
+                                    <MaterialIcons
+                                        name="edit"
+                                        size={22}
+                                        color="blue"
+                                        style={tw`mr-3`}
+                                    />
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleDelete(event)}>
+                                    <MaterialIcons name="delete" size={22} color="red" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
 
             {/* Date */}
             <View style={tw`flex-row items-center mt-2`}>
@@ -417,42 +639,52 @@ const Social = () => {
           <View style={tw`bg-white rounded-lg p-6 w-11/12`}>
             <Text style={tw`text-lg font-bold mb-4`}>Edit Event</Text>
 
-            <TextInput
-              placeholder="Title"
-              value={form.title}
-              onChangeText={(t) => setForm({ ...form, title: t })}
-              style={tw`border p-2 rounded mb-2`}
-            />
-            <TextInput
-              placeholder="Description"
-              value={form.description}
-              onChangeText={(t) => setForm({ ...form, description: t })}
-              style={tw`border p-2 rounded mb-2`}
-            />
-            <TextInput
-              placeholder="State"
-              value={form.state}
-              onChangeText={(t) => setForm({ ...form, state: t })}
-              style={tw`border p-2 rounded mb-2`}
-            />
-            <TextInput
-              placeholder="Start Date (YYYY-MM-DD)"
-              value={form.startDate}
-              onChangeText={(t) => setForm({ ...form, startDate: t })}
-              style={tw`border p-2 rounded mb-2`}
-            />
-            <TextInput
-              placeholder="End Date (YYYY-MM-DD)"
-              value={form.endDate}
-              onChangeText={(t) => setForm({ ...form, endDate: t })}
-              style={tw`border p-2 rounded mb-2`}
-            />
-            <TextInput
-              placeholder="Image URL"
-              value={form.imageUrl}
-              onChangeText={(t) => setForm({ ...form, imageUrl: t })}
-              style={tw`border p-2 rounded mb-4`}
-            />
+                        <TextInput
+                            placeholder="Title"
+                            value={form.title}
+                            onChangeText={(t) => setForm({ ...form, title: t })}
+                            style={tw`border p-2 rounded mb-2`}
+                        />
+                        <TextInput
+                            placeholder="Description"
+                            value={form.description}
+                            onChangeText={(t) => setForm({ ...form, description: t })}
+                            style={tw`border p-2 rounded mb-2`}
+                        />
+                        <TextInput
+                            placeholder="State"
+                            value={form.state}
+                            onChangeText={(t) => setForm({ ...form, state: t })}
+                            style={tw`border p-2 rounded mb-2`}
+                        />
+                        <TextInput
+                            placeholder="Start Date (YYYY-MM-DD)"
+                            value={form.startDate}
+                            onChangeText={(t) => setForm({ ...form, startDate: t })}
+                            style={tw`border p-2 rounded mb-2`}
+                        />
+                        <TextInput
+                            placeholder="End Date (YYYY-MM-DD)"
+                            value={form.endDate}
+                            onChangeText={(t) => setForm({ ...form, endDate: t })}
+                            style={tw`border p-2 rounded mb-2`}
+                        />
+                        <View style={tw`flex-row items-center mb-4`}>
+                            {form.imageUrl ? (
+                                <Image
+                                    source={{ uri: form.imageUrl }}
+                                    style={tw`w-16 h-16 rounded mr-3`}
+                                />
+                            ) : (
+                                <Ionicons name="image-outline" size={40} color="gray" style={tw`mr-3`} />
+                            )}
+                            <TouchableOpacity
+                                onPress={() => handleImageUpload(editingEvent._id)}
+                                style={tw`bg-red-500 px-3 py-2 rounded`}
+                            >
+                                <Text style={tw`text-white text-sm`}>Upload Image</Text>
+                            </TouchableOpacity>
+                        </View>
 
             <View style={tw`flex-row justify-end`}>
               <TouchableOpacity
