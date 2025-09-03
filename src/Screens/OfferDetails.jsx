@@ -118,7 +118,7 @@ const OfferDetails = ({ route, navigation }) => {
       const userData = await getUserData();
       const token = userData?.token;
 
-      await axios.delete(`${API_BASE_URL}/offer/${id}/review/${reviewId}`, {
+      await axios.delete(`${API_BASE_URL}/offer/${id}/review`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
