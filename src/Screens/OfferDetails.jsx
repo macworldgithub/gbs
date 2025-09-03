@@ -122,6 +122,8 @@ const OfferDetails = ({ route, navigation }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      
+
       setOffer((prevOffer) => ({
         ...prevOffer,
         reviews: prevOffer.reviews.filter((rev) => rev._id !== reviewId),
