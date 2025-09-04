@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import AddBusinessModal from "../../components/AddBusinessModal";
 import tw from "tailwind-react-native-classnames";
-import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
+import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons";
 
 const API_URL = `${API_BASE_URL}/business/search`;
 
@@ -38,6 +38,9 @@ const BusinessPage = ({ navigation }) => {
   const [roles, setRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [packageLoading, setPackageLoading] = useState(false);
+  const [actionMenuVisible, setActionMenuVisible] = useState(false);
+  const [featuredBusinesses, setFeaturedBusinesses] = useState([]);
+  const [showFeatured, setShowFeatured] = useState(false);
 
   useEffect(() => {
     if (isFocused) {
@@ -103,6 +106,35 @@ const BusinessPage = ({ navigation }) => {
       setError("Failed to fetch package options");
     } finally {
       setRolesLoading(false);
+    }
+  };
+
+  // Fetch featured businesses
+  const fetchFeaturedBusinesses = async () => {
+    try {
+      setLoading(true);
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      if (!token) {
+        setError("No token found, please login again.");
+        return;
+      }
+
+      const response = await axios.get(`${API_BASE_URL}/business/featured`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setFeaturedBusinesses(response.data || []);
+      setShowFeatured(true);
+    } catch (error) {
+      console.error(
+        "Error fetching featured businesses:",
+        error.response?.data || error.message
+      );
+      Alert.alert("Error", "Failed to fetch featured businesses");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -305,6 +337,7 @@ const BusinessPage = ({ navigation }) => {
       setLoading(true);
       setError(null);
       setNoPackage(false);
+      setShowFeatured(false);
 
       // Always refresh user data first to get the latest package status
       await refreshUserData();
@@ -369,23 +402,71 @@ const BusinessPage = ({ navigation }) => {
     fetchBusinesses();
   }, [search, selectedState, page, limit]);
 
+  // Action Menu Modal Component
+  const ActionMenuModal = ({ visible, onClose, onAddBusiness, onFeaturedBusiness }) => {
+    return (
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={visible}
+        onRequestClose={onClose}
+      >
+        <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+          <View style={tw`bg-white rounded-2xl p-4 w-3/4`}>
+            <TouchableOpacity
+              style={tw`border border-red-500 rounded-lg py-2 mb-2 items-center`}
+              onPress={() => {
+                onAddBusiness();
+                onClose();
+              }}
+            >
+              <Text style={tw`text-gray-700 font-medium`}>Add Business</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={tw`border border-red-500 rounded-lg py-2 mb-2 items-center`}
+              onPress={() => {
+                onFeaturedBusiness();
+                onClose();
+              }}
+            >
+              <Text style={tw`text-gray-700 font-medium`}>Featured Business</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={tw`bg-red-500 rounded-lg py-2 items-center`}
+              onPress={onClose}
+            >
+              <Text style={tw`text-white font-medium`}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
   return (
-    <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
+    <ScrollView style={tw`flex-1 bg-gray-200 px-4 py-4`}>
       {/* Section Title */}
       <View style={tw`pt-14`}>
         <View style={tw`flex-row justify-between items-center`}>
           <Text style={tw`text-xl font-bold text-gray-800 mb-1`}>Business</Text>
 
-          {/* Add Business */}
+          {/* Three Dots Menu Button */}
           <TouchableOpacity
-            style={tw`bg-red-500 px-4 py-2 rounded-lg`}
-            onPress={() => setModalVisible(true)}
+            onPress={() => setActionMenuVisible(true)}
           >
-            <Text style={tw`text-white font-bold`}>Add Business</Text>
+            <Ionicons name="ellipsis-vertical" size={24} color="black" />
           </TouchableOpacity>
         </View>
 
-        {/* Add Modal */}
+        {/* Action Menu Modal */}
+        <ActionMenuModal
+          visible={actionMenuVisible}
+          onClose={() => setActionMenuVisible(false)}
+          onAddBusiness={() => setModalVisible(true)}
+          onFeaturedBusiness={fetchFeaturedBusinesses}
+        />
+
+        {/* Add Business Modal */}
         <AddBusinessModal
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
@@ -431,6 +512,13 @@ const BusinessPage = ({ navigation }) => {
         ))}
       </ScrollView>
 
+      {/* Show Featured Businesses Title if applicable */}
+      {showFeatured && (
+        <Text style={tw`text-lg font-bold text-gray-800 mb-4`}>
+          Featured Businesses
+        </Text>
+      )}
+
       {/* Loading/Error State */}
       {loading && <Text style={tw`text-center text-gray-500`}>Loading...</Text>}
 
@@ -441,7 +529,7 @@ const BusinessPage = ({ navigation }) => {
             No Active Package Found
           </Text>
           <Text style={tw`text-sm text-gray-600 mt-1 text-center px-6`}>
-            You don’t have an active package. Please purchase a package to view
+            You don't have an active package. Please purchase a package to view
             business listings.
           </Text>
 
@@ -459,11 +547,11 @@ const BusinessPage = ({ navigation }) => {
 
       {error && <Text style={tw`text-center text-red-500`}>{error}</Text>}
 
-      {/* Business Listings */}
-      {businessListings.map((business) => (
+      {/* Business Listings - Show either featured or regular businesses */}
+      {(showFeatured ? featuredBusinesses : businessListings).map((business) => (
         <TouchableOpacity
           key={business._id}
-          style={tw`bg-gray-50 rounded-lg p-4 mb-4`}
+          style={tw`bg-white rounded-lg p-4 mb-4`}
           onPress={() =>
             navigation.navigate("BusinessDetail", { id: business._id })
           }
@@ -723,3 +811,6 @@ const BusinessPage = ({ navigation }) => {
 };
 
 export default BusinessPage;
+
+
+

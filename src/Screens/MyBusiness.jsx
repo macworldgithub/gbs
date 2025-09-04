@@ -8,6 +8,8 @@ import {
   ScrollView,
   Alert,
   Linking,
+  Modal,
+  TextInput,
 } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
@@ -19,6 +21,200 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import EditBusinessModal from "../../components/EditBusinessModal";
 import axios from "axios";
+import { Picker } from "@react-native-picker/picker";
+
+const ActionMenuModal = ({ visible, onClose, onAddOffer, onAddMember, onAddGallery }) => {
+  return (
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+        <View style={tw`bg-white rounded-2xl p-4 w-3/4`}>
+          <TouchableOpacity
+            style={tw`border border-red-500 rounded-lg py-2 mb-2 items-center`}
+            onPress={() => {
+              onAddOffer();
+              onClose();
+            }}
+          >
+            <Text style={tw`text-white font-medium text-gray-500`}>Add Offer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={tw`border border-red-500  rounded-lg py-2 mb-2 items-center`}
+            onPress={() => {
+              onAddMember();
+              onClose();
+            }}
+          >
+            <Text style={tw`text-white font-medium text-gray-500`}>Add Member</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={tw`bg-red-500 rounded-lg py-2 items-center`}
+            onPress={onClose}
+          >
+            <Text style={tw`text-black font-medium text-white`}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const AddMemberModal = ({ visible, onClose, businessId }) => {
+  const [memberId, setMemberId] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+
+   useEffect(() => {
+    if (visible) {
+      fetchAllUsers();
+    }
+  }, [visible]);
+
+  const fetchAllUsers = async () => {
+    try {
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      if (!token) {
+        Alert.alert("Error", "No authentication token found");
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/user`, {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch users");
+      }
+
+      const usersData = await response.json();
+      setUsers(usersData);
+    } catch (error) {
+      console.error("Fetch Users Error:", error);
+      Alert.alert("Error", error.message || "Failed to load users");
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  const handleAddMember = async () => {
+    if (!memberId) {
+      Alert.alert("Error", "Please select a user");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      if (!token) {
+        Alert.alert("Error", "No authentication token found");
+        return;
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/business/${businessId}/members`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            memberId: memberId,
+          }),
+        }
+      );
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || "Failed to add member");
+      }
+
+      Alert.alert("Success", "Member added successfully!");
+      setMemberId("");
+      onClose();
+    } catch (error) {
+      console.error("Add Member Error:", error);
+      Alert.alert("Error", error.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  return (
+     <Modal
+      animationType="slide"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+        <View style={tw`bg-white rounded-lg p-6 w-5/6 max-w-md`}>
+          <Text style={tw`text-xl font-bold mb-4 text-center`}>Add Member</Text>
+          
+          <Text style={tw`text-sm text-gray-600 mb-4 text-center`}>
+            Select a user to add to your business
+          </Text>
+          
+          {usersLoading ? (
+            <ActivityIndicator size="small" color="#0000ff" />
+          ) : (
+            <View style={tw`border border-gray-300 rounded-lg mb-4`}>
+              <Picker
+                selectedValue={memberId}
+                onValueChange={(itemValue) => setMemberId(itemValue)}
+              >
+                <Picker.Item label="Select a user" value="" />
+                {users.map((user) => (
+                  <Picker.Item 
+                    key={user._id} 
+                    label={`${user.name}`} 
+                    value={user._id} 
+                  />
+                ))}
+              </Picker>
+            </View>
+          )}
+          
+          <TouchableOpacity
+            style={tw`bg-red-500 rounded-lg py-3 mb-3 items-center ${loading ? "opacity-50" : ""}`}
+            onPress={handleAddMember}
+            disabled={loading || !memberId}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={tw`text-black font-medium`}>Add Member</Text>
+            )}
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={tw`border border-red-500 rounded-lg py-3 items-center`}
+            onPress={onClose}
+            disabled={loading}
+          >
+            <Text style={tw`text-black font-medium`}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+};
 
 export default function MyBusiness() {
   const [loading, setLoading] = useState(true);
@@ -28,8 +224,10 @@ export default function MyBusiness() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [noPackage, setNoPackage] = useState(false);
   const [offersByBusiness, setOffersByBusiness] = useState({});
+  const [actionMenuVisible, setActionMenuVisible] = useState(false);
+  const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
+  const [selectedBusinessId, setSelectedBusinessId] = useState(null);
   const isFocused = useIsFocused();
-
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -116,7 +314,7 @@ export default function MyBusiness() {
             No Active Package Found
           </Text>
           <Text style={tw`text-sm text-gray-600 text-center`}>
-            You don’t have an active package. Please purchase a package to view,
+            You don't have an active package. Please purchase a package to view,
             update and delete business.
           </Text>
         </View>
@@ -328,7 +526,7 @@ export default function MyBusiness() {
   };
 
   return (
-    <View style={tw`flex-1 bg-white p-4 `}>
+    <View style={tw`flex-1 bg-white p-4`}>
       {/* Header */}
       <View style={tw`flex-row items-center justify-between mt-8 mb-4`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -397,18 +595,19 @@ export default function MyBusiness() {
                   >
                     <MaterialIcons name="edit" size={22} color="#2563EB" />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => deleteBusiness(item._id)}>
+                  <TouchableOpacity
+                    style={tw`mr-3`}
+                    onPress={() => deleteBusiness(item._id)}
+                  >
                     <MaterialIcons name="delete" size={22} color="#DC2626" />
                   </TouchableOpacity>
-                </View>
-
-                <View style={tw`flex-row justify-between items-center `}>
-                  <TouchableOpacity onPress={() => uploadGallery(item._id)}>
-                    <MaterialIcons
-                      name="add-photo-alternate"
-                      size={20}
-                      color="#2563EB"
-                    />
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSelectedBusinessId(item._id);
+                      setActionMenuVisible(true);
+                    }}
+                  >
+                    <MaterialIcons name="more-vert" size={22} color="#2563EB" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -418,6 +617,21 @@ export default function MyBusiness() {
                 onClose={() => setEditModalVisible(false)}
                 business={selectedBusiness}
                 onBusinessUpdated={fetchBusinesses}
+              />
+
+              <ActionMenuModal
+                visible={actionMenuVisible}
+                onClose={() => setActionMenuVisible(false)}
+                onAddOffer={() =>
+                  navigation.navigate("AddOffer", { id: selectedBusinessId })
+                }
+                onAddMember={() => setAddMemberModalVisible(true)}
+              />
+
+              <AddMemberModal
+                visible={addMemberModalVisible}
+                onClose={() => setAddMemberModalVisible(false)}
+                businessId={selectedBusinessId}
               />
 
               {/* Rating & Location */}
@@ -574,12 +788,9 @@ export default function MyBusiness() {
 
                 <TouchableOpacity
                   style={tw`flex-1 bg-red-500 rounded-lg py-2 items-center`}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    navigation.navigate("AddOffer", { id: item._id });
-                  }}
+                  onPress={() => uploadGallery(item._id)}
                 >
-                  <Text style={tw`text-white font-medium`}>Add Offers</Text>
+                  <Text style={tw`text-white font-medium`}>Add images</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
