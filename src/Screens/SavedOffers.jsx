@@ -1,45 +1,39 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  Image,
+} from "react-native";
 import tw from "tailwind-react-native-classnames";
 import gift1 from "../../assets/gift1.png";
 import { API_BASE_URL } from "../utils/config";
 import { getUserData } from "../utils/storage";
 import { ScrollView } from "react-native-gesture-handler";
-import Ionicons from "react-native-vector-icons/Ionicons";  
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 const SavedOffers = ({ navigation }) => {
-  const [userId, setUserId] = useState(null);
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch userId from local storage
-  useEffect(() => {
-    const loadUserId = async () => {
-      try {
-        const userData = await getUserData();
-        if (userData && (userData._id || userData.id)) {
-          setUserId(userData._id || userData.id); 
-        } else {
-          setError("User ID not found in storage");
-        }
-      } catch (err) {
-        console.log("Error loading userId:", err);
-        setError("Failed to load user ID");
-      }
-    };
-    loadUserId();
-  }, []);
-
   useEffect(() => {
     const fetchSavedOffers = async () => {
-      if (!userId) return;
       try {
         setLoading(true);
+        setError(null);
+
         const userData = await getUserData();
         const token = userData?.token;
 
-        const res = await fetch(`${API_BASE_URL}/offer/saved/${userId}`, {
+        if (!token) {
+          setError("No token found, please login again.");
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch(`${API_BASE_URL}/offer/saved`, {
           method: "GET",
           headers: {
             accept: "application/json",
@@ -48,8 +42,16 @@ const SavedOffers = ({ navigation }) => {
         });
 
         const data = await res.json();
-        console.log("Saved Offers Response:", data);
-        setOffers(data || []);
+        console.log("✅ Saved Offers Response:", data);
+
+        // Handle if API sends offers in an object
+        if (Array.isArray(data)) {
+          setOffers(data);
+        } else if (Array.isArray(data.offers)) {
+          setOffers(data.offers);
+        } else {
+          setOffers([]);
+        }
       } catch (err) {
         console.log("❌ Error fetching saved offers:", err);
         setError("Failed to load saved offers");
@@ -59,7 +61,7 @@ const SavedOffers = ({ navigation }) => {
     };
 
     fetchSavedOffers();
-  }, [userId]);
+  }, []);
 
   return (
     <ScrollView style={{ padding: 20, marginTop: 20, marginBottom: 40 }}>
@@ -76,7 +78,9 @@ const SavedOffers = ({ navigation }) => {
       {error && <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>}
 
       {!loading && offers.length === 0 && (
-        <Text style={{ marginTop: 20, color: "gray" }}>No saved offers found</Text>
+        <Text style={{ marginTop: 20, color: "gray" }}>
+          No saved offers found
+        </Text>
       )}
 
       {offers.map((offer) => (
@@ -115,7 +119,9 @@ const SavedOffers = ({ navigation }) => {
               >
                 {offer.offerType}
               </Text>
-              <Text style={tw`text-xs text-gray-500 ml-2`}>{offer.category}</Text>
+              <Text style={tw`text-xs text-gray-500 ml-2`}>
+                {offer.category}
+              </Text>
             </View>
 
             <Text style={tw`text-sm text-gray-600 mt-2`}>

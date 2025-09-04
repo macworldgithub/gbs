@@ -12,6 +12,7 @@
 // import axios from "axios";
 // import { API_BASE_URL } from "../../src/utils/config";
 // import { getUserData } from "../../src/utils/storage";
+// import { launchImageLibrary } from "react-native-image-picker";
 
 // const OfferCard = ({ offer, onOfferUpdated, onOfferDeleted }) => {
 //   const [modalVisible, setModalVisible] = useState(false);
@@ -72,6 +73,84 @@
 //     );
 //   };
 
+//   // 🔹 Image Upload
+//   const handleImageUpload = async () => {
+//     try {
+//       const options = {
+//         mediaType: "photo",
+//         includeBase64: false,
+//       };
+
+//       launchImageLibrary(options, async (response) => {
+//         if (response.didCancel) {
+//           return;
+//         }
+//         if (response.errorCode) {
+//           console.error("ImagePicker Error:", response.errorMessage);
+//           Alert.alert("Error", "Failed to pick image");
+//           return;
+//         }
+
+//         const file = response.assets[0];
+//         const fileName = file.fileName || `offer-${offer._id}.jpg`;
+//         const fileType = file.type || "image/jpeg";
+
+//         try {
+//           const userData = await getUserData();
+//           const token = userData?.token;
+
+//           // Step 1: Get pre-signed S3 upload URL
+//           const url = `${API_BASE_URL}/offer/${offer._id}/image/upload-url?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}`;
+//           const res = await fetch(url, {
+//             method: "GET",
+//             headers: {
+//               accept: "application/json",
+//               Authorization: `Bearer ${token}`,
+//             },
+//           });
+
+//           if (!res.ok) throw new Error("Failed to get upload URL");
+
+//           const { url: uploadUrl, key } = await res.json();
+
+//           // Step 2: Upload file directly to S3
+//           const uploadRes = await fetch(uploadUrl, {
+//             method: "PUT",
+//             headers: { "Content-Type": fileType },
+//             body: { uri: file.uri },
+//           });
+
+//           if (!uploadRes.ok) throw new Error("Failed to upload file to S3");
+
+//           // Step 3: Tell backend the final fileKey
+//           const patchRes = await fetch(
+//             `${API_BASE_URL}/offer/${offer._id}/image`,
+//             {
+//               method: "PATCH",
+//               headers: {
+//                 "Content-Type": "application/json",
+//                 accept: "application/json",
+//                 Authorization: `Bearer ${token}`,
+//               },
+//               body: JSON.stringify({ fileKey: key }),
+//             }
+//           );
+
+//           if (!patchRes.ok) throw new Error("Failed to update offer image");
+
+//           Alert.alert("Success", "Offer image uploaded successfully!");
+//           if (onOfferUpdated) onOfferUpdated();
+//         } catch (err) {
+//           console.error("Upload error:", err);
+//           Alert.alert("Error", "Image upload failed!");
+//         }
+//       });
+//     } catch (err) {
+//       console.error("Upload error:", err);
+//       Alert.alert("Error", "Image upload failed!");
+//     }
+//   };
+
 //   return (
 //     <>
 //       <View
@@ -86,13 +165,16 @@
 //             </Text>
 //           </View>
 
-//           {/* Update + Delete */}
+//           {/* Update + Delete + Image Upload */}
 //           <View style={tw`flex-row`}>
 //             <TouchableOpacity
 //               onPress={() => setModalVisible(true)}
 //               style={tw`mr-2`}
 //             >
 //               <MaterialIcons name="edit" size={22} color="#2563EB" />
+//             </TouchableOpacity>
+//             <TouchableOpacity onPress={handleImageUpload} style={tw`mr-2`}>
+//               <MaterialIcons name="image" size={22} color="#10B981" />
 //             </TouchableOpacity>
 //             <TouchableOpacity onPress={handleDelete}>
 //               <MaterialIcons name="delete" size={22} color="#DC2626" />
@@ -195,8 +277,6 @@
 
 
 
-
-
 import React, { useState } from "react";
 import {
   View,
@@ -205,6 +285,9 @@ import {
   Modal,
   TextInput,
   Alert,
+  Image,
+  Dimensions,
+  ScrollView,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -212,6 +295,8 @@ import axios from "axios";
 import { API_BASE_URL } from "../../src/utils/config";
 import { getUserData } from "../../src/utils/storage";
 import { launchImageLibrary } from "react-native-image-picker";
+
+const { width } = Dimensions.get("window");
 
 const OfferCard = ({ offer, onOfferUpdated, onOfferDeleted }) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -234,7 +319,7 @@ const OfferCard = ({ offer, onOfferUpdated, onOfferDeleted }) => {
 
       Alert.alert("Success", "Offer updated successfully!");
       setModalVisible(false);
-      if (onOfferUpdated) onOfferUpdated(); // parent refresh
+      if (onOfferUpdated) onOfferUpdated();
     } catch (err) {
       console.error("Update error:", err.response?.data || err.message);
       Alert.alert("Error", "Failed to update offer");
@@ -353,7 +438,7 @@ const OfferCard = ({ offer, onOfferUpdated, onOfferDeleted }) => {
   return (
     <>
       <View
-        style={tw`bg-white rounded-xl shadow p-4 mb-4 border border-gray-200`}
+        style={tw`bg-white rounded-xl shadow-lg p-4 mb-4 border border-gray-200`}
       >
         {/* Header */}
         <View style={tw`flex-row justify-between items-center mb-2`}>
@@ -406,12 +491,38 @@ const OfferCard = ({ offer, onOfferUpdated, onOfferDeleted }) => {
         </View>
 
         {/* Description */}
-        <Text style={tw`text-sm text-gray-700 mb-2`}>{offer.description}</Text>
+        <Text style={tw`text-sm text-gray-700 my-2`}>{offer.description}</Text>
 
         {/* Expiry */}
-        <Text style={tw`text-xs text-gray-500`}>
+        <Text style={tw`text-xs text-gray-500 mb-2`}>
           Expires: {new Date(offer.expiryDate).toLocaleDateString()}
         </Text>
+
+        {/* Display uploaded image */}
+        {offer.image && (
+          <View style={tw`mt-2`}>
+            <Text style={tw`text-xs text-gray-500 mb-1`}>Offer Image:</Text>
+            <Image
+              source={{ uri: offer.image }}
+              style={tw`w-full h-48 rounded-lg`}
+              resizeMode="cover"
+            />
+          </View>
+        )}
+
+        {/* Terms & Conditions */}
+        {/* {offer.termsAndConditions && offer.termsAndConditions.length > 0 && (
+          <View style={tw`mt-3`}>
+            <Text style={tw`text-xs font-semibold text-gray-700 mb-1`}>
+              Terms & Conditions:
+            </Text>
+            {offer.termsAndConditions.map((term, index) => (
+              <Text key={index} style={tw`text-xs text-gray-500`}>
+                • {term}
+              </Text>
+            ))}
+          </View>
+        )} */}
       </View>
 
       {/* Update Modal */}
