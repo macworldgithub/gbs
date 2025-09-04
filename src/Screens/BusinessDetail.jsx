@@ -8,6 +8,7 @@ import {
   Alert,
   Image,
 } from "react-native";
+import { Entypo } from "@expo/vector-icons";
 import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import axios from "axios";
 import tw from "tailwind-react-native-classnames";
@@ -98,6 +99,58 @@ const BusinessDetail = ({ route, navigation }) => {
       </View>
     );
   }
+
+
+
+  const handleDeleteGalleryImage = async (fileKey) => {
+  Alert.alert(
+    "Delete Image",
+    "Are you sure you want to delete this image?",
+    [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const userData = await getUserData();
+            const token = userData?.token;
+
+            if (!token) {
+              Alert.alert("Error", "No authentication token found");
+              return;
+            }
+
+            const response = await fetch(
+              `${API_BASE_URL}/business/${id}/gallery`,
+              {
+                method: "PATCH",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  action: "remove",
+                  fileKey: fileKey, // direct fileKey bhejna
+                }),
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("Failed to delete image");
+            }
+
+            fetchBusinessDetail();
+            Alert.alert("Success", "Image deleted successfully!");
+          } catch (error) {
+            console.error("Delete image error:", error);
+            Alert.alert("Error", "Failed to delete image");
+          }
+        },
+      },
+    ]
+  );
+};
 
   return (
     <View style={tw`flex-1 bg-white`}>
@@ -212,6 +265,85 @@ const BusinessDetail = ({ route, navigation }) => {
             </Text>
           </View>
         )}
+
+        {/* Members */}
+        <View style={tw`mb-6`}>
+          <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>
+            Members
+          </Text>
+          {business.members.map((member, index) => (
+            <View
+              key={member._id || index}
+              style={tw`flex-row items-center justify-between mb-3`}
+            >
+              {/* Left side: avatar + name */}
+              <View style={tw`flex-row items-center`}>
+                <Image
+                  source={
+                    member.avatarUrl
+                      ? { uri: member.avatarUrl }
+                      : require("../../assets/profile.png") // fallback image
+                  }
+                  style={tw`w-10 h-10 rounded-full mr-3`}
+                />
+                <Text style={tw`text-base text-gray-700`}>{member.name}</Text>
+              </View>
+
+              {/* Right side: three dots */}
+              <TouchableOpacity
+                onPress={() => {
+                  Alert.alert(
+                    "Member Options",
+                    `Choose action for ${member.name}`,
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Delete",
+                        style: "destructive",
+                        onPress: async () => {
+                          try {
+                            const userData = await getUserData();
+                            const token = userData?.token;
+                            if (!token) {
+                              Alert.alert("Error", "No authentication token found");
+                              return;
+                            }
+
+                            const response = await fetch(
+                              `${API_BASE_URL}/business/${business._id}/members/${member._id}`,
+                              {
+                                method: "DELETE",
+                                headers: {
+                                  Authorization: `Bearer ${token}`,
+                                  "Content-Type": "application/json",
+                                },
+                              }
+                            );
+
+                            if (!response.ok) {
+                              throw new Error("Failed to delete member");
+                            }
+
+                            // Refresh members list
+                            fetchBusinessDetail();
+                            Alert.alert("Success", "Member deleted successfully!");
+                          } catch (error) {
+                            console.error("Delete member error:", error);
+                            Alert.alert("Error", "Failed to delete member");
+                          }
+                        },
+                      },
+                    ]
+                  );
+                }}
+              >
+                <Entypo name="dots-three-vertical" size={18} color="gray" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+
+
 
         <View style={tw`mb-6`}>
           <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Offers</Text>
@@ -335,20 +467,27 @@ const BusinessDetail = ({ route, navigation }) => {
           )}
         </View>
 
+        {/* Gallery */}
         {business.gallery && business.gallery.length > 0 && (
           <View style={tw`mb-6`}>
-            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>
-              Gallery
-            </Text>
+            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Gallery</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {business.gallery.map((imgUrl, index) => (
-                <Image
-                  key={index}
-                  source={{ uri: imgUrl }}
-                  style={tw`w-64 h-40 rounded-lg mr-3`}
-                  resizeMode="cover"
-                />
+              {business.gallery.map((img, index) => (
+                <View key={index} style={tw`relative mr-3`}>
+                  <Image
+                    source={{ uri: img.url }}
+                    style={tw`w-64 h-40 rounded-lg`}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    style={tw`absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1`}
+                    onPress={() => handleDeleteGalleryImage(img.fileKey)}
+                  >
+                    <MaterialIcons name="more-vert" size={20} color="white" />
+                  </TouchableOpacity>
+                </View>
               ))}
+
             </ScrollView>
           </View>
         )}
