@@ -1,39 +1,66 @@
 import React, { useState } from "react";
-import MapboxGL from "@react-native-mapbox-gl/maps";
-import { View, Text, TouchableOpacity } from "react-native";
-import tw from "tailwind-react-native-classnames";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import MapboxGL from "@rnmapbox/maps";
 
-MapboxGL.setAccessToken("YOUR_MAPBOX_TOKEN");
+MapboxGL.setAccessToken(
+  "pk.eyJ1IjoibGVvbi1nYnMiLCJhIjoiY21jc3Eyam1kMTNhdDJqcTJwbzdtMWF2bSJ9.K3Jn-X37-Uy-J9hYU7XbQw"
+);
 
-export default function MapboxPolygonDrawer({ coordinates, onChange }) {
-  const [polygon, setPolygon] = useState(coordinates?.[0] || []);
+const MapboxPolygonDrawer = ({ coordinates, setCoordinates }) => {
+  const [polygon, setPolygon] = useState(coordinates?.[0]?.[0] || []);
+  const [completed, setCompleted] = useState(false);
 
-  const handleAddPoint = (lng, lat) => {
-    const updated = [...polygon, [lng, lat]];
-    setPolygon(updated);
-    onChange([updated]); // Wrap in MultiPolygon format
+  const handleMapPress = (e) => {
+    if (completed) return; // polygon closed
+    const coords = e.geometry.coordinates;
+    setPolygon((prev) => [...prev, coords]);
+  };
+
+  const closePolygon = () => {
+  if (polygon.length < 3) {
+    Alert.alert("Error", "Polygon needs at least 3 points");
+    return;
+  }
+  setCompleted(true);
+  const closed = [...polygon, polygon[0]]; // close ring
+  setPolygon(closed);
+
+  // ✅ Wrap correctly for MultiPolygon [[[ ... ]]]
+  const multiPolygonCoords = [[[closed]]];
+  console.log("✅ Final MultiPolygon Coordinates:", multiPolygonCoords);
+
+  setCoordinates(multiPolygonCoords);
+};
+
+
+  const resetPolygon = () => {
+    setPolygon([]);
+    setCompleted(false);
+    setCoordinates([]);
   };
 
   return (
-    <View style={tw`w-full h-80 border rounded-lg overflow-hidden`}>
+    <View style={{ flex: 1, height: 300 }}>
       <MapboxGL.MapView
-        style={{ flex: 1 }}
-        onPress={(e) => {
-          const { geometry } = e;
-          if (geometry && geometry.coordinates) {
-            const [lng, lat] = geometry.coordinates;
-            handleAddPoint(lng, lat);
-          }
-        }}
+        style={styles.map}
+        styleURL={MapboxGL.StyleURL.Street}
+        onPress={handleMapPress}
       >
-        <MapboxGL.Camera zoomLevel={12} centerCoordinate={[67.0011, 24.8607]} />
+        <MapboxGL.Camera
+          zoomLevel={10}
+          centerCoordinate={[67.0011, 24.8607]} // Karachi default
+        />
 
+        {/* Render polygon */}
         {polygon.length > 2 && (
           <MapboxGL.ShapeSource
             id="polygon"
             shape={{
               type: "Feature",
-              geometry: { type: "Polygon", coordinates: [polygon] },
+              geometry: {
+                type: "Polygon",
+                coordinates: [polygon],
+              },
             }}
           >
             <MapboxGL.FillLayer
@@ -41,24 +68,62 @@ export default function MapboxPolygonDrawer({ coordinates, onChange }) {
               style={{ fillColor: "rgba(59,178,208,0.3)" }}
             />
             <MapboxGL.LineLayer
-              id="polygonStroke"
+              id="polygonLine"
               style={{ lineColor: "#3bb2d0", lineWidth: 2 }}
             />
           </MapboxGL.ShapeSource>
         )}
+
+        {/* Render points */}
+        {polygon.map((coord, i) => (
+          <MapboxGL.PointAnnotation
+            key={`point-${i}`}
+            id={`point-${i}`}
+            coordinate={coord}
+          />
+        ))}
       </MapboxGL.MapView>
 
-      <View style={tw`absolute bottom-2 left-2 flex-row`}>
-        <TouchableOpacity
-          onPress={() => {
-            setPolygon([]);
-            onChange([]);
-          }}
-          style={tw`bg-red-500 px-3 py-1 rounded mr-2`}
-        >
-          <Text style={tw`text-white`}>Clear</Text>
-        </TouchableOpacity>
+      {/* Controls */}
+      <View style={styles.controls}>
+        {!completed ? (
+          <TouchableOpacity style={styles.btn} onPress={closePolygon}>
+            <Text style={styles.btnText}>Close Polygon</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.btn} onPress={resetPolygon}>
+            <Text style={styles.btnText}>Reset</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
-}
+};
+
+export default MapboxPolygonDrawer;
+
+const styles = StyleSheet.create({
+  map: {
+    flex: 1,
+  },
+  controls: {
+    position: "absolute",
+    bottom: 30,
+    alignSelf: "center",
+    flexDirection: "row",
+    backgroundColor: "white",
+    borderRadius: 8,
+    padding: 8,
+    elevation: 4,
+  },
+  btn: {
+    backgroundColor: "#3bb2d0",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  btnText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+});

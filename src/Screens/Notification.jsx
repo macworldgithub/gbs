@@ -14,7 +14,7 @@ export default function NotificationScreen() {
     fetch("https://gbs.westsidecarcare.com.au/notification")
       .then((res) => res.json())
       .then((resData) => {
-        // Group notifications into Today / Yesterday
+
         const today = [];
         const yesterday = [];
         const now = new Date();
@@ -94,13 +94,13 @@ export default function NotificationScreen() {
           </Text>
         </TouchableOpacity>
 
-         {/* <TouchableOpacity
+         <TouchableOpacity
          onPress={() => navigation.navigate("NotificationForm")}
          style={tw`bg-red-500 rounded-full px-3 py-0.5`}>
           <Text style={tw`text-white text-xs font-medium p-2`}>
             create event
           </Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
       </View>
 
       {/* Today */}

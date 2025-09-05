@@ -58,6 +58,8 @@ import SavedOffers from "./src/Screens/SavedOffers";
 import UpgradePackage from "./src/Screens/UpgradePackage";
 import Social from "./src/Screens/Social";
 import EventDetail from "./src/Screens/EventDetail";
+import NotificationForm from "./src/Screens/NotificationForm";
+
 
 const Stack = createStackNavigator();
 
@@ -174,6 +176,7 @@ export default function App() {
             <Stack.Screen name="SavedOffers" component={SavedOffers} />
             <Stack.Screen name="social" component={Social} />
             <Stack.Screen name="UpgradePackage" component={UpgradePackage} />
+            <Stack.Screen name="NotificationForm" component={NotificationForm} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
