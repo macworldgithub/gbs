@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import MapboxGL from "@rnmapbox/maps";
-
+import * as turf from "@turf/turf";
 MapboxGL.setAccessToken(
   "pk.eyJ1IjoibGVvbi1nYnMiLCJhIjoiY21jc3Eyam1kMTNhdDJqcTJwbzdtMWF2bSJ9.K3Jn-X37-Uy-J9hYU7XbQw"
 );
@@ -16,19 +16,33 @@ const MapboxPolygonDrawer = ({ coordinates, setCoordinates }) => {
     setPolygon((prev) => [...prev, coords]);
   };
 
-  const closePolygon = () => {
+const closePolygon = () => {
   if (polygon.length < 3) {
     Alert.alert("Error", "Polygon needs at least 3 points");
     return;
   }
   setCompleted(true);
-  const closed = [...polygon, polygon[0]]; // close ring
+
+  // close ring
+  const closed = [...polygon, polygon[0]];
+
+  // Create turf polygon
+  const turfPolygon = turf.polygon([closed]);
+
+  // ✅ Fix invalid polygon automatically
+  const fixed = turf.cleanCoords(turfPolygon);
+
+  if (!turf.booleanValid(fixed)) {
+    Alert.alert("Invalid Shape", "Polygon edges are crossing. Please draw again.");
+    setPolygon([]);
+    setCompleted(false);
+    return;
+  }
+
   setPolygon(closed);
 
-  // ✅ Wrap correctly for MultiPolygon [[[ ... ]]]
-  const multiPolygonCoords = [[[closed]]];
-  console.log("✅ Final MultiPolygon Coordinates:", multiPolygonCoords);
-
+  // ✅ Wrap correctly
+  const multiPolygonCoords = [[closed]];
   setCoordinates(multiPolygonCoords);
 };
 

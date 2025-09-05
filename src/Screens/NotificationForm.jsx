@@ -7,11 +7,18 @@ import {
   Switch,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as turf from "@turf/turf";
+import { useNavigation } from "@react-navigation/native"; 
+
+// Change this to your backend base URL
+const API_BASE_URL = "http://192.168.100.21:9000";
 
 export default function NotificationForm({
   notification,
@@ -19,6 +26,7 @@ export default function NotificationForm({
   onCancel,
   isLoading = false,
 }) {
+  
   const [formData, setFormData] = useState({
     title: "",
     message: "",
@@ -26,8 +34,13 @@ export default function NotificationForm({
     startDate: new Date(),
     endDate: new Date(),
     SendToAll: false,
+    roles: [], // 👈 selected roles
   });
 
+  const [loadingRoles, setLoadingRoles] = useState(false);
+  const [roles, setRoles] = useState([]);
+
+  // Pre-fill form when editing
   useEffect(() => {
     if (notification) {
       setFormData({
@@ -38,39 +51,108 @@ export default function NotificationForm({
         endDate: notification.endDate
           ? new Date(notification.endDate)
           : new Date(),
+        roles: notification.roles || [],
       });
     }
   }, [notification]);
 
-  const handleSubmit = async () => {
+  // Load roles from API
+  useEffect(() => {
+    loadRoles();
+  }, []);
+
+  const loadRoles = async () => {
+    try {
+      setLoadingRoles(true);
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedUserData = JSON.parse(userData);
+      const token = parsedUserData?.token;
+
+      if (!token) {
+        Alert.alert("Error", "No token found, please login again.");
+        return;
+      }
+
+      const res = await axios.get(`${API_BASE_URL}/roles`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setRoles(res.data || []);
+    } catch (e) {
+      console.log("[NotificationForm] roles error:", e.response?.data || e.message);
+      Alert.alert("Error", "Failed to load roles");
+    } finally {
+      setLoadingRoles(false);
+    }
+  };
+
+  const toggleRole = (roleId) => {
+    setFormData((prev) => {
+      const alreadySelected = prev.roles.includes(roleId);
+      return {
+        ...prev,
+        roles: alreadySelected
+          ? prev.roles.filter((id) => id !== roleId) // remove
+          : [...prev.roles, roleId], // add
+      };
+    });
+  };
+
+ const handleSubmit = async () => {
+  try {
+    let fixedCoords = [];
+
+    if (formData.area.coordinates.length > 0) {
+      // Build polygon safely
+      const coords = formData.area.coordinates[0][0] || [];
+
+      if (coords.length < 4) {
+        Alert.alert("Error", "Polygon must have at least 4 points.");
+        return;
+      }
+
+      let polygon = turf.polygon([coords]);
+      polygon = turf.cleanCoords(polygon); // remove duplicates
+
+      // If polygon is invalid, attempt to fix
+      if (!turf.booleanValid(polygon)) {
+        const unkinked = turf.unkinkPolygon(polygon);
+        if (unkinked.features.length > 0) {
+          polygon = unkinked.features[0];
+        }
+      }
+
+      fixedCoords =
+        polygon.geometry.type === "Polygon"
+          ? [[polygon.geometry.coordinates[0]]] // wrap for MultiPolygon
+          : polygon.geometry.coordinates;
+    }
+
     const payload = {
       ...formData,
+      area: {
+        type: "MultiPolygon",
+        coordinates: fixedCoords,
+      },
       startDate: formData.startDate.toISOString(),
       endDate: formData.endDate.toISOString(),
-      roles: [
-        "60f8a2f0e1d3c2001cf6b1e7", // example role IDs
-        "60f8a2f0e1d3c2001cf6b1e8",
-      ],
     };
 
     console.log("📦 Payload to be sent:", JSON.stringify(payload, null, 2));
 
-    try {
-      const res = await axios.post(
-        "https://gbs.westsidecarcare.com.au/notification",
-        payload,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      console.log("✅ API Response:", res.data);
-      Alert.alert("Success", "Notification created successfully!");
-      if (onSubmit) onSubmit(payload);
-    } catch (error) {
-      console.error("❌ API Error:", error.response?.data || error.message);
-      Alert.alert("Error", "Failed to create notification.");
-    }
-  };
+    const res = await axios.post(`${API_BASE_URL}/notification`, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+
+    console.log("✅ API Response:", res.data);
+    Alert.alert("Success", "Notification created successfully!");
+    if (onSubmit) onSubmit(payload);
+  } catch (error) {
+    console.error("❌ API Error:", error.response?.data || error.message);
+    Alert.alert("Error", "Failed to create notification.");
+  }
+};
+
 
   return (
     <ScrollView style={tw`flex-1 bg-white p-4 mt-14`}>
@@ -131,6 +213,47 @@ export default function NotificationForm({
         />
       </View>
 
+      {/* Roles */}
+      <View style={tw`mt-6`}>
+        <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
+          Roles *
+        </Text>
+        {loadingRoles ? (
+          <View style={tw`flex-row items-center`}>
+            <ActivityIndicator color="#DC2626" size="small" />
+            <Text style={tw`ml-2 text-gray-500 text-sm`}>
+              Loading roles...
+            </Text>
+          </View>
+        ) : (
+          <View style={tw`flex-row flex-wrap`}>
+            {roles.map((role) => (
+              <TouchableOpacity
+                key={role._id}
+                style={tw.style(
+                  `px-3 py-1 rounded-full mr-2 mb-2`,
+                  formData.roles.includes(role._id)
+                    ? `bg-red-500`
+                    : `bg-gray-200`
+                )}
+                onPress={() => toggleRole(role._id)}
+              >
+                <Text
+                  style={tw.style(
+                    `text-xs font-medium`,
+                    formData.roles.includes(role._id)
+                      ? `text-white`
+                      : `text-gray-700`
+                  )}
+                >
+                  {role.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+
       {/* Map Polygon Drawer */}
       {!formData.SendToAll && (
         <View style={tw`mt-6 h-80`}>
@@ -140,14 +263,16 @@ export default function NotificationForm({
           <MapboxPolygonDrawer
             coordinates={formData.area.coordinates}
             setCoordinates={(coords) => {
-              console.log("🗺️ Selected Coordinates:", JSON.stringify(coords, null, 2));
+              console.log(
+                "🗺️ Selected Coordinates:",
+                JSON.stringify(coords, null, 2)
+              );
               setFormData((p) => ({
                 ...p,
                 area: { type: "MultiPolygon", coordinates: coords },
               }));
             }}
           />
-
         </View>
       )}
 
@@ -172,3 +297,4 @@ export default function NotificationForm({
     </ScrollView>
   );
 }
+

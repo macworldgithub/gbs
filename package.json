@@ -19,6 +19,7 @@
     "@react-navigation/native-stack": "^7.3.14",
     "@react-navigation/stack": "^7.3.2",
     "@rnmapbox/maps": "^10.1.42",
+    "@turf/turf": "^7.2.0",
     "antd-mobile": "^5.39.0",
     "axios": "^1.10.0",
     "expo": "~53.0.9",

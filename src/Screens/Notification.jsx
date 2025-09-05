@@ -77,7 +77,7 @@ export default function NotificationScreen() {
   }
 
   return (
-    <ScrollView style={tw`flex-1 bg-white pt-10`}>
+    <ScrollView style={tw`flex-1 bg-white pt-10 mt-8`}>
       {/* Header */}
       <View
         style={tw`flex-row justify-between items-center px-4 py-4 border-b border-gray-100`}
@@ -88,17 +88,17 @@ export default function NotificationScreen() {
         <Text style={tw`text-lg font-semibold text-black ml-2 flex-1`}>
           Notification
         </Text>
-        <TouchableOpacity style={tw`bg-red-500 rounded-full px-3 py-0.5`}>
+        {/* <TouchableOpacity style={tw`bg-red-500 rounded-full px-3 py-0.5`}>
           <Text style={tw`text-white text-xs font-medium p-2`}>
             {data.today.length + data.yesterday.length} NEW
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
          <TouchableOpacity
          onPress={() => navigation.navigate("NotificationForm")}
-         style={tw`bg-red-500 rounded-full px-3 py-0.5`}>
-          <Text style={tw`text-white text-xs font-medium p-2`}>
-            create event
+         style={tw`border border-red-500 rounded-full px-3 py-0.5`}>
+          <Text style={tw`text-red-500 text-xs font-medium p-2`}>
+             create Notification
           </Text>
         </TouchableOpacity>
       </View>
