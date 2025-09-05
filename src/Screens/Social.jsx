@@ -46,7 +46,7 @@ const Social = () => {
 
     useEffect(() => {
         const fetchUser = async () => {
-            const u = await getUserData();
+            const u = await getUserData(); 
             console.log("Fetched user data:", u);
             setUser(u);
         };
