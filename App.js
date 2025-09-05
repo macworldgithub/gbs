@@ -35,6 +35,7 @@ import GroupInfo from "./src/Screens/GroupInfo";
 import GroupChat from "./src/Screens/GroupChat";
 import Gallery from "./src/Screens/Gallery";
 import MuteGroup from "./src/Screens/MuteGroup";
+import GroupConversations from "./src/Screens/GroupConversations";
 import FavoriteEmpty from "./src/Screens/FavoriteEmpty";
 import Favorite from "./src/Screens/Favorite";
 import ForgotPass from "./src/Screens/ForgotPass";
@@ -154,6 +155,10 @@ export default function App() {
             <Stack.Screen name="Chat" component={Chat} />
             <Stack.Screen name="CreateGroup" component={CreateGroup} />
             <Stack.Screen name="GroupChat" component={GroupChat} />
+            <Stack.Screen
+              name="GroupConversations"
+              component={GroupConversations}
+            />
             <Stack.Screen name="GroupInfo" component={GroupInfo} />
             <Stack.Screen name="Gallery" component={Gallery} />
             <Stack.Screen name="MuteGroup" component={MuteGroup} />

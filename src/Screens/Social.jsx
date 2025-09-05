@@ -46,7 +46,7 @@ const Social = () => {
 
     useEffect(() => {
         const fetchUser = async () => {
-            const u = await getUserData();
+            const u = await getUserData(); 
             console.log("Fetched user data:", u);
             setUser(u);
         };
@@ -205,38 +205,38 @@ const Social = () => {
 
 
 
-    const handleDelete = async (event) => {
-        const loggedInUserId = user?.user?._id || user?._id || user?.sub;
+  const handleDelete = async (event) => {
+    const loggedInUserId = user?.user?._id || user?._id || user?.sub;
 
-        if (event.creator?._id !== loggedInUserId) {
-            Alert.alert("Only the event creator can delete this event");
-            return;
-        }
+    if (event.creator?._id !== loggedInUserId) {
+      Alert.alert("Only the event creator can delete this event");
+      return;
+    }
 
-        try {
-            const res = await fetch(`${API_URL}/${event._id}`, {
-                method: "DELETE",
-                headers: {
-                    Accept: "application/json",
-                    Authorization: `Bearer ${user?.token}`,
-                },
-            });
+    try {
+      const res = await fetch(`${API_URL}/${event._id}`, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${user?.token}`,
+        },
+      });
 
-            if (res.ok) {
-                Alert.alert("Deleted", "Event deleted successfully!");
-                fetchEvents(selectedState);
-            } else {
-                const err = await res.json();
-                Alert.alert("Error", err.message || "Delete failed");
-            }
-        } catch (error) {
-            Alert.alert("Error", error.message);
-        }
-    };
+      if (res.ok) {
+        Alert.alert("Deleted", "Event deleted successfully!");
+        fetchEvents(selectedState);
+      } else {
+        const err = await res.json();
+        Alert.alert("Error", err.message || "Delete failed");
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    }
+  };
 
-    const handleBookEvent = async (eventId) => {
-        try {
-            const token = user?.token || user?.accessToken || user?.idToken;
+  const handleBookEvent = async (eventId) => {
+    try {
+      const token = user?.token || user?.accessToken || user?.idToken;
 
             if (!token) {
                 Alert.alert("Error", "You must be logged in to book an event.");
@@ -449,42 +449,42 @@ const Social = () => {
                             </View>
                         </View>
 
-                        {/* Date */}
-                        <View style={tw`flex-row items-center mt-2`}>
-                            <MaterialIcons name="event" size={16} color="gray" />
-                            <Text style={tw`text-sm text-gray-600 ml-2`}>
-                                {new Date(event.startDate).toDateString()}
-                            </Text>
-                        </View>
+            {/* Date */}
+            <View style={tw`flex-row items-center mt-2`}>
+              <MaterialIcons name="event" size={16} color="gray" />
+              <Text style={tw`text-sm text-gray-600 ml-2`}>
+                {new Date(event.startDate).toDateString()}
+              </Text>
+            </View>
 
-                        {/* State */}
-                        <View style={tw`flex-row items-center mt-1`}>
-                            <Entypo name="map" size={16} color="gray" />
-                            <Text style={tw`text-sm text-gray-600 ml-2`}>
-                                {typeof event?.state === "string" && event.state.trim() !== ""
-                                    ? event.state
-                                    : "N/A"}
-                            </Text>
-                        </View>
+            {/* State */}
+            <View style={tw`flex-row items-center mt-1`}>
+              <Entypo name="map" size={16} color="gray" />
+              <Text style={tw`text-sm text-gray-600 ml-2`}>
+                {typeof event?.state === "string" && event.state.trim() !== ""
+                  ? event.state
+                  : "N/A"}
+              </Text>
+            </View>
 
-                        {/* Location */}
-                        <View style={tw`flex-row items-center mt-1`}>
-                            <MaterialIcons name="location-pin" size={16} color="gray" />
-                            <Text
-                                style={tw`text-sm text-gray-600 ml-2 flex-1`}
-                                numberOfLines={1}
-                                ellipsizeMode="tail"
-                            >
-                                {Array.isArray(event?.locationNames)
-                                    ? event.locationNames.length > 0
-                                        ? event.locationNames.join(", ")
-                                        : "N/A"
-                                    : typeof event?.locationNames === "string" &&
-                                        event.locationNames.trim() !== ""
-                                        ? event.locationNames
-                                        : "N/A"}
-                            </Text>
-                        </View>
+            {/* Location */}
+            <View style={tw`flex-row items-center mt-1`}>
+              <MaterialIcons name="location-pin" size={16} color="gray" />
+              <Text
+                style={tw`text-sm text-gray-600 ml-2 flex-1`}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {Array.isArray(event?.locationNames)
+                  ? event.locationNames.length > 0
+                    ? event.locationNames.join(", ")
+                    : "N/A"
+                  : typeof event?.locationNames === "string" &&
+                      event.locationNames.trim() !== ""
+                    ? event.locationNames
+                    : "N/A"}
+              </Text>
+            </View>
 
                         {/* Creator */}
                         <View style={tw`flex-row items-center mt-1`}>
@@ -554,13 +554,13 @@ const Social = () => {
                     </TouchableOpacity>
                 ))}
 
-            {/* ✅ Edit Modal */}
-            <Modal visible={modalVisible} animationType="slide" transparent>
-                <View
-                    style={tw`flex-1 bg-black bg-opacity-50 justify-center items-center`}
-                >
-                    <View style={tw`bg-white rounded-lg p-6 w-11/12`}>
-                        <Text style={tw`text-lg font-bold mb-4`}>Edit Event</Text>
+      {/* ✅ Edit Modal */}
+      <Modal visible={modalVisible} animationType="slide" transparent>
+        <View
+          style={tw`flex-1 bg-black bg-opacity-50 justify-center items-center`}
+        >
+          <View style={tw`bg-white rounded-lg p-6 w-11/12`}>
+            <Text style={tw`text-lg font-bold mb-4`}>Edit Event</Text>
 
                         <TextInput
                             placeholder="Title"

@@ -554,6 +554,14 @@ export default function MembersDirectory({ navigation }) {
         Members Directory
       </Text>
 
+      {/* Create Group Chat button */}
+      <TouchableOpacity
+        onPress={() => navigation.navigate("CreateGroup")}
+        style={tw`self-stretch bg-red-500 rounded-xl py-3 items-center mb-3`}
+      >
+        <Text style={tw`text-white font-semibold`}>Create Group Chat</Text>
+      </TouchableOpacity>
+
       {/* 🔍 Search Bar */}
       <View
         style={tw`flex-row items-center border border-red-400 rounded-full px-4 py-2 mb-4 mt-6`}
