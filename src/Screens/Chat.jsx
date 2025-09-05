@@ -665,58 +665,6 @@ export default function Chat({ navigation }) {
             });
 
             return (
-              // <View
-              //   style={tw.style(
-              //     `px-4 py-2 my-1`,
-              //     item.fromMe ? "items-end" : "items-start"
-              //   )}
-              // >
-              //   {item.type === "text" && item.text && (
-              //     <View
-              //       style={tw.style(
-              //         "rounded-xl px-4 py-2 flex-row items-center",
-              //         item.fromMe ? "bg-pink-200" : "bg-gray-100"
-              //       )}
-              //     >
-              //       <Text style={tw`mr-1`}>{item.text} </Text>
-              //       {/* ✅ status checkmarks only for my messages */}
-              //       {item.fromMe && (
-              //         <Ionicons
-              //           name={item.isRead ? "checkmark-done" : "checkmark"}
-              //           size={16}
-              //           color={item.isRead ? "blue" : "gray"}
-              //         />
-              //       )}
-              //     </View>
-              //   )}
-
-              //   {item.type === "IMAGE" && item.url && (
-              //     <Image
-              //       source={{ uri: item.url }}
-              //       style={{ width: 200, height: 200, borderRadius: 12 }}
-              //       resizeMode="cover"
-              //     />
-              //   )}
-
-              //   {item.type === "VIDEO" && item.url && (
-              //     <Video
-              //       source={{ uri: item.url }}
-              //       style={{ width: 250, height: 250 }}
-              //       controls
-              //       resizeMode="contain"
-              //     />
-              //   )}
-
-              //   {/* Debug: Show message type if no content/url */}
-              //   {!item.text && !item.url && (
-              //     <View style={tw`bg-gray-200 rounded-lg px-3 py-2`}>
-              //       <Text style={tw`text-xs text-gray-500`}>
-              //         Debug: Type={item.type}, URL=
-              //         {item.url ? "Present" : "Missing"}
-              //       </Text>
-              //     </View>
-              //   )}
-              // </View>
               <View
                 style={tw.style(
                   `px-4 py-2 my-1`,
@@ -822,9 +770,7 @@ export default function Chat({ navigation }) {
                 blurOnSubmit={false}
                 multiline
               />
-              {/* <TouchableOpacity onPress={handlePlus} style={tw`px-2`}>
-                <Ionicons name="attach-outline" size={22} color="#6b7280" />
-              </TouchableOpacity> */}
+
               <TouchableOpacity onPress={pickMedia} style={tw`px-2`}>
                 <Ionicons name="attach-outline" size={22} color="#6b7280" />
               </TouchableOpacity>
