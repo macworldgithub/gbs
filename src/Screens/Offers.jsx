@@ -68,95 +68,70 @@ const Offers = ({ navigation }) => {
   };
 
   const saveOffer = async (offerId) => {
-    try {
-      const isSaved = offers
-        .find((offer) => offer._id === offerId)
-        ?.savedBy?.includes(userId);
-      const action = isSaved ? "unsave" : "save";
-      const setAction = isSaved ? setUnsaving : setSaving;
-      setAction((prev) => ({ ...prev, [offerId]: true }));
+  try {
+    const isSaved = offers
+      .find((offer) => offer._id === offerId)
+      ?.savedBy?.includes(userId);
+    const action = isSaved ? "unsave" : "save";
+    const setAction = isSaved ? setUnsaving : setSaving;
+    setAction((prev) => ({ ...prev, [offerId]: true }));
 
-      const userData = await getUserData();
-      const token = userData?.token;
+    const userData = await getUserData();
+    const token = userData?.token;
 
-      if (!token || !userId) {
-        Alert.alert("Error", "User not logged in");
-        return;
-      }
-
-      const url = `${API_BASE_URL}/offer/${offerId}/${action}/${userId}`;
-      console.log(`Performing ${action} offer:`, url);
-
-      const res = await axios({
-        method: action === "save" ? "post" : "delete",
-        url: url,
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      console.log(`${action} Offer Response:`, res.status, res.data);
-
-      // if (res.status === 200 || res.status === 201) {
-      //   setOffers((prevOffers) =>
-      //     prevOffers.map((offer) =>
-      //       offer._id === offerId
-      //         ? {
-      //             ...offer,
-      //             savedBy:
-      //               action === "save"
-      //                 ? [...(offer.savedBy || []), userId]
-      //                 : offer.savedBy.filter((id) => id !== userId),
-      //           }
-      //         : offer
-      //     )
-      //   );
-      //   if (action === "unsave") {
-      //     Alert.alert("Success", "This offer is unsaved");
-      //   }
-
-      
-      // } else {
-      //   Alert.alert("Error", `Failed to ${action} offer`);
-      // }
-
-
-if (res.status === 200 || res.status === 201) {
-  setOffers((prevOffers) =>
-    prevOffers.map((offer) =>
-      offer._id === offerId
-        ? {
-            ...offer,
-            savedBy:
-              action === "save"
-                ? [...(offer.savedBy || []), userId]
-                : offer.savedBy.filter((id) => id !== userId),
-          }
-        : offer
-    )
-  );
-
-  if (action === "save") {
-    Alert.alert("Success", "This offer is saved");
-  } else {
-    Alert.alert("Success", "This offer is unsaved");
-  }
-} else {
-  Alert.alert("Error", `Failed to ${action} offer`);
-}
-
-
-
-    } catch (err) {
-      console.error(
-        `Error ${isSaved ? "unsaving" : "saving"} offer:`,
-        err.response?.status,
-        err.response?.data || err.message
-      );
-      Alert.alert("Error", `Could not ${isSaved ? "unsave" : "save"} offer`);
-    } finally {
-      setSaving((prev) => ({ ...prev, [offerId]: false }));
-      setUnsaving((prev) => ({ ...prev, [offerId]: false }));
+    if (!token || !userId) {
+      Alert.alert("Error", "User not logged in");
+      return;
     }
-  };
+
+    // ✅ Updated API URLs (no userId in path)
+    const url = `${API_BASE_URL}/offer/${offerId}/${action}`;
+    console.log(`Performing ${action} offer:`, url);
+
+    const res = await axios({
+      method: action === "save" ? "post" : "delete",
+      url: url,
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    console.log(`${action} Offer Response:`, res.status, res.data);
+
+    if (res.status === 200 || res.status === 201) {
+      setOffers((prevOffers) =>
+        prevOffers.map((offer) =>
+          offer._id === offerId
+            ? {
+                ...offer,
+                savedBy:
+                  action === "save"
+                    ? [...(offer.savedBy || []), userId]
+                    : offer.savedBy.filter((id) => id !== userId),
+              }
+            : offer
+        )
+      );
+
+      if (action === "save") {
+        Alert.alert("Success", "This offer is saved");
+      } else {
+        Alert.alert("Success", "This offer is unsaved");
+      }
+    } else {
+      Alert.alert("Error", `Failed to ${action} offer`);
+    }
+  } catch (err) {
+    console.error(
+      `Error ${isSaved ? "unsaving" : "saving"} offer:`,
+      err.response?.status,
+      err.response?.data || err.message
+    );
+    Alert.alert("Error", `Could not ${isSaved ? "unsave" : "save"} offer`);
+  } finally {
+    setSaving((prev) => ({ ...prev, [offerId]: false }));
+    setUnsaving((prev) => ({ ...prev, [offerId]: false }));
+  }
+};
+
 
   useEffect(() => {
     fetchOffers(activeTab);

@@ -220,7 +220,7 @@ const OfferDetails = ({ route, navigation }) => {
   };
 
   return (
-    <View style={tw`flex-1 bg-white mt-8`}>
+    <View style={tw`flex-1 bg-white mt-12`}>
       <ScrollView style={tw`flex-1`}>
         {/* Top Header */}
         <View style={tw`flex-row items-center bg-red-500 px-4 py-3`}>
@@ -466,3 +466,5 @@ const OfferDetails = ({ route, navigation }) => {
 };
 
 export default OfferDetails;
+
+
