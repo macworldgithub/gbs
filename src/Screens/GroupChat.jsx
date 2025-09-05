@@ -7,6 +7,8 @@ import {
   Image,
   FlatList,
   Alert,
+  Modal,
+  ScrollView,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -24,6 +26,7 @@ export default function GroupChat() {
   const route = useRoute();
   const conversationId = route?.params?.conversationId || null;
   const group = route?.params?.group || { name: "Group" };
+  const initialParticipants = route?.params?.participants || [];
 
   const [token, setToken] = useState(null);
   const [myUserId, setMyUserId] = useState(null);
@@ -35,8 +38,12 @@ export default function GroupChat() {
   const isPickingRef = useRef(false);
 
   const [newMessage, setNewMessage] = useState("");
+  const [showAddParticipant, setShowAddParticipant] = useState(false);
+  const [showViewParticipants, setShowViewParticipants] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [participants, setParticipants] = useState([]);
 
-  // Load auth
+  // Load auth and participants
   useEffect(() => {
     (async () => {
       const stored = await AsyncStorage.getItem("userData");
@@ -45,8 +52,117 @@ export default function GroupChat() {
         setToken(parsed?.token || null);
         setMyUserId(parsed?._id || null);
       }
+      setParticipants(initialParticipants);
     })();
   }, []);
+
+  // Load available users for adding participants
+  const loadAvailableUsers = async () => {
+    try {
+      const stored = await AsyncStorage.getItem("userData");
+      const parsed = stored ? JSON.parse(stored) : null;
+      const token = parsed?.token;
+      const meId = parsed?._id;
+
+      const res = await axios.get(`${API_BASE_URL}/user`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const list = Array.isArray(res.data) ? res.data : res.data?.users || [];
+      const currentParticipantIds = participants.map((p) => p._id || p.id);
+      const filtered = list.filter(
+        (u) =>
+          u?._id && u._id !== meId && !currentParticipantIds.includes(u._id)
+      );
+      setAvailableUsers(filtered);
+    } catch (e) {
+      console.log("load available users error", e.response?.data || e.message);
+      setAvailableUsers([]);
+    }
+  };
+
+  const addParticipant = async (userId) => {
+    try {
+      const stored = await AsyncStorage.getItem("userData");
+      const parsed = stored ? JSON.parse(stored) : null;
+      const token = parsed?.token;
+      if (!token) {
+        Alert.alert("Error", "Please login again");
+        return;
+      }
+
+      const res = await axios.post(
+        `${API_BASE_URL}/messages/add-participant`,
+        { conversationId, participantId: userId },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      Alert.alert("Success", "Participant added successfully");
+      setShowAddParticipant(false);
+      // Refresh participants list
+      loadAvailableUsers();
+    } catch (e) {
+      Alert.alert(
+        "Error",
+        e.response?.data?.message || e.message || "Failed to add participant"
+      );
+    }
+  };
+
+  const removeParticipant = async (userId, userName) => {
+    Alert.alert(
+      "Remove Participant",
+      `Are you sure you want to remove ${userName} from this group?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const stored = await AsyncStorage.getItem("userData");
+              const parsed = stored ? JSON.parse(stored) : null;
+              const token = parsed?.token;
+              if (!token) {
+                Alert.alert("Error", "Please login again");
+                return;
+              }
+
+              const res = await axios.post(
+                `${API_BASE_URL}/messages/remove-participant`,
+                { conversationId, participantId: userId },
+                {
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+
+              Alert.alert("Success", "Participant removed successfully");
+              // Remove from local participants list
+              setParticipants((prev) =>
+                prev.filter((p) => (p._id || p.id) !== userId)
+              );
+              // Refresh available users for adding
+              loadAvailableUsers();
+            } catch (e) {
+              Alert.alert(
+                "Error",
+                e.response?.data?.message ||
+                  e.message ||
+                  "Failed to remove participant"
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
 
   // Socket connect
   useEffect(() => {
@@ -148,21 +264,25 @@ export default function GroupChat() {
     }
   };
 
-  const formatMessage = (msg) => ({
-    id: msg._id,
-    text: msg.content || "",
-    fromMe: msg.sender?._id === myUserId,
-    status: msg.isRead ? "seen" : "sent",
-    time: new Date(msg.createdAt || Date.now()).toLocaleTimeString(),
-    type:
-      Array.isArray(msg.media) && msg.media.length > 0
-        ? msg.media[0].type
-        : "text",
-    url:
-      Array.isArray(msg.media) && msg.media.length > 0
-        ? msg.media[0].signedUrl
-        : null,
-  });
+  const formatMessage = (msg) => {
+    const senderName = msg.sender?.name || "Unknown";
+    return {
+      id: msg._id,
+      text: msg.content || "",
+      fromMe: msg.sender?._id === myUserId,
+      senderName,
+      status: msg.isRead ? "seen" : "sent",
+      time: new Date(msg.createdAt || Date.now()).toLocaleTimeString(),
+      type:
+        Array.isArray(msg.media) && msg.media.length > 0
+          ? msg.media[0].type
+          : "text",
+      url:
+        Array.isArray(msg.media) && msg.media.length > 0
+          ? msg.media[0].signedUrl
+          : null,
+    };
+  };
 
   // Load messages
   useEffect(() => {
@@ -193,12 +313,17 @@ export default function GroupChat() {
   const sendMessage = () => {
     if (!newMessage.trim() || !socketRef.current) return;
     const tempId = `local-${Date.now()}`;
+    // Get current user name from participants or use a default
+    const currentUser = participants.find((p) => (p._id || p.id) === myUserId);
+    const senderName = currentUser?.name || "You";
+
     setMessages((prev) => [
       ...prev,
       {
         id: tempId,
         text: newMessage.trim(),
         fromMe: true,
+        senderName,
         status: "sending",
         type: "text",
         createdAt: new Date().toISOString(),
@@ -281,6 +406,10 @@ export default function GroupChat() {
     sendingMediaSetRef.current.add(fpKey);
 
     const tempId = `local-${Date.now()}`;
+    // Get current user name from participants or use a default
+    const currentUser = participants.find((p) => (p._id || p.id) === myUserId);
+    const senderName = currentUser?.name || "You";
+
     setMessages((prev) => [
       ...prev,
       {
@@ -288,6 +417,7 @@ export default function GroupChat() {
         url: file.uri,
         type: displayType,
         fromMe: true,
+        senderName,
         status: "sending",
         fileName: file.fileName || `upload-${Date.now()}.${extension}`,
         createdAt: new Date().toISOString(),
@@ -340,50 +470,92 @@ export default function GroupChat() {
             <Text style={tw`text-xs text-gray-500`}>Group Conversation</Text>
           </View>
         </View>
-        <TouchableOpacity>
-          <MaterialIcons name="video-call" size={28} color="red" />
-        </TouchableOpacity>
+        <View style={tw`flex-row`}>
+          <TouchableOpacity
+            onPress={() => setShowViewParticipants(true)}
+            style={tw`mr-3`}
+          >
+            <Ionicons name="people" size={24} color="red" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              setShowAddParticipant(true);
+              loadAvailableUsers();
+            }}
+          >
+            <Ionicons name="person-add" size={24} color="red" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Chat Messages */}
       <FlatList
         ref={listRef}
         data={messages}
         keyExtractor={(item) => item.id}
         contentContainerStyle={tw`pb-2`}
         renderItem={({ item }) => {
+          const isMe = item.fromMe;
+
           return (
             <View
               style={tw.style(
-                "px-4 mt-1",
-                item.fromMe ? "items-end" : "items-start"
+                "px-4 mt-2 w-full",
+                isMe ? "items-end" : "items-start"
               )}
             >
+              {/* Bubble */}
               <View
                 style={tw.style(
-                  "rounded-xl px-4 py-2",
-                  item.fromMe ? "bg-pink-200" : "bg-gray-100"
+                  "max-w-3/4 rounded-2xl px-4 py-2",
+                  isMe ? "bg-pink-500" : "bg-gray-200"
                 )}
               >
-                <Text>{item.text}</Text>
-              </View>
-              <View style={tw`flex-row items-center mt-1`}>
-                <Text style={tw`text-xs text-gray-500 mr-1`}>{item.time}</Text>
-                {item.fromMe && item.status && (
-                  <Ionicons
-                    name={
-                      item.status === "sent"
-                        ? "checkmark"
-                        : item.status === "delivered"
-                          ? "checkmark-done"
-                          : item.status === "seen"
-                            ? "checkmark-done-circle"
-                            : "time"
-                    }
-                    size={16}
-                    color={item.status === "seen" ? "blue" : "gray"}
-                  />
+                {/* Sender name - only show for others */}
+                {!isMe && (
+                  <Text
+                    style={[tw`text-xs font-semibold mb-1`, { color: "red" }]}
+                  >
+                    {item.senderName || "Unknown"}
+                  </Text>
                 )}
+
+                {/* Message text */}
+                <Text
+                  style={tw.style(
+                    "text-base",
+                    isMe ? "text-white" : "text-black"
+                  )}
+                >
+                  {item.text}
+                </Text>
+
+                {/* Time and status inside bubble */}
+                <View style={tw`flex-row items-center justify-between mt-1`}>
+                  <Text
+                    style={tw.style(
+                      "text-xs",
+                      isMe ? "text-pink-100" : "text-gray-500"
+                    )}
+                  >
+                    {item.time}
+                  </Text>
+
+                  {isMe && item.status && (
+                    <Ionicons
+                      name={
+                        item.status === "sent"
+                          ? "checkmark"
+                          : item.status === "delivered"
+                            ? "checkmark-done"
+                            : item.status === "seen"
+                              ? "checkmark-done-circle"
+                              : "time"
+                      }
+                      size={12}
+                      color={item.status === "seen" ? "#60a5fa" : "#d1d5db"}
+                    />
+                  )}
+                </View>
               </View>
             </View>
           );
@@ -419,6 +591,115 @@ export default function GroupChat() {
           <Ionicons name="send" size={24} color="#3b82f6" />
         </TouchableOpacity>
       </View>
+
+      {/* Add Participant Modal */}
+      <Modal visible={showAddParticipant} transparent animationType="slide">
+        <View style={tw`flex-1 bg-black/50 justify-center items-center`}>
+          <View style={tw`w-11/12 bg-white rounded-xl p-4 max-h-96`}>
+            <View style={tw`flex-row justify-between items-center mb-4`}>
+              <Text style={tw`text-lg font-bold`}>Add Participant</Text>
+              <TouchableOpacity onPress={() => setShowAddParticipant(false)}>
+                <Ionicons name="close" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView>
+              {availableUsers.map((user) => (
+                <TouchableOpacity
+                  key={user._id}
+                  onPress={() => addParticipant(user._id)}
+                  style={tw`flex-row items-center p-3 border-b border-gray-200`}
+                >
+                  <Image
+                    source={require("../../assets/user.png")}
+                    style={tw`w-10 h-10 rounded-full mr-3`}
+                  />
+                  <View style={tw`flex-1`}>
+                    <Text style={tw`text-black font-semibold`}>
+                      {user.name || "Unnamed"}
+                    </Text>
+                    {user.email ? (
+                      <Text style={tw`text-gray-500 text-xs`}>
+                        {user.email}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <Ionicons name="add-circle" size={24} color="#ef4444" />
+                </TouchableOpacity>
+              ))}
+              {availableUsers.length === 0 && (
+                <Text style={tw`text-gray-500 text-center py-4`}>
+                  No users available to add
+                </Text>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* View Participants Modal */}
+      <Modal visible={showViewParticipants} transparent animationType="slide">
+        <View style={tw`flex-1 bg-black/50 justify-center items-center`}>
+          <View style={tw`w-11/12 bg-white rounded-xl p-4 max-h-96`}>
+            <View style={tw`flex-row justify-between items-center mb-4`}>
+              <Text style={tw`text-lg font-bold`}>Group Participants</Text>
+              <TouchableOpacity onPress={() => setShowViewParticipants(false)}>
+                <Ionicons name="close" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView>
+              {participants.map((participant) => (
+                <View
+                  key={participant._id || participant.id}
+                  style={tw`flex-row items-center justify-between p-3 border-b border-gray-200`}
+                >
+                  <View style={tw`flex-row items-center flex-1`}>
+                    <Image
+                      source={require("../../assets/user.png")}
+                      style={tw`w-10 h-10 rounded-full mr-3`}
+                    />
+                    <View style={tw`flex-1`}>
+                      <Text style={tw`text-black font-semibold`}>
+                        {participant.name || "Unnamed"}
+                      </Text>
+                      {participant.email ? (
+                        <Text style={tw`text-gray-500 text-xs`}>
+                          {participant.email}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </View>
+
+                  {/* Only show remove button if not the current user */}
+                  {(participant._id || participant.id) !== myUserId && (
+                    <TouchableOpacity
+                      onPress={() =>
+                        removeParticipant(
+                          participant._id || participant.id,
+                          participant.name || "this user"
+                        )
+                      }
+                      style={tw`p-2`}
+                    >
+                      <Ionicons
+                        name="remove-circle"
+                        size={24}
+                        color="#ef4444"
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+              {participants.length === 0 && (
+                <Text style={tw`text-gray-500 text-center py-4`}>
+                  No participants found
+                </Text>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

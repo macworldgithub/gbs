@@ -47,6 +47,7 @@ export default function GroupConversations({ navigation }) {
     navigation.navigate("GroupChat", {
       conversationId: conv._id,
       group: { name: conv.groupName || "Group" },
+      participants: conv.participants || [],
     });
   };
 
