@@ -506,7 +506,7 @@ export default function GroupChat() {
               {/* Bubble */}
               <View
                 style={tw.style(
-                  "max-w-3/4 rounded-2xl px-4 py-2",
+                  " rounded-2xl px-4 py-2",
                   isMe ? "bg-pink-500" : "bg-gray-200"
                 )}
               >
