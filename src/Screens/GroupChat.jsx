@@ -488,50 +488,6 @@ export default function GroupChat() {
         </View>
       </View>
 
-      {/* Chat Messages */}
-      {/* <FlatList
-        ref={listRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={tw`pb-2`}
-        renderItem={({ item }) => {
-          return (
-            <View
-              style={tw.style(
-                "px-4 mt-1",
-                item.fromMe ? "items-end" : "items-start"
-              )}
-            >
-              <View
-                style={tw.style(
-                  "rounded-xl px-4 py-2",
-                  item.fromMe ? "bg-pink-200" : "bg-gray-100"
-                )}
-              >
-                <Text>{item.text}</Text>
-              </View>
-              <View style={tw`flex-row items-center mt-1`}>
-                <Text style={tw`text-xs text-gray-500 mr-1`}>{item.time}</Text>
-                {item.fromMe && item.status && (
-                  <Ionicons
-                    name={
-                      item.status === "sent"
-                        ? "checkmark"
-                        : item.status === "delivered"
-                          ? "checkmark-done"
-                          : item.status === "seen"
-                            ? "checkmark-done-circle"
-                            : "time"
-                    }
-                    size={16}
-                    color={item.status === "seen" ? "blue" : "gray"}
-                  />
-                )}
-              </View>
-            </View>
-          );
-        }}
-      /> */}
       <FlatList
         ref={listRef}
         data={messages}
@@ -547,13 +503,6 @@ export default function GroupChat() {
                 isMe ? "items-end" : "items-start"
               )}
             >
-              {/* Sender name - only show for others, not for my own messages */}
-              {!isMe && (
-                <Text style={tw`text-xs text-gray-600 mb-1 ml-2`}>
-                  {item.senderName || "Unknown"}
-                </Text>
-              )}
-
               {/* Bubble */}
               <View
                 style={tw.style(
@@ -561,6 +510,16 @@ export default function GroupChat() {
                   isMe ? "bg-pink-500" : "bg-gray-200"
                 )}
               >
+                {/* Sender name - only show for others */}
+                {!isMe && (
+                  <Text
+                    style={[tw`text-xs font-semibold mb-1`, { color: "red" }]}
+                  >
+                    {item.senderName || "Unknown"}
+                  </Text>
+                )}
+
+                {/* Message text */}
                 <Text
                   style={tw.style(
                     "text-base",
@@ -569,32 +528,34 @@ export default function GroupChat() {
                 >
                   {item.text}
                 </Text>
-              </View>
 
-              {/* Time + status */}
-              <View
-                style={tw.style(
-                  "flex-row items-center mt-1",
-                  isMe ? "justify-end" : "justify-start"
-                )}
-              >
-                <Text style={tw`text-xs text-gray-500 mr-1`}>{item.time}</Text>
+                {/* Time and status inside bubble */}
+                <View style={tw`flex-row items-center justify-between mt-1`}>
+                  <Text
+                    style={tw.style(
+                      "text-xs",
+                      isMe ? "text-pink-100" : "text-gray-500"
+                    )}
+                  >
+                    {item.time}
+                  </Text>
 
-                {isMe && item.status && (
-                  <Ionicons
-                    name={
-                      item.status === "sent"
-                        ? "checkmark"
-                        : item.status === "delivered"
-                          ? "checkmark-done"
-                          : item.status === "seen"
-                            ? "checkmark-done-circle"
-                            : "time"
-                    }
-                    size={14}
-                    color={item.status === "seen" ? "blue" : "gray"}
-                  />
-                )}
+                  {isMe && item.status && (
+                    <Ionicons
+                      name={
+                        item.status === "sent"
+                          ? "checkmark"
+                          : item.status === "delivered"
+                            ? "checkmark-done"
+                            : item.status === "seen"
+                              ? "checkmark-done-circle"
+                              : "time"
+                      }
+                      size={12}
+                      color={item.status === "seen" ? "#60a5fa" : "#d1d5db"}
+                    />
+                  )}
+                </View>
               </View>
             </View>
           );
