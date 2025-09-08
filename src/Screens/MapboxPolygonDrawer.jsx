@@ -16,6 +16,8 @@ const MapboxPolygonDrawer = ({ coordinates, setCoordinates }) => {
     setPolygon((prev) => [...prev, coords]);
   };
 
+  
+
 const closePolygon = () => {
   if (polygon.length < 3) {
     Alert.alert("Error", "Polygon needs at least 3 points");
