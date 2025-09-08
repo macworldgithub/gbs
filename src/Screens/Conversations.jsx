@@ -24,7 +24,6 @@ export default function Conversations({ navigation }) {
     };
     init();
   }, []);
-
   useEffect(() => {
     const fetchConversations = async () => {
       if (!token || !myUserId) return;
@@ -39,9 +38,11 @@ export default function Conversations({ navigation }) {
         );
         console.log("✅ Conversations GET response:", data);
 
+        // ✅ Filter out group chats
         const conversations = Array.isArray(data?.conversations)
-          ? data.conversations
+          ? data.conversations.filter((c) => !c.isGroup)
           : [];
+
         const mapped = conversations.map((c) => {
           const other =
             (c.participants || []).find((p) => p._id !== myUserId) || {};
@@ -49,6 +50,7 @@ export default function Conversations({ navigation }) {
             Array.isArray(c.messages) && c.messages.length > 0
               ? c.messages[0]
               : null;
+
           return {
             id: c._id,
             otherUser: {
@@ -59,6 +61,7 @@ export default function Conversations({ navigation }) {
             lastText: last?.content || "",
           };
         });
+
         console.log("✅ Conversations mapped for UI:", mapped);
         setItems(mapped);
       } catch (e) {
