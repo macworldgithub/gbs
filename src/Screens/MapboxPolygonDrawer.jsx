@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import MapboxGL from "@rnmapbox/maps";
 import * as turf from "@turf/turf";
@@ -46,6 +46,14 @@ const closePolygon = () => {
   setCoordinates(multiPolygonCoords);
 };
 
+
+useEffect(() => {
+    if (coordinates && coordinates.length > 0) {
+      const prePolygon = coordinates[0][0]; // unwrap MultiPolygon -> Polygon -> Ring
+      setPolygon(prePolygon);
+      setCompleted(true);
+    }
+  }, [coordinates]);
 
   const resetPolygon = () => {
     setPolygon([]);

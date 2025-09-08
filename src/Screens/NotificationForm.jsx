@@ -15,17 +15,19 @@ import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as turf from "@turf/turf";
-import { useNavigation } from "@react-navigation/native"; 
-
-// Change this to your backend base URL
-const API_BASE_URL = "http://192.168.100.21:9000";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { API_BASE_URL } from "../utils/config";
 
 export default function NotificationForm({
-  notification,
   onSubmit,
   onCancel,
   isLoading = false,
 }) {
+
+  const navigation = useNavigation();
+   const route = useRoute();
+  const notification = route.params?.notification; 
+  
   
   const [formData, setFormData] = useState({
     title: "",
@@ -42,19 +44,28 @@ export default function NotificationForm({
 
   // Pre-fill form when editing
   useEffect(() => {
-    if (notification) {
-      setFormData({
-        ...notification,
-        startDate: notification.startDate
-          ? new Date(notification.startDate)
-          : new Date(),
-        endDate: notification.endDate
-          ? new Date(notification.endDate)
-          : new Date(),
-        roles: notification.roles || [],
-      });
-    }
-  }, [notification]);
+  if (notification) {
+    const coords = notification.area?.coordinates || [];
+    setFormData({
+      ...notification,
+      startDate: notification.startDate
+        ? new Date(notification.startDate)
+        : new Date(),
+      endDate: notification.endDate
+        ? new Date(notification.endDate)
+        : new Date(),
+       roles: (notification.roles || []).map(r =>
+        typeof r === "string" ? r : r._id
+      ),
+
+      area: {
+        type: "MultiPolygon",
+        coordinates: Array.isArray(coords) ? coords : [],
+      },
+    });
+  }
+}, [notification]);
+
 
   // Load roles from API
   useEffect(() => {
@@ -103,7 +114,6 @@ export default function NotificationForm({
     let fixedCoords = [];
 
     if (formData.area.coordinates.length > 0) {
-      // Build polygon safely
       const coords = formData.area.coordinates[0][0] || [];
 
       if (coords.length < 4) {
@@ -112,9 +122,8 @@ export default function NotificationForm({
       }
 
       let polygon = turf.polygon([coords]);
-      polygon = turf.cleanCoords(polygon); // remove duplicates
+      polygon = turf.cleanCoords(polygon);
 
-      // If polygon is invalid, attempt to fix
       if (!turf.booleanValid(polygon)) {
         const unkinked = turf.unkinkPolygon(polygon);
         if (unkinked.features.length > 0) {
@@ -124,32 +133,53 @@ export default function NotificationForm({
 
       fixedCoords =
         polygon.geometry.type === "Polygon"
-          ? [[polygon.geometry.coordinates[0]]] // wrap for MultiPolygon
+          ? [[polygon.geometry.coordinates[0]]]
           : polygon.geometry.coordinates;
     }
 
     const payload = {
       ...formData,
-      area: {
-        type: "MultiPolygon",
-        coordinates: fixedCoords,
-      },
+      area: { type: "MultiPolygon", coordinates: fixedCoords },
       startDate: formData.startDate.toISOString(),
       endDate: formData.endDate.toISOString(),
     };
 
-    console.log("📦 Payload to be sent:", JSON.stringify(payload, null, 2));
+    console.log("📦 Payload:", JSON.stringify(payload, null, 2));
 
-    const res = await axios.post(`${API_BASE_URL}/notification`, payload, {
-      headers: { "Content-Type": "application/json" },
-    });
+    // 🔄 Check create or update
+    let res;
+    if (notification?._id) {
+      // UPDATE
+      res = await axios.put(
+        `${API_BASE_URL}/notification/${notification._id}`,
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+    } else {
+      // CREATE
+      res = await axios.post(`${API_BASE_URL}/notification`, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     console.log("✅ API Response:", res.data);
-    Alert.alert("Success", "Notification created successfully!");
-    if (onSubmit) onSubmit(payload);
+
+    Alert.alert(
+      "Success",
+      notification ? "Notification updated successfully!" : "Notification created successfully!",
+      [
+        {
+          text: "OK",
+          onPress: () => {
+            if (onSubmit) onSubmit(payload);
+            navigation.goBack(); // 👈 list me wapas
+          },
+        },
+      ]
+    );
   } catch (error) {
     console.error("❌ API Error:", error.response?.data || error.message);
-    Alert.alert("Error", "Failed to create notification.");
+    Alert.alert("Error", "Failed to save notification.");
   }
 };
 
@@ -261,7 +291,7 @@ export default function NotificationForm({
             Select Area (Draw Polygon)
           </Text>
           <MapboxPolygonDrawer
-            coordinates={formData.area.coordinates}
+            coordinates={formData.area?.coordinates || []}
             setCoordinates={(coords) => {
               console.log(
                 "🗺️ Selected Coordinates:",
@@ -279,7 +309,7 @@ export default function NotificationForm({
       {/* Actions */}
       <View style={tw`flex-row justify-end mt-6`}>
         <TouchableOpacity
-          onPress={onCancel}
+          onPress={() => navigation.goBack()}
           style={tw`px-4 py-2 bg-gray-200 rounded mr-2`}
         >
           <Text style={tw`text-gray-700`}>Cancel</Text>
