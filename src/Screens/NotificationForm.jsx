@@ -35,7 +35,7 @@ export default function NotificationForm({
     area: { type: "MultiPolygon", coordinates: [] },
     startDate: new Date(),
     endDate: new Date(),
-    SendToAll: false,
+    SendToAll: true,
     roles: [], // 👈 selected roles
   });
 
@@ -185,7 +185,7 @@ export default function NotificationForm({
 
 
   return (
-    <ScrollView style={tw`flex-1 bg-white p-4 mt-14`}>
+    <ScrollView style={tw`flex-1 bg-white p-4 mt-14 mb-20`}>
       <Text style={tw`text-lg font-semibold mb-4`}>
         {notification ? "Edit Notification" : "Create Notification"}
       </Text>

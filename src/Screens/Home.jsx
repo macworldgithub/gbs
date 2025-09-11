@@ -21,6 +21,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Drawer from "../../components/Drawer";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/config";
+import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
 
 const upcomingEvents = [
   {
@@ -62,6 +63,7 @@ export default function Home() {
 
   // Sidebar state
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [coordinates, setCoordinates] = useState([]);
 
   // Create Event Modal state
   const [createEventModalVisible, setCreateEventModalVisible] = useState(false);
@@ -123,6 +125,7 @@ export default function Home() {
     });
     setShowStartDatePicker(false);
     setShowEndDatePicker(false);
+    setCoordinates([]);
   };
 
   const onStartDateChange = (event, selectedDate) => {
@@ -142,6 +145,16 @@ export default function Home() {
       setEventForm((prev) => ({ ...prev, endDate: selectedDate }));
     }
   };
+
+
+  useEffect(() => {
+    if (coordinates.length > 0) {
+      console.log("[Home] Selected coordinates:", JSON.stringify(coordinates, null, 2));
+    }
+  }, [coordinates]);
+
+
+
 
   const createEvent = async () => {
     if (
@@ -170,22 +183,16 @@ export default function Home() {
         state: eventForm.state,
         area: {
           type: "MultiPolygon",
-          coordinates: [
-            [
-              [
-                [151.2093, -33.8688], // Sydney coordinates
-                [151.2094, -33.8689],
-                [151.2095, -33.8688],
-                [151.2093, -33.8688],
-              ],
-            ],
-          ],
+          coordinates: coordinates.length > 0 ? coordinates : [],
         },
         openToAll: false,
         startDate: eventForm.startDate.toISOString(),
         endDate: eventForm.endDate.toISOString(),
         roles: [eventForm.selectedRoleId],
       };
+
+      console.log("[Home] Final Event Payload:", JSON.stringify(body, null, 2));
+
 
       const res = await axios.post(`${API_BASE_URL}/events`, body, {
         headers: {
@@ -278,7 +285,7 @@ export default function Home() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={openCreateEventModal}
+            onPress={() => navigation.navigate("CreateEvent")}
             style={tw`flex-row items-center border border-red-500 px-3 py-1 rounded-full`}
           >
             {/* <Ionicons name="log-out-outline" size={20} color="#ef4444" /> */}
@@ -482,20 +489,20 @@ export default function Home() {
       <Drawer isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Create Event Modal */}
-      <Modal visible={createEventModalVisible} transparent animationType="fade">
+      {/* <Modal visible={createEventModalVisible} transparent animationType="fade">
         <View
           style={tw`flex-1 bg-black bg-opacity-50 justify-center items-center`}
         >
-          <View style={tw`bg-white w-11/12 max-w-md rounded-2xl p-6 max-h-96`}>
+          <View style={tw`bg-white w-11/12 max-w-md rounded-2xl p-6`}>
             <Text style={tw`text-lg font-bold text-gray-900 text-center mb-4`}>
               Create New Event
             </Text>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Title Input */}
+            
               <View style={tw`mb-4`}>
                 <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
-                  Event Title *
+                  Title *
                 </Text>
                 <TextInput
                   style={tw`border border-gray-300 rounded-lg px-3 py-2 text-sm`}
@@ -506,8 +513,7 @@ export default function Home() {
                   }
                 />
               </View>
-
-              {/* Description Input */}
+            
               <View style={tw`mb-4`}>
                 <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
                   Description *
@@ -524,7 +530,7 @@ export default function Home() {
                 />
               </View>
 
-              {/* State Dropdown */}
+        
               <View style={tw`mb-4`}>
                 <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
                   State *
@@ -558,7 +564,6 @@ export default function Home() {
                 </View>
               </View>
 
-              {/* Start Date */}
               <View style={tw`mb-4`}>
                 <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
                   Start Date *
@@ -577,7 +582,6 @@ export default function Home() {
                 </TouchableOpacity>
               </View>
 
-              {/* End Date */}
               <View style={tw`mb-4`}>
                 <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
                   End Date *
@@ -596,7 +600,7 @@ export default function Home() {
                 </TouchableOpacity>
               </View>
 
-              {/* Roles Dropdown */}
+
               <View style={tw`mb-6`}>
                 <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
                   Role *
@@ -648,9 +652,20 @@ export default function Home() {
                   </View>
                 )}
               </View>
+                <View style={tw`mb-6`}>
+                <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
+                  Select Event Area *
+                </Text>
+                <View style={{ height: 300 }}>
+                  <MapboxPolygonDrawer
+                    coordinates={coordinates}
+                    setCoordinates={setCoordinates}
+                  />
+                </View>
+              </View>
+
             </ScrollView>
 
-            {/* Action Buttons */}
             <View style={tw`flex-row mt-4`}>
               <TouchableOpacity
                 style={tw`flex-1 bg-gray-200 py-2 rounded-lg mr-2`}
@@ -672,7 +687,7 @@ export default function Home() {
             </View>
           </View>
 
-          {/* Date Pickers */}
+
           {showStartDatePicker && (
             <DateTimePicker
               value={eventForm.startDate}
@@ -691,7 +706,7 @@ export default function Home() {
             />
           )}
         </View>
-      </Modal>
+      </Modal> */}
     </View>
   );
 }
