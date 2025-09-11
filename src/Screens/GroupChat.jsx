@@ -9,6 +9,7 @@ import {
   Alert,
   Modal,
   ScrollView,
+  Platform,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -20,6 +21,9 @@ import axios from "axios";
 import { io } from "socket.io-client";
 import { API_BASE_URL } from "../utils/config";
 import * as FileSystem from "expo-file-system";
+import Video from "react-native-video";
+import * as mime from "react-native-mime-types";
+import { launchImageLibrary } from "react-native-image-picker";
 
 export default function GroupChat() {
   const navigation = useNavigation();
@@ -358,27 +362,80 @@ export default function GroupChat() {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 0.7,
-        base64: false,
+        base64: true,
       });
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const captured = result.assets[0];
-        await sendMediaMessage(captured);
+
+        const file = {
+          uri: captured.uri,
+          type: captured.type === "image" ? "image/jpeg" : captured.type, // normalize
+          fileName: `camera-${Date.now()}.jpg`, // 👈 camera doesn’t give name
+          base64: captured.base64,
+          fileSize: captured.fileSize || null,
+          assetId: captured.assetId || null,
+        };
+
+        await sendMediaMessage(file);
+        console.log("📸 Normalized Camera file:", file);
       }
     } catch (e) {
       Alert.alert("Error", "Failed to capture image");
     }
   };
 
+  // const pickMedia = () => {
+  //   if (isPickingRef.current) return;
+  //   isPickingRef.current = true;
+  //   ImagePicker.launchImageLibraryAsync({
+  //     mediaTypes: ImagePicker.MediaTypeOptions.All,
+  //     quality: 0.8,
+  //   }).then(async (res) => {
+  //     try {
+  //       if (!res.canceled && res.assets && res.assets.length > 0) {
+  //         await sendMediaMessage(res.assets[0]);
+  //       }
+  //     } finally {
+  //       setTimeout(() => {
+  //         isPickingRef.current = false;
+  //       }, 300);
+  //     }
+  //   });
+  // };
   const pickMedia = () => {
     if (isPickingRef.current) return;
     isPickingRef.current = true;
-    ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+
+    const options = {
+      mediaType: "mixed", // allow image + video
       quality: 0.8,
-    }).then(async (res) => {
+      selectionLimit: 1,
+      includeBase64: true, // ✅ needed for backend flow
+    };
+
+    launchImageLibrary(options, async (res) => {
+      console.log("📸 Media Picker Response:", res);
+
       try {
-        if (!res.canceled && res.assets && res.assets.length > 0) {
-          await sendMediaMessage(res.assets[0]);
+        if (res.didCancel) {
+          console.log("❌ User cancelled media picker");
+        } else if (res.errorCode) {
+          console.log("⚠️ Media picker error:", res.errorMessage);
+        } else if (res.assets && res.assets.length > 0) {
+          const picked = res.assets[0];
+          console.log("✅ Picked media:", picked);
+
+          const file = {
+            uri: picked.uri,
+            type: picked.type, // "image/jpeg" or "video/mp4"
+            fileName: picked.fileName || `upload-${Date.now()}`,
+            base64: picked.base64, // ✅ added
+            fileSize: picked.fileSize,
+            duration: picked.duration,
+            assetId: picked.id,
+          };
+
+          await sendMediaMessage(file);
         }
       } finally {
         setTimeout(() => {
@@ -388,17 +445,21 @@ export default function GroupChat() {
     });
   };
 
+ 
   const sendMediaMessage = async (file) => {
+    console.log("🚀 Sending media file:", file);
+
     const mimeType =
+      mime.lookup(file.uri) ||
       file.type ||
-      file.mimeType ||
       (file.uri?.toLowerCase().endsWith(".mp4") ? "video/mp4" : "image/jpeg");
-    const extension = mimeType.split("/")[1] || "jpg";
+
+    const extension = mime.extension(mimeType) || "jpg";
     const displayType = mimeType.startsWith("video")
-      ? "VIDEO"
+      ? "video"
       : mimeType.startsWith("image")
-        ? "IMAGE"
-        : "FILE";
+        ? "image"
+        : "file";
 
     const fingerprint = file.assetId || file.uri;
     const fpKey = fingerprint || `${file.uri}-${extension}`;
@@ -406,10 +467,10 @@ export default function GroupChat() {
     sendingMediaSetRef.current.add(fpKey);
 
     const tempId = `local-${Date.now()}`;
-    // Get current user name from participants or use a default
     const currentUser = participants.find((p) => (p._id || p.id) === myUserId);
     const senderName = currentUser?.name || "You";
 
+    // Optimistic UI
     setMessages((prev) => [
       ...prev,
       {
@@ -419,27 +480,34 @@ export default function GroupChat() {
         fromMe: true,
         senderName,
         status: "sending",
-        fileName: file.fileName || `upload-${Date.now()}.${extension}`,
+        fileName: file.fileName,
         createdAt: new Date().toISOString(),
       },
     ]);
 
     try {
-      const fileUri =
-        Platform.OS === "android" ? file.uri : file.uri.replace("file://", "");
-      const base64 = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
       if (!socketRef.current) throw new Error("Socket not connected");
+
+      console.log("📨 Emitting socket sendMessage (with base64 file)");
+
       socketRef.current.emit("sendMessage", {
         conversationId,
         file: {
-          name: file.fileName || `upload-${Date.now()}.${extension}`,
+          name: file.fileName,
           type: mimeType,
-          data: `data:${mimeType};base64,${base64}`,
+          data: `data:${mimeType};base64,${file.base64}`, // ✅ send base64
         },
       });
+      console.log("🖼️ File before upload:", {
+        uri: file.uri,
+        name: file.fileName,
+        type: file.type,
+        hasBase64: !!file.base64,
+      });
+
+      // No manual S3 upload needed, backend does it ✅
     } catch (err) {
+      console.log("❌ sendMediaMessage error", err?.message || err);
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       Alert.alert("Error", "Failed to send media");
     } finally {
@@ -510,6 +578,23 @@ export default function GroupChat() {
                   isMe ? "bg-pink-500" : "bg-gray-200"
                 )}
               >
+                {/* Media (image/video) */}
+                {item.url && item.type === "image" && (
+                  <Image
+                    source={{ uri: item.url }}
+                    style={tw`w-56 h-56 rounded-lg mb-2`}
+                    resizeMode="cover"
+                  />
+                )}
+                {item.url && item.type === "video" && (
+                  <Video
+                    source={{ uri: item.url }}
+                    style={tw`w-64 h-40 rounded-lg mb-2`}
+                    controls
+                    resizeMode="contain"
+                    paused={false}
+                  />
+                )}
                 {/* Sender name - only show for others */}
                 {!isMe && (
                   <Text
@@ -520,14 +605,16 @@ export default function GroupChat() {
                 )}
 
                 {/* Message text */}
-                <Text
-                  style={tw.style(
-                    "text-base",
-                    isMe ? "text-white" : "text-black"
-                  )}
-                >
-                  {item.text}
-                </Text>
+                {item.text ? (
+                  <Text
+                    style={tw.style(
+                      "text-base",
+                      isMe ? "text-white" : "text-black"
+                    )}
+                  >
+                    {item.text}
+                  </Text>
+                ) : null}
 
                 {/* Time and status inside bubble */}
                 <View style={tw`flex-row items-center justify-between mt-1`}>
