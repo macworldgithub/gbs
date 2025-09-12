@@ -13,6 +13,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../utils/config";
 import { getUserData } from "../utils/storage";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const UpgradePackage = ({ navigation }) => {
   const [roles, setRoles] = useState([]);
@@ -112,11 +113,17 @@ const UpgradePackage = ({ navigation }) => {
   return (
     <View style={tw`flex-1 bg-white`}>
       {/* Header */}
-      <View style={tw`bg-red-500 pt-14 pb-6 px-5`}>
-        <Text style={tw`text-white text-2xl font-bold`}>
+       <View style={tw`bg-white border-b border-gray-200 pt-14 pb-4 px-4  bg-red-500 `}>
+        <TouchableOpacity
+          style={tw`absolute top-14 left-4 z-10`}
+          onPress={() => navigation.goBack()}
+        >
+          <MaterialIcons name="arrow-back" size={24} color="white"  />
+        </TouchableOpacity>
+        <Text style={tw`text-center text-white text-2xl font-bold`}>
           Upgrade Your Package
         </Text>
-        <Text style={tw`text-white text-xs mt-1`}>
+        <Text style={tw`text-center text-white text-xs mt-1`}>
           Choose a package to unlock Business features
         </Text>
       </View>

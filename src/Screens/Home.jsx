@@ -467,7 +467,7 @@ export default function Home() {
         data={[{}]}
         renderItem={() => (
           <View style={tw`px-4`}>
-            <View style={tw`flex-row justify-between mb-2`}>
+            <View style={tw`flex-row justify-between mb-2 `}>
               <Text style={tw`font-semibold`}>
                 {activeTab === "all" ? "All Events" : `${activeTab} Events`}
               </Text>
