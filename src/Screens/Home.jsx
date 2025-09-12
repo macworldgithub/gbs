@@ -48,6 +48,7 @@ const tabs = [
   { key: "NSW", label: "NSW", icon: "location-on" },
   { key: "QLD", label: "QLD", icon: "location-on" },
   { key: "SA", label: "SA", icon: "location-on" },
+  { key: "WA", label: "WA", icon: "location-on" },
 ];
 
 export default function Home() {
@@ -300,9 +301,9 @@ export default function Home() {
       >
         <Ionicons name="search" size={18} color="#9CA3AF" />
         <TextInput
-          style={tw`ml-2 flex-1 text-sm`}
+          style={tw`ml-2 flex-1 text-sm p-4`}
           placeholder="Search businesses, offers, users"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor="gray"
           value={searchQuery}
           onChangeText={setSearchQuery}
           blurOnSubmit={false}
