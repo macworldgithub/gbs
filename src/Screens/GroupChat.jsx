@@ -989,6 +989,13 @@ export default function GroupChat() {
       {/* View Participants Modal */}
       <Modal visible={showViewParticipants} transparent animationType="slide">
         <View style={tw`flex-1 bg-black/50 justify-center items-center`}>
+          <BlurView
+            style={tw`absolute inset-0`}
+            blurType="light" // "light", "dark", "xlight"
+            blurAmount={10} // Adjust blur strength
+            reducedTransparencyFallbackColor="white"
+            // reducedTransparencyFallbackColor="rgba(0,0,0,0.5)"
+          />
           <View style={tw`w-11/12 bg-white rounded-xl p-4 max-h-96`}>
             <View style={tw`flex-row justify-between items-center mb-4`}>
               <Text style={tw`text-lg font-bold`}>Group Participants</Text>
