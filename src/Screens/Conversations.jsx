@@ -4,6 +4,7 @@ import tw from "tailwind-react-native-classnames";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../utils/config";
 import axios from "axios";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 export default function Conversations({ navigation }) {
   const [token, setToken] = useState(null);
@@ -114,8 +115,11 @@ export default function Conversations({ navigation }) {
 
   return (
     <View style={tw`flex-1 bg-white mt-10`}>
-      <View style={tw`p-4`}>
-        <Text style={tw`text-lg font-bold`}>Conversations</Text>
+      <View style={tw`p-4 flex-row  items-center border-b border-gray-200`}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} />
+        </TouchableOpacity>
+        <Text style={tw`text-lg font-bold pl-4`}>Conversations</Text>
       </View>
       {loading ? (
         <Text style={tw`text-center text-gray-500 mt-10`}>Loading...</Text>
