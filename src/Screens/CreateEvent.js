@@ -184,23 +184,23 @@ export default function CreateEvent({ navigation }) {
                     ))}
                 </View>
 
-               <Text style={tw`text-sm text-gray-700 mb-1`}>Start Date</Text>
-      <DateTimePicker
-        value={eventForm.startDate}
-        mode="datetime"
-        onChange={(e, date) =>
-          date && setEventForm((p) => ({ ...p, startDate: date }))
-        }
-      />
+                <Text style={tw`text-sm text-gray-700 mb-1`}>Start Date</Text>
+                <DateTimePicker
+                    value={eventForm.startDate}
+                    mode="datetime"
+                    onChange={(e, date) =>
+                        date && setEventForm((p) => ({ ...p, startDate: date }))
+                    }
+                />
 
-      <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
-      <DateTimePicker
-        value={eventForm.endDate}
-        mode="datetime"
-        onChange={(e, date) =>
-          date && setEventForm((p) => ({ ...p, endDate: date }))
-        }
-      />
+                <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
+                <DateTimePicker
+                    value={eventForm.endDate}
+                    mode="datetime"
+                    onChange={(e, date) =>
+                        date && setEventForm((p) => ({ ...p, endDate: date }))
+                    }
+                />
 
                 {/* Roles */}
                 <Text style={tw`mb-1 text-sm font-semibold text-gray-700`}>Select Role</Text>
