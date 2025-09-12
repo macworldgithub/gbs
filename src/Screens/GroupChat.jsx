@@ -29,6 +29,7 @@ export default function GroupChat() {
   const navigation = useNavigation();
   const route = useRoute();
   const conversationId = route?.params?.conversationId || null;
+  console.log(conversationId, "conversationId of current group chat");
   const group = route?.params?.group || { name: "Group" };
   const initialParticipants = route?.params?.participants || [];
 
@@ -46,6 +47,8 @@ export default function GroupChat() {
   const [showViewParticipants, setShowViewParticipants] = useState(false);
   const [availableUsers, setAvailableUsers] = useState([]);
   const [participants, setParticipants] = useState([]);
+  const [groupImage, setGroupImage] = useState(group?.groupImage || null);
+  console.log(groupImage, "group image");
 
   // Load auth and participants
   useEffect(() => {
@@ -384,24 +387,6 @@ export default function GroupChat() {
     }
   };
 
-  // const pickMedia = () => {
-  //   if (isPickingRef.current) return;
-  //   isPickingRef.current = true;
-  //   ImagePicker.launchImageLibraryAsync({
-  //     mediaTypes: ImagePicker.MediaTypeOptions.All,
-  //     quality: 0.8,
-  //   }).then(async (res) => {
-  //     try {
-  //       if (!res.canceled && res.assets && res.assets.length > 0) {
-  //         await sendMediaMessage(res.assets[0]);
-  //       }
-  //     } finally {
-  //       setTimeout(() => {
-  //         isPickingRef.current = false;
-  //       }, 300);
-  //     }
-  //   });
-  // };
   const pickMedia = () => {
     if (isPickingRef.current) return;
     isPickingRef.current = true;
@@ -445,7 +430,6 @@ export default function GroupChat() {
     });
   };
 
- 
   const sendMediaMessage = async (file) => {
     console.log("🚀 Sending media file:", file);
 
@@ -516,6 +500,265 @@ export default function GroupChat() {
       }, 1500);
     }
   };
+  // pick and upload image
+  // const handlePickGroupImage = async () => {
+  //   if (!token || !conversationId) return;
+
+  //   const result = await ImagePicker.launchImageLibraryAsync({
+  //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //     quality: 0.8,
+  //     base64: false,
+  //   });
+
+  //   if (result.canceled) return;
+
+  //   const asset = result.assets[0];
+  //   const fileName = asset.fileName ?? `group-${Date.now()}.jpg`;
+  //   const fileType = "image/jpeg"; // or detect from asset
+
+  //   try {
+  //     // 1. Get presigned upload URL
+  //     const {
+  //       data: { url, key },
+  //     } = await axios.post(
+  //       `${API_BASE_URL}/messages/${conversationId}/group-image/upload-url`,
+  //       { fileName, fileType },
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+
+  //     // 2. Upload file directly to S3
+  //     const imageData = await fetch(asset.uri).then((res) => res.blob());
+  //     await fetch(url, {
+  //       method: "PUT",
+  //       headers: { "Content-Type": fileType },
+  //       body: imageData,
+  //     });
+
+  //     // 3. Update groupImage in backend
+  //     const { data: updatedConversation } = await axios.patch(
+  //       `${API_BASE_URL}/messages/${conversationId}/group-image`,
+  //       { fileKey: key },
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+
+  //     setGroupImage(updatedConversation.groupImage); // ✅ update locally
+  //   } catch (err) {
+  //     Alert.alert("Error", err.response?.data?.message || err.message);
+  //   }
+  // };
+  // Add at top if not already present:
+  // import * as ImagePicker from 'expo-image-picker';
+  // import mime from 'mime';
+
+  // const handlePickGroupImage = async () => {
+  //   if (isPickingRef.current) return;
+  //   isPickingRef.current = true;
+  //   try {
+  //     const stored = await AsyncStorage.getItem("userData");
+  //     const parsed = stored ? JSON.parse(stored) : null;
+  //     const token = parsed?.token;
+  //     if (!token) {
+  //       Alert.alert("Error", "Please login again");
+  //       return;
+  //     }
+  //     if (!conversationId) {
+  //       Alert.alert("Error", "Missing conversationId");
+  //       return;
+  //     }
+
+  //     // 1) Pick an image
+  //     const result = await ImagePicker.launchImageLibraryAsync({
+  //       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //       allowsEditing: true,
+  //       aspect: [1, 1], // square crop for avatar
+  //       quality: 0.9,
+  //       base64: false,
+  //     });
+  //     if (result.canceled) return;
+
+  //     const asset = result.assets?.[0];
+  //     const uri = asset?.uri;
+  //     if (!uri) {
+  //       Alert.alert("Error", "No image selected");
+  //       return;
+  //     }
+
+  //     // 2) Derive filename and mimetype (service allows jpeg/png/gif/webp)
+  //     // const detectedType = asset.mimeType || mime.getType(uri) || "image/jpeg";
+  //     const detectedType = asset.mimeType || mime.lookup(uri) || "image/jpeg";
+  //     const ext = mime.extension(detectedType) || "jpg";
+  //     const allowedTypes = [
+  //       "image/jpeg",
+  //       "image/png",
+  //       "image/gif",
+  //       "image/webp",
+  //     ];
+  //     const fileType = allowedTypes.includes(detectedType)
+  //       ? detectedType
+  //       : "image/jpeg";
+  //     // const extension = mime.getExtension(fileType) || "jpg";
+  //     const extension = mime.extension(fileType) || "jpg";
+  //     const fileName = asset.fileName || `group-${Date.now()}.${extension}`;
+
+  //     // 3) Request presigned URL
+  //     const { data: presign } = await axios.post(
+  //       `${API_BASE_URL}/messages/${conversationId}/group-image/upload-url`,
+  //       { fileName, fileType },
+  //       {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+  //     const { url, key } = presign || {};
+  //     if (!url || !key) {
+  //       Alert.alert("Error", "Failed to get upload URL");
+  //       return;
+  //     }
+
+  //     // 4) Upload file to S3 using presigned URL
+  //     // Note: fetch(uri) -> blob works in Expo. If your RN runtime lacks Blob,
+  //     // consider using expo-file-system or rn-fetch-blob.
+  //     const fileRes = await fetch(uri);
+  //     const blob = await fileRes.blob();
+  //     await fetch(url, {
+  //       method: "PUT",
+  //       headers: { "Content-Type": fileType },
+  //       body: blob,
+  //     });
+
+  //     // 5) Confirm update with backend (saves key to conversation)
+  //     const updateRes = await axios.patch(
+  //       `${API_BASE_URL}/messages/${conversationId}/group-image`,
+  //       { fileKey: key },
+  //       {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+
+  //     // The service returns conversation with signed groupImage if needed
+  //     const updated = updateRes?.data;
+  //     const updatedGroupImage = updated?.groupImage || null;
+  //     if (updatedGroupImage) {
+  //       setGroupImage(updatedGroupImage);
+  //     }
+
+  //     Alert.alert("Success", "Group image updated");
+  //   } catch (e) {
+  //     const msg =
+  //       e?.response?.data?.message ||
+  //       e?.message ||
+  //       "Failed to update group image";
+  //     Alert.alert("Error", msg);
+  //   } finally {
+  //     isPickingRef.current = false;
+  //   }
+  // };
+  const handlePickGroupImage = async () => {
+    if (isPickingRef.current) return;
+    isPickingRef.current = true;
+    try {
+      const stored = await AsyncStorage.getItem("userData");
+      const parsed = stored ? JSON.parse(stored) : null;
+      const token = parsed?.token;
+      if (!token) {
+        Alert.alert("Error", "Please login again");
+        return;
+      }
+      if (!conversationId) {
+        Alert.alert("Error", "Missing conversationId");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.9,
+        base64: false,
+      });
+      if (result.canceled) return;
+
+      const asset = result.assets?.[0];
+      const uri = asset?.uri;
+      if (!uri) {
+        Alert.alert("Error", "No image selected");
+        return;
+      }
+
+      const detectedType = asset.mimeType || mime.lookup(uri) || "image/jpeg";
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+      ];
+      const fileType = allowedTypes.includes(detectedType)
+        ? detectedType
+        : "image/jpeg";
+      const extension = mime.extension(fileType) || "jpg";
+      const fileName = asset.fileName || `group-${Date.now()}.${extension}`;
+
+      // 3) Get presigned upload URL from backend
+      const { data: presign } = await axios.post(
+        `${API_BASE_URL}/messages/${conversationId}/group-image/upload-url`,
+        { fileName, fileType },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const { url: uploadUrl, key: fileKey } = presign || {};
+      if (!uploadUrl || !fileKey) {
+        Alert.alert("Error", "Failed to get upload URL");
+        return;
+      }
+
+      // 4) Upload file to S3
+      const fileRes = await fetch(uri);
+      const blob = await fileRes.blob();
+      await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": fileType },
+        body: blob,
+      });
+      console.log("✅ PUT Upload Successful");
+
+      // 5) Notify backend (save fileKey to conversation)
+      const updateRes = await axios.patch(
+        `${API_BASE_URL}/messages/${conversationId}/group-image`,
+        { fileKey },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const updated = updateRes?.data;
+      const updatedGroupImage = updated?.groupImage || null;
+      if (updatedGroupImage) {
+        setGroupImage(updatedGroupImage); // signed GET URL from backend
+      }
+
+      Alert.alert("Success", "Group image updated successfully!");
+    } catch (e) {
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        "Failed to update group image";
+      Alert.alert("Error", msg);
+    } finally {
+      isPickingRef.current = false;
+    }
+  };
 
   return (
     <View style={tw`flex-1 bg-white mt-6 mb-8`}>
@@ -527,10 +770,20 @@ export default function GroupChat() {
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
         <View style={tw`flex-row items-center mr-24`}>
-          <Image
+          {/* <Image
             source={require("../../assets/user.png")}
             style={tw`w-10 h-10 rounded-full mr-2`}
-          />
+          /> */}
+          <TouchableOpacity onPress={handlePickGroupImage}>
+            <Image
+              source={
+                groupImage
+                  ? { uri: groupImage }
+                  : require("../../assets/user.jpg")
+              }
+              style={tw`w-10 h-10 rounded-full mr-2`}
+            />
+          </TouchableOpacity>
           <View>
             <Text style={tw`font-semibold text-base`}>
               {group?.name || "Group"}
@@ -724,7 +977,7 @@ export default function GroupChat() {
         </View>
       </Modal>
 
-      {/* View Participants Modal */}
+      {/* View Participants Modal */}                             
       <Modal visible={showViewParticipants} transparent animationType="slide">
         <View style={tw`flex-1 bg-black/50 justify-center items-center`}>
           <View style={tw`w-11/12 bg-white rounded-xl p-4 max-h-96`}>

@@ -11,6 +11,7 @@ import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../utils/config";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 export default function GroupConversations({ navigation }) {
   const [loading, setLoading] = useState(true);
@@ -53,7 +54,13 @@ export default function GroupConversations({ navigation }) {
 
   return (
     <View style={tw`flex-1 bg-white pt-10 px-4`}>
-      <Text style={tw`text-lg font-bold text-black mb-4`}>Group Chats</Text>
+      <View style={tw`flex-row   border-b border-gray-200 mb-4`}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} />
+        </TouchableOpacity>
+        <Text style={tw`text-lg font-bold text-black mb-4 pl-4`}>Group Chats</Text>
+      </View>
+
       {loading ? (
         <View style={tw`mt-10 items-center`}>
           <ActivityIndicator size="small" color="#ef4444" />
