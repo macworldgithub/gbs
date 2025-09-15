@@ -147,15 +147,14 @@ export default function Home() {
     }
   };
 
-
   useEffect(() => {
     if (coordinates.length > 0) {
-      console.log("[Home] Selected coordinates:", JSON.stringify(coordinates, null, 2));
+      console.log(
+        "[Home] Selected coordinates:",
+        JSON.stringify(coordinates, null, 2)
+      );
     }
   }, [coordinates]);
-
-
-
 
   const createEvent = async () => {
     if (
@@ -193,7 +192,6 @@ export default function Home() {
       };
 
       console.log("[Home] Final Event Payload:", JSON.stringify(body, null, 2));
-
 
       const res = await axios.post(`${API_BASE_URL}/events`, body, {
         headers: {

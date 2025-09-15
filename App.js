@@ -181,7 +181,10 @@ export default function App() {
             <Stack.Screen name="SavedOffers" component={SavedOffers} />
             <Stack.Screen name="social" component={Social} />
             <Stack.Screen name="UpgradePackage" component={UpgradePackage} />
-            <Stack.Screen name="NotificationForm" component={NotificationForm} />
+            <Stack.Screen
+              name="NotificationForm"
+              component={NotificationForm}
+            />
             <Stack.Screen name="CreateEvent" component={CreateEvent} />
           </Stack.Navigator>
         </NavigationContainer>
