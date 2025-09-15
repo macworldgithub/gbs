@@ -135,10 +135,10 @@ const AddBusinessModal = ({ visible, onClose, onBusinessAdded }) => {
     <Modal visible={visible} animationType="slide" transparent>
       <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
         <ScrollView
-          style={[tw`bg-white w-11/12 rounded-2xl p-5`, { maxHeight: "85%" }]}
+          style={[tw`bg-white w-11/12 rounded-2xl p-5 `, { maxHeight: "85%" }]}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={tw`text-lg font-bold mb-4 text-black-400`}>Add Business</Text>
+          <Text style={tw`text-lg font-bold mb-4 text-black-400 `}>Add Business</Text>
 
           <TextInput
             placeholder="Company Name"
@@ -163,9 +163,9 @@ const AddBusinessModal = ({ visible, onClose, onBusinessAdded }) => {
               dropdownIconColor="#000"
                placeholderTextColor="#000000"
             >
-              <Picker.Item label="Select Industry" value={null} />
+              <Picker.Item label="Select Industry" value={null} color="#000" />
               {industries.map((ind) => (
-                <Picker.Item key={ind} label={ind} value={ind} />
+                <Picker.Item key={ind} label={ind} value={ind} color="#000" />
               ))}
             </Picker>
           </View>
@@ -178,12 +178,12 @@ const AddBusinessModal = ({ visible, onClose, onBusinessAdded }) => {
               dropdownIconColor="#000"
               placeholderTextColor="#000000"
             >
-              <Picker.Item label="Select State" value={null}
-                style={{ color: '#000000' }}
+              <Picker.Item label="Select State" value={null} color="#000"
+                
               placeholderTextColor="#000000" />
               {states.map((st) => (
-                <Picker.Item key={st} label={st} value={st} 
-                 style={{ color: '#000000' }}
+                <Picker.Item key={st} label={st} value={st} color="#000" 
+                
               placeholderTextColor="#000000" />
               ))}
             </Picker>

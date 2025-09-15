@@ -1,20 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/FontAwesome5";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
+import { useIsFocused } from "@react-navigation/native";
+import { API_BASE_URL } from "../utils/config";
 
 export default function NotificationScreen() {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const [data, setData] = useState({ today: [], yesterday: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://gbs.westsidecarcare.com.au/notification")
+    if (isFocused) {
+      fetchNotifications();
+    }
+  }, [isFocused]);
+
+  const fetchNotifications = () => {
+    setLoading(true);
+    fetch(`${API_BASE_URL}/notification`)
       .then((res) => res.json())
       .then((resData) => {
-        // Group notifications into Today / Yesterday
         const today = [];
         const yesterday = [];
         const now = new Date();
@@ -33,7 +42,7 @@ export default function NotificationScreen() {
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
-  }, []);
+  };
 
   const markAllAsRead = (section) => {
     setData((prev) => ({
@@ -45,6 +54,39 @@ export default function NotificationScreen() {
       })),
     }));
   };
+
+
+  const deleteNotification = (id) => {
+    Alert.alert("Delete", "Are you sure you want to delete this notification?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const res = await fetch(
+              `${API_BASE_URL}/notification/${id}`,
+              {
+                method: "DELETE",
+                headers: { Accept: "*/*" },
+              }
+            );
+            if (res.ok) {
+              Alert.alert("Success", "Notification deleted");
+              fetchNotifications(); // refresh list
+            } else {
+              Alert.alert("Error", "Failed to delete notification");
+            }
+          } catch (error) {
+            console.error("❌ Delete error:", error);
+            Alert.alert("Error", "Something went wrong");
+          }
+        },
+      },
+    ]);
+  };
+
+
 
   const renderItem = (item) => (
     <View
@@ -65,6 +107,25 @@ export default function NotificationScreen() {
           {new Date(item.createdAt).toLocaleString()}
         </Text>
       </View>
+
+      <View style={tw`flex-row items-center ml-2`}>
+        {/* Update Button */}
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("NotificationForm", { notification: item }) // 👈 ye notification data bhej raha
+          }
+          style={tw`mr-3`}
+        >
+          <Icon name="edit" size={18} color="#2563eb" />
+        </TouchableOpacity>
+
+        {/* Delete Button */}
+        <TouchableOpacity onPress={() => deleteNotification(item._id)}>
+          <Icon name="trash" size={18} color="#dc2626" />
+        </TouchableOpacity>
+      </View>
+
+
     </View>
   );
 
@@ -77,7 +138,7 @@ export default function NotificationScreen() {
   }
 
   return (
-    <ScrollView style={tw`flex-1 bg-white pt-10`}>
+    <ScrollView style={tw`flex-1 bg-white pt-10 mt-8`}>
       {/* Header */}
       <View
         style={tw`flex-row justify-between items-center px-4 py-4 border-b border-gray-100`}
@@ -88,19 +149,14 @@ export default function NotificationScreen() {
         <Text style={tw`text-lg font-semibold text-black ml-2 flex-1`}>
           Notification
         </Text>
-        <TouchableOpacity style={tw`bg-red-500 rounded-full px-3 py-0.5`}>
-          <Text style={tw`text-white text-xs font-medium p-2`}>
-            {data.today.length + data.yesterday.length} NEW
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("NotificationForm")}
+          style={tw`border border-red-500 rounded-full px-3 py-0.5`}>
+          <Text style={tw`text-red-500 text-xs font-medium p-2`}>
+            create Notification
           </Text>
         </TouchableOpacity>
-
-         {/* <TouchableOpacity
-         onPress={() => navigation.navigate("NotificationForm")}
-         style={tw`bg-red-500 rounded-full px-3 py-0.5`}>
-          <Text style={tw`text-white text-xs font-medium p-2`}>
-            create event
-          </Text>
-        </TouchableOpacity> */}
       </View>
 
       {/* Today */}
