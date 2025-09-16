@@ -58,7 +58,9 @@ export default function GroupConversations({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
-        <Text style={tw`text-lg font-bold text-black mb-4 pl-4`}>Group Chats</Text>
+        <Text style={tw`text-lg font-bold text-black mb-4 pl-4`}>
+          Group Chats
+        </Text>
       </View>
 
       {loading ? (
@@ -96,6 +98,52 @@ export default function GroupConversations({ navigation }) {
             </TouchableOpacity>
           )}
         />
+        // <FlatList
+        //   data={groups}
+        //   keyExtractor={(item) => item._id}
+        //   renderItem={({ item }) => {
+        //     const lastMessage = item.messages?.[0];
+        //     const isUnread = lastMessage && !lastMessage.isRead;
+
+        //     return (
+        //       <TouchableOpacity
+        //         onPress={() => openGroup(item)}
+        //         style={tw`flex-row items-center bg-gray-100 p-3 mb-3 rounded-xl`}
+        //       >
+        //         <Image
+        //           source={
+        //             item.groupImage
+        //               ? { uri: `${API_BASE_URL}/${item.groupImage}` }
+        //               : require("../../assets/user.png")
+        //           }
+        //           style={tw`w-10 h-10 rounded-full mr-3`}
+        //         />
+        //         <View style={tw`flex-1`}>
+        //           <Text style={tw`text-black font-semibold`}>
+        //             {item.groupName || "Group"}
+        //           </Text>
+
+        //           {/* 🔹 Differentiate based on unread */}
+        //           {lastMessage?.content ? (
+        //             <Text
+        //               numberOfLines={1}
+        //               style={tw`${isUnread ? "text-black font-bold" : "text-gray-500"} text-xs`}
+        //             >
+        //               {lastMessage.content || "[Media]"}
+        //             </Text>
+        //           ) : lastMessage?.media?.length > 0 ? (
+        //             <Text
+        //               numberOfLines={1}
+        //               style={tw`${isUnread ? "text-black font-bold" : "text-gray-500"} text-xs`}
+        //             >
+        //               📎 Media
+        //             </Text>
+        //           ) : null}
+        //         </View>
+        //       </TouchableOpacity>
+        //     );
+        //   }}
+        // />
       )}
     </View>
   );
