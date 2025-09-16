@@ -554,7 +554,7 @@ export default function MembersDirectory({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
-        <Text style={tw`text-sm text-black mb-4  pl-4 font-bold`}>
+        <Text style={tw`text-lg text-black mb-4  pl-4 font-extrabold`}>
           Members Directory
         </Text>
       </View>
