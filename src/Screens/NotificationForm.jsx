@@ -258,7 +258,7 @@ export default function NotificationForm({
             : "Select end date"}
         </Text>
       </TouchableOpacity>
-
+ß
       {showEndPicker && (
         <DateTimePicker
           value={formData.endDate || new Date()}

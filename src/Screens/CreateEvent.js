@@ -14,6 +14,7 @@ import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
 import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { Platform } from "react-native";
 
 export default function CreateEvent({ navigation }) {
     const [roles, setRoles] = useState([]);
@@ -22,6 +23,10 @@ export default function CreateEvent({ navigation }) {
     const [coordinates, setCoordinates] = useState([]);
     const [showStartDatePicker, setShowStartDatePicker] = useState(false);
     const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+
+    const [showStartPicker, setShowStartPicker] = useState(false);
+    const [showEndPicker, setShowEndPicker] = useState(false);
+
 
     const [eventForm, setEventForm] = useState({
         title: "",
@@ -185,22 +190,56 @@ export default function CreateEvent({ navigation }) {
                 </View>
 
                 <Text style={tw`text-sm text-gray-700 mb-1`}>Start Date</Text>
-                <DateTimePicker
-                    value={eventForm.startDate}
-                    mode="datetime"
-                    onChange={(e, date) =>
-                        date && setEventForm((p) => ({ ...p, startDate: date }))
-                    }
-                />
+                <TouchableOpacity
+                    onPress={() => setShowStartPicker(true)}
+                    style={tw`border p-2 rounded mb-4`}
+                >
+                    <Text>
+                        {eventForm.startDate
+                            ? eventForm.startDate.toLocaleString()
+                            : "Select start date"}
+                    </Text>
+                </TouchableOpacity>
+
+                {showStartPicker && (
+                    <DateTimePicker
+                        value={eventForm.startDate || new Date()}
+                        mode="datetime"
+                        display={Platform.OS === "ios" ? "spinner" : "default"}
+                        onChange={(e, date) => {
+                            setShowStartPicker(Platform.OS === "ios"); // iOS me open rehne de, Android me band karo
+                            if (date) {
+                                setEventForm((p) => ({ ...p, startDate: date }));
+                            }
+                        }}
+                    />
+                )}
 
                 <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
-                <DateTimePicker
-                    value={eventForm.endDate}
-                    mode="datetime"
-                    onChange={(e, date) =>
-                        date && setEventForm((p) => ({ ...p, endDate: date }))
-                    }
-                />
+                <TouchableOpacity
+                    onPress={() => setShowEndPicker(true)}
+                    style={tw`border p-2 rounded mb-4`}
+                >
+                    <Text>
+                        {eventForm.endDate
+                            ? eventForm.endDate.toLocaleString()
+                            : "Select end date"}
+                    </Text>
+                </TouchableOpacity>
+
+                {showEndPicker && (
+                    <DateTimePicker
+                        value={eventForm.endDate || new Date()}
+                        mode="datetime"
+                        display={Platform.OS === "ios" ? "spinner" : "default"}
+                        onChange={(e, date) => {
+                            setShowEndPicker(Platform.OS === "ios"); // iOS me open rehne de, Android me band karo
+                            if (date) {
+                                setEventForm((p) => ({ ...p, endDate: date }));
+                            }
+                        }}
+                    />
+                )}
 
                 {/* Roles */}
                 <Text style={tw`mb-1 text-sm font-semibold text-gray-700`}>Select Role</Text>
