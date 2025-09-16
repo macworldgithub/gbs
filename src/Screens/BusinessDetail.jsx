@@ -469,28 +469,40 @@ const BusinessDetail = ({ route, navigation }) => {
 
         {/* Gallery */}
         {business.gallery && business.gallery.length > 0 && (
-          <View style={tw`mb-6`}>
-            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Gallery</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {business.gallery.map((img, index) => (
-                <View key={index} style={tw`relative mr-3`}>
-                  <Image
-                    source={{ uri: img.url }}
-                    style={tw`w-64 h-40 rounded-lg`}
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    style={tw`absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1`}
-                    onPress={() => handleDeleteGalleryImage(img.fileKey)}
-                  >
-                    <MaterialIcons name="more-vert" size={20} color="white" />
-                  </TouchableOpacity>
-                </View>
-              ))}
+  <View style={tw`mb-6`}>
+    <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Gallery</Text>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      {business.gallery.map((img, index) => {
+        // gallery could be [{url, fileKey}] or just [string]
+        const imageUrl =
+          typeof img === "string"
+            ? img
+            : img.url
+            ? img.url
+            : `${API_BASE_URL}/uploads/${img.fileKey}`;
 
-            </ScrollView>
+        return (
+          <View key={index} style={tw`relative mr-3`}>
+            <Image
+              source={{ uri: imageUrl }}
+              style={tw`w-64 h-40 rounded-lg`}
+              resizeMode="cover"
+            />
+            {img.fileKey && (
+              <TouchableOpacity
+                style={tw`absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1`}
+                onPress={() => handleDeleteGalleryImage(img.fileKey)}
+              >
+                <MaterialIcons name="delete" size={20} color="white" />
+              </TouchableOpacity>
+            )}
           </View>
-        )}
+        );
+      })}
+    </ScrollView>
+  </View>
+)}
+
 
         {/* Testimonials */}
         {business.testimonials && business.testimonials.length > 0 && (
