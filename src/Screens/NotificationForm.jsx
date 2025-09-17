@@ -232,7 +232,7 @@ export default function NotificationForm({
         </Text>
       </TouchableOpacity>
 
-      {showStartPicker && (
+      {/* {showStartPicker && (
         <DateTimePicker
           value={formData.startDate || new Date()}
           mode="datetime"
@@ -242,6 +242,71 @@ export default function NotificationForm({
             if (date) {
               setFormData((p) => ({ ...p, startDate: date }));
             }
+          }}
+        />
+      )} */}
+
+      {showStartPicker && (
+        <DateTimePicker
+          value={formData.startDate || new Date()}
+          mode="datetime"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, date) => {
+            if (Platform.OS === "android") {
+              setShowStartPicker(false); // Android: close manually
+            }
+
+            // 👉 Android crash avoid
+            if (event?.type === "dismissed" || !date) {
+              return;
+            }
+
+            setFormData((p) => ({ ...p, startDate: date }));
+          }}
+        />
+      )}
+
+      <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
+      <TouchableOpacity
+        onPress={() => setShowEndPicker(true)}
+        style={tw`border p-2 rounded mb-4`}
+      >
+        <Text>
+          {formData.endDate
+            ? formData.endDate.toLocaleString()
+            : "Select end date"}
+        </Text>
+      </TouchableOpacity>
+
+      {/* {showEndPicker && (
+        <DateTimePicker
+          value={formData.endDate || new Date()}
+          mode="datetime"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(e, date) => {
+            setShowEndPicker(Platform.OS === "ios"); // iOS me open rehne de, Android me band karo
+            if (date) {
+              setFormData((p) => ({ ...p, endDate: date }));
+            }
+          }}
+        />
+      )} */}
+
+      {showEndPicker && (
+        <DateTimePicker
+          value={formData.endDate || new Date()}
+          mode="datetime"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, date) => {
+            if (Platform.OS === "android") {
+              setShowEndPicker(false);
+            }
+
+            if (event?.type === "dismissed" || !date) {
+              return;
+            }
+
+            setFormData((p) => ({ ...p, endDate: date }));
           }}
         />
       )}
@@ -263,8 +328,14 @@ export default function NotificationForm({
           value={formData.endDate || new Date()}
           mode="datetime"
           display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={(e, date) => {
-            setShowEndPicker(Platform.OS === "ios"); // iOS me open rehne de, Android me band karo
+          onChange={(event, date) => {
+            if (Platform.OS === "android") {
+              setShowEndPicker(false);
+              if (event.type === "dismissed") {
+                return;
+              }
+            }
+
             if (date) {
               setFormData((p) => ({ ...p, endDate: date }));
             }

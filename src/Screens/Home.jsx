@@ -283,13 +283,14 @@ export default function Home() {
               />
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => navigation.navigate("CreateEvent")}
             style={tw`flex-row items-center border border-red-500 px-3 py-1 rounded-full`}
-          >
-            {/* <Ionicons name="log-out-outline" size={20} color="#ef4444" /> */}
-            <Text style={tw`ml-1 text-red-500 `}>Create Events</Text>
-          </TouchableOpacity>
+          > */}
+          {/* <Ionicons name="log-out-outline" size={20} color="#ef4444" /> */}
+
+          {/* <Text style={tw`ml-1 text-red-500 `}>Create Events</Text> */}
+          {/* </TouchableOpacity> */}
         </View>
       </View>
 
@@ -432,7 +433,9 @@ export default function Home() {
       {/* Upcoming Events Section */}
       <View style={tw`mb-2`}>
         <View style={tw`flex-row justify-between mb-2`}>
-          <Text style={tw`font-semibold`}>Latest News</Text>
+          {/* <Text style={tw`font-semibold`}>Latest News</Text> */}
+          <Text style={tw`font-extrabold`}>Latest News</Text>
+
           <Text style={tw`text-red-500 text-sm`}>See all News</Text>
         </View>
 
@@ -467,7 +470,7 @@ export default function Home() {
         renderItem={() => (
           <View style={tw`px-4`}>
             <View style={tw`flex-row justify-between mb-2 `}>
-              <Text style={tw`font-semibold`}>
+              <Text style={tw`font-extrabold`}>
                 {activeTab === "all" ? "All Events" : `${activeTab} Events`}
               </Text>
               <TouchableOpacity
