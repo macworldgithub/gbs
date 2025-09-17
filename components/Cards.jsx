@@ -7,13 +7,15 @@ import {
   Pressable,
 } from "react-native";
 import tw from "twrnc";
+import { useNavigation } from "@react-navigation/native";
 
 const BASE_API_URL = "https://gbs.westsidecarcare.com.au/events";
 
 const Cards = ({ stateFilter }) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  console.log("events", events);
+  const navigation = useNavigation();
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -64,6 +66,9 @@ const Cards = ({ stateFilter }) => {
           tw`bg-white p-4 m-2 rounded-xl shadow`,
           pressed && tw`bg-gray-100`,
         ]}
+        onPress={() =>
+          navigation.navigate("EventDetail", { eventId: item?._id })
+        }
       >
         <Text style={tw`text-lg font-bold text-black`}>
           {item?.title || "Untitled Event"}

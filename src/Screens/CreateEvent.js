@@ -206,12 +206,12 @@ export default function CreateEvent({ navigation }) {
             date && setEventForm((p) => ({ ...p, endDate: date }))
           }
         />
-
+                               
         {/* Roles */}
         <Text style={tw`mb-1 text-sm font-semibold text-gray-700`}>
           Select Role
         </Text>
-        {loadingRoles ? (
+        {loadingRoles ? (                                                         
           <ActivityIndicator color="#DC2626" />
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
