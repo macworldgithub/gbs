@@ -70,6 +70,14 @@ const Cards = ({ stateFilter }) => {
           navigation.navigate("EventDetail", { eventId: item?._id })
         }
       >
+        {/* Featured label */}
+        {item?.isFeatured && (
+          <View
+            style={tw`absolute top-2 right-2 bg-red-500 px-2 py-1 rounded-full`}
+          >
+            <Text style={tw`text-white text-xs font-bold`}>FEATURED</Text>
+          </View>
+        )}
         <Text style={tw`text-lg font-bold text-black`}>
           {item?.title || "Untitled Event"}
         </Text>
