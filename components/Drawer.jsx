@@ -24,7 +24,7 @@ const staticItems = [
   { title: "My Business" },
   { title: "Saved offers" },
   { title: "Profile" },
-  { title: "Events" },
+  // { title: "Events" },
   { title: "Upgrade Package" },
   { title: "Delete User Package" },
   { title: "Logout" },
@@ -207,10 +207,12 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "Profile") {
         onClose();
         navigation.navigate("Profile");
-      } else if (item.title === "Events") {
-        onClose();
-        navigation.navigate("Events");
-      } else if (item.title === "Chat Groups") {
+      } 
+      // else if (item.title === "Events") {
+      //   onClose();
+      //   navigation.navigate("Social");
+      // } 
+      else if (item.title === "Chat Groups") {
         onClose();
         navigation.navigate("GroupConversations");
       } else if (item.title === "Upgrade Package") {
