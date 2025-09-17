@@ -224,6 +224,19 @@ export default function GroupChat() {
         fetchMessages();
       }, 200);
     });
+
+    s.off("messageRead");
+    s.on("messageRead", (data) => {
+      const { messageId, userId } = data;
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? { ...m, readBy: [...new Set([...(m.readBy || []), userId])] }
+            : m
+        )
+      );
+    });
+
     return () => {
       try {
         s.removeAllListeners();
@@ -272,14 +285,33 @@ export default function GroupChat() {
     }
   };
 
+  // const formatMessage = (msg) => {
+  //   const senderName = msg.sender?.name || "Unknown";
+  //   return {
+  //     id: msg._id,
+  //     text: msg.content || "",
+  //     fromMe: msg.sender?._id === myUserId,
+  //     senderName,
+  //     status: msg.isRead ? "seen" : "sent",
+  //     time: new Date(msg.createdAt || Date.now()).toLocaleTimeString(),
+  //     type:
+  //       Array.isArray(msg.media) && msg.media.length > 0
+  //         ? msg.media[0].type
+  //         : "text",
+  //     url:
+  //       Array.isArray(msg.media) && msg.media.length > 0
+  //         ? msg.media[0].signedUrl
+  //         : null,
+  //   };
+  // };
+
   const formatMessage = (msg) => {
-    const senderName = msg.sender?.name || "Unknown";
     return {
       id: msg._id,
       text: msg.content || "",
       fromMe: msg.sender?._id === myUserId,
-      senderName,
-      status: msg.isRead ? "seen" : "sent",
+      senderName: msg.sender?.name || "Unknown",
+      readBy: msg.readBy || [], // ✅ who has seen it
       time: new Date(msg.createdAt || Date.now()).toLocaleTimeString(),
       type:
         Array.isArray(msg.media) && msg.media.length > 0
@@ -501,164 +533,7 @@ export default function GroupChat() {
       }, 1500);
     }
   };
-  // pick and upload image
-  // const handlePickGroupImage = async () => {
-  //   if (!token || !conversationId) return;
 
-  //   const result = await ImagePicker.launchImageLibraryAsync({
-  //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  //     quality: 0.8,
-  //     base64: false,
-  //   });
-
-  //   if (result.canceled) return;
-
-  //   const asset = result.assets[0];
-  //   const fileName = asset.fileName ?? `group-${Date.now()}.jpg`;
-  //   const fileType = "image/jpeg"; // or detect from asset
-
-  //   try {
-  //     // 1. Get presigned upload URL
-  //     const {
-  //       data: { url, key },
-  //     } = await axios.post(
-  //       `${API_BASE_URL}/messages/${conversationId}/group-image/upload-url`,
-  //       { fileName, fileType },
-  //       { headers: { Authorization: `Bearer ${token}` } }
-  //     );
-
-  //     // 2. Upload file directly to S3
-  //     const imageData = await fetch(asset.uri).then((res) => res.blob());
-  //     await fetch(url, {
-  //       method: "PUT",
-  //       headers: { "Content-Type": fileType },
-  //       body: imageData,
-  //     });
-
-  //     // 3. Update groupImage in backend
-  //     const { data: updatedConversation } = await axios.patch(
-  //       `${API_BASE_URL}/messages/${conversationId}/group-image`,
-  //       { fileKey: key },
-  //       { headers: { Authorization: `Bearer ${token}` } }
-  //     );
-
-  //     setGroupImage(updatedConversation.groupImage); // ✅ update locally
-  //   } catch (err) {
-  //     Alert.alert("Error", err.response?.data?.message || err.message);
-  //   }
-  // };
-  // Add at top if not already present:
-  // import * as ImagePicker from 'expo-image-picker';
-  // import mime from 'mime';
-
-  // const handlePickGroupImage = async () => {
-  //   if (isPickingRef.current) return;
-  //   isPickingRef.current = true;
-  //   try {
-  //     const stored = await AsyncStorage.getItem("userData");
-  //     const parsed = stored ? JSON.parse(stored) : null;
-  //     const token = parsed?.token;
-  //     if (!token) {
-  //       Alert.alert("Error", "Please login again");
-  //       return;
-  //     }
-  //     if (!conversationId) {
-  //       Alert.alert("Error", "Missing conversationId");
-  //       return;
-  //     }
-
-  //     // 1) Pick an image
-  //     const result = await ImagePicker.launchImageLibraryAsync({
-  //       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  //       allowsEditing: true,
-  //       aspect: [1, 1], // square crop for avatar
-  //       quality: 0.9,
-  //       base64: false,
-  //     });
-  //     if (result.canceled) return;
-
-  //     const asset = result.assets?.[0];
-  //     const uri = asset?.uri;
-  //     if (!uri) {
-  //       Alert.alert("Error", "No image selected");
-  //       return;
-  //     }
-
-  //     // 2) Derive filename and mimetype (service allows jpeg/png/gif/webp)
-  //     // const detectedType = asset.mimeType || mime.getType(uri) || "image/jpeg";
-  //     const detectedType = asset.mimeType || mime.lookup(uri) || "image/jpeg";
-  //     const ext = mime.extension(detectedType) || "jpg";
-  //     const allowedTypes = [
-  //       "image/jpeg",
-  //       "image/png",
-  //       "image/gif",
-  //       "image/webp",
-  //     ];
-  //     const fileType = allowedTypes.includes(detectedType)
-  //       ? detectedType
-  //       : "image/jpeg";
-  //     // const extension = mime.getExtension(fileType) || "jpg";
-  //     const extension = mime.extension(fileType) || "jpg";
-  //     const fileName = asset.fileName || `group-${Date.now()}.${extension}`;
-
-  //     // 3) Request presigned URL
-  //     const { data: presign } = await axios.post(
-  //       `${API_BASE_URL}/messages/${conversationId}/group-image/upload-url`,
-  //       { fileName, fileType },
-  //       {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-  //     const { url, key } = presign || {};
-  //     if (!url || !key) {
-  //       Alert.alert("Error", "Failed to get upload URL");
-  //       return;
-  //     }
-
-  //     // 4) Upload file to S3 using presigned URL
-  //     // Note: fetch(uri) -> blob works in Expo. If your RN runtime lacks Blob,
-  //     // consider using expo-file-system or rn-fetch-blob.
-  //     const fileRes = await fetch(uri);
-  //     const blob = await fileRes.blob();
-  //     await fetch(url, {
-  //       method: "PUT",
-  //       headers: { "Content-Type": fileType },
-  //       body: blob,
-  //     });
-
-  //     // 5) Confirm update with backend (saves key to conversation)
-  //     const updateRes = await axios.patch(
-  //       `${API_BASE_URL}/messages/${conversationId}/group-image`,
-  //       { fileKey: key },
-  //       {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     // The service returns conversation with signed groupImage if needed
-  //     const updated = updateRes?.data;
-  //     const updatedGroupImage = updated?.groupImage || null;
-  //     if (updatedGroupImage) {
-  //       setGroupImage(updatedGroupImage);
-  //     }
-
-  //     Alert.alert("Success", "Group image updated");
-  //   } catch (e) {
-  //     const msg =
-  //       e?.response?.data?.message ||
-  //       e?.message ||
-  //       "Failed to update group image";
-  //     Alert.alert("Error", msg);
-  //   } finally {
-  //     isPickingRef.current = false;
-  //   }
-  // };
   const handlePickGroupImage = async () => {
     if (isPickingRef.current) return;
     isPickingRef.current = true;
@@ -881,19 +756,21 @@ export default function GroupChat() {
                     {item.time}
                   </Text>
 
-                  {isMe && item.status && (
+                  {isMe && (
                     <Ionicons
                       name={
-                        item.status === "sent"
-                          ? "checkmark"
-                          : item.status === "delivered"
-                            ? "checkmark-done"
-                            : item.status === "seen"
-                              ? "checkmark-done-circle"
-                              : "time"
+                        item.readBy?.length >= participants.length - 1 // ✅ everyone except me
+                          ? "checkmark-done" // seen by all
+                          : item.readBy?.length > 0
+                            ? "checkmark-done-outline" // seen by some
+                            : "checkmark" // sent only
                       }
                       size={12}
-                      color={item.status === "seen" ? "#60a5fa" : "#d1d5db"}
+                      color={
+                        item.readBy?.length >= participants.length - 1
+                          ? "#60a5fa"
+                          : "#d1d5db"
+                      }
                     />
                   )}
                 </View>
