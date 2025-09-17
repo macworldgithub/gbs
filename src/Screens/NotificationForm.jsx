@@ -9,7 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-// import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
@@ -19,28 +19,25 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { API_BASE_URL } from "../utils/config";
 import { Platform } from "react-native";
 
-
-
 export default function NotificationForm({
   onSubmit,
   onCancel,
   isLoading = false,
 }) {
   const navigation = useNavigation();
-   const route = useRoute();
-  const notification = route.params?.notification; 
+  const route = useRoute();
+  const notification = route.params?.notification;
 
   const [showStartPicker, setShowStartPicker] = useState(false);
-const [showEndPicker, setShowEndPicker] = useState(false);
-  
-  
+  const [showEndPicker, setShowEndPicker] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "",
     message: "",
     area: { type: "MultiPolygon", coordinates: [] },
     startDate: new Date(),
     endDate: new Date(),
-    SendToAll: true,
+    SendToAll: false,
     roles: [], // 👈 selected roles
   });
 
@@ -146,6 +143,7 @@ const [showEndPicker, setShowEndPicker] = useState(false);
 
       const payload = {
         ...formData,
+        SendToAll: false,
         area: { type: "MultiPolygon", coordinates: fixedCoords },
         startDate: formData.startDate.toISOString(),
         endDate: formData.endDate.toISOString(),
@@ -181,7 +179,7 @@ const [showEndPicker, setShowEndPicker] = useState(false);
             text: "OK",
             onPress: () => {
               if (onSubmit) onSubmit(payload);
-              navigation.goBack(); 
+              navigation.goBack(); // 👈 list me wapas
             },
           },
         ]
@@ -223,59 +221,59 @@ const [showEndPicker, setShowEndPicker] = useState(false);
 
       {/* Start & End Date */}
       <Text style={tw`text-sm text-gray-700 mb-1`}>Start Date</Text>
-<TouchableOpacity
-  onPress={() => setShowStartPicker(true)}
-  style={tw`border p-2 rounded mb-4`}
->
-  <Text>
-    {formData.startDate
-      ? formData.startDate.toLocaleString()
-      : "Select start date"}
-  </Text>
-</TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => setShowStartPicker(true)}
+        style={tw`border p-2 rounded mb-4`}
+      >
+        <Text>
+          {formData.startDate
+            ? formData.startDate.toLocaleString()
+            : "Select start date"}
+        </Text>
+      </TouchableOpacity>
 
-{showStartPicker && (
-  <DateTimePicker
-    value={formData.startDate || new Date()}
-    mode="datetime"
-    display={Platform.OS === "ios" ? "spinner" : "default"}
-    onChange={(e, date) => {
-      setShowStartPicker(Platform.OS === "ios"); 
-      if (date) {
-        setFormData((p) => ({ ...p, startDate: date }));
-      }
-    }}
-  />
-)}
+      {showStartPicker && (
+        <DateTimePicker
+          value={formData.startDate || new Date()}
+          mode="datetime"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(e, date) => {
+            setShowStartPicker(Platform.OS === "ios"); // iOS me open rehne de, Android me band karo
+            if (date) {
+              setFormData((p) => ({ ...p, startDate: date }));
+            }
+          }}
+        />
+      )}
 
       <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
-<TouchableOpacity
-  onPress={() => setShowEndPicker(true)}
-  style={tw`border p-2 rounded mb-4`}
->
-  <Text>
-    {formData.endDate
-      ? formData.endDate.toLocaleString()
-      : "Select end date"}
-  </Text>
-</TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => setShowEndPicker(true)}
+        style={tw`border p-2 rounded mb-4`}
+      >
+        <Text>
+          {formData.endDate
+            ? formData.endDate.toLocaleString()
+            : "Select end date"}
+        </Text>
+      </TouchableOpacity>
 
-{showEndPicker && (
-  <DateTimePicker
-    value={formData.endDate || new Date()}
-    mode="datetime"
-    display={Platform.OS === "ios" ? "spinner" : "default"}
-    onChange={(e, date) => {
-      setShowEndPicker(Platform.OS === "ios"); 
-      if (date) {
-        setFormData((p) => ({ ...p, endDate: date }));
-      }
-    }}
-  />
-)}
+      {showEndPicker && (
+        <DateTimePicker
+          value={formData.endDate || new Date()}
+          mode="datetime"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(e, date) => {
+            setShowEndPicker(Platform.OS === "ios"); // iOS me open rehne de, Android me band karo
+            if (date) {
+              setFormData((p) => ({ ...p, endDate: date }));
+            }
+          }}
+        />
+      )}
 
       {/* Send to All */}
-      <View style={tw`flex-row items-center mt-4`}>
+      {/* <View style={tw`flex-row items-center mt-4`}>
         <Text style={tw`flex-1 text-sm text-gray-700`}>Send to World</Text>
         <Switch
           value={formData.SendToAll}
@@ -283,7 +281,7 @@ const [showEndPicker, setShowEndPicker] = useState(false);
             setFormData((p) => ({ ...p, SendToAll: val }))
           }
         />
-      </View>
+      </View> */}
 
       {/* Roles */}
       <View style={tw`mt-6`}>
