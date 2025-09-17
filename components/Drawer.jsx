@@ -26,6 +26,7 @@ const staticItems = [
   { title: "Profile" },
   // { title: "Events" },
   { title: "Upgrade Package" },
+  { title: "Featured Events" },
   { title: "Delete User Package" },
   { title: "Logout" },
 ];
@@ -109,7 +110,6 @@ export default function Drawer({ isOpen, onClose }) {
         Alert.alert("Error", "No token found, please login again.");
         return;
       }
-      
 
       // Show confirmation dialog
       Alert.alert(
@@ -207,12 +207,10 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "Profile") {
         onClose();
         navigation.navigate("Profile");
-      } 
-      // else if (item.title === "Events") {
-      //   onClose();
-      //   navigation.navigate("Social");
-      // } 
-      else if (item.title === "Chat Groups") {
+      } else if (item.title === "Featured Events") {
+        onClose();
+        navigation.navigate("Featured");
+      } else if (item.title === "Chat Groups") {
         onClose();
         navigation.navigate("GroupConversations");
       } else if (item.title === "Upgrade Package") {
