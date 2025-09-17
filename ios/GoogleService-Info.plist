@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyBHnHK8T9_lSM6U0uFEFq5jurG1XHuijs0</string>
+	<key>GCM_SENDER_ID</key>
+	<string>73205460167</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.ayla02.gbs</string>
+	<key>PROJECT_ID</key>
+	<string>gbsnotification-6df1b</string>
+	<key>STORAGE_BUCKET</key>
+	<string>gbsnotification-6df1b.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:73205460167:ios:1e645aecbc4646694562e2</string>
+</dict>
+</plist>

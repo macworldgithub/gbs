@@ -9,10 +9,14 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/blur": "^4.4.1",
     "@react-native-community/checkbox": "^0.5.20",
     "@react-native-community/datetimepicker": "^8.4.4",
+    "@react-native-firebase/app": "^23.3.1",
+    "@react-native-firebase/firestore": "^23.3.1",
+    "@react-native-firebase/messaging": "^23.3.1",
     "@react-native-masked-view/masked-view": "0.3.2",
     "@react-native-picker/picker": "^2.11.1",
     "@react-navigation/drawer": "^7.5.6",
