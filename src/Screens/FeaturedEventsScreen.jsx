@@ -5,40 +5,55 @@ import {
   FlatList,
   ActivityIndicator,
   Pressable,
+  TouchableOpacity,
 } from "react-native";
 import tw from "twrnc";
 import { useNavigation } from "@react-navigation/native";
 
-const BASE_API_URL = "https://gbs.westsidecarcare.com.au/events";
-
+const BASE_API_URL = "https://gbs.westsidecarcare.com.au/events/featured";
+const STATES = ["All", "VIC", "NSW", "QLD", "SA", "WA"];
 const FeaturedEventsScreen = () => {
   const [featuredEvents, setFeaturedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [stateFilter, setStateFilter] = useState("All");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(5); // change to how many per page you want
+  const [totalPages, setTotalPages] = useState(1);
+
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const fetchFeaturedEvents = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(BASE_API_URL);
-        const data = await response.json();
+  const fetchFeaturedEvents = async () => {
+    try {
+      setLoading(true);
 
-        // ✅ filter only featured events
-        const featured = (Array.isArray(data) ? data : []).filter(
-          (event) => event.isFeatured
-        );
-
-        setFeaturedEvents(featured);
-      } catch (error) {
-        console.error("Error fetching featured events:", error);
-        setFeaturedEvents([]);
-      } finally {
-        setLoading(false);
+      let url = `${BASE_API_URL}?page=${page}&limit=${limit}`;
+      if (stateFilter !== "All") {
+        url += `&state=${stateFilter}`;
       }
-    };
 
+      const response = await fetch(url);
+      const data = await response.json();
+
+      // ✅ filter featured only
+      const featured = (
+        Array.isArray(data?.events) ? data.events : data
+      ).filter((event) => event.isFeatured);
+
+      setFeaturedEvents(featured);
+
+      // if API returns pagination info, use it. Otherwise fallback
+      setTotalPages(data?.totalPages || 1);
+    } catch (error) {
+      console.error("Error fetching featured events:", error);
+      setFeaturedEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchFeaturedEvents();
-  }, []);
+  }, [stateFilter, page]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "Date not available";
@@ -83,15 +98,13 @@ const FeaturedEventsScreen = () => {
           {item?.description || "No description available"}
         </Text>
 
-        {/* Start Date */}
+        {/* Dates */}
         <View style={tw`mt-2 flex-row`}>
-          <Text style={tw`text-black text-sm font-semibold`}>StartDate: </Text>
+          <Text style={tw`text-black text-sm font-semibold`}>Start: </Text>
           <Text style={tw`text-black text-sm`}>{startDate}</Text>
         </View>
-
-        {/* End Date */}
         <View style={tw`mt-1 flex-row`}>
-          <Text style={tw`text-black text-sm font-semibold`}>EndDate: </Text>
+          <Text style={tw`text-black text-sm font-semibold`}>End: </Text>
           <Text style={tw`text-black text-sm`}>{endDate}</Text>
         </View>
 
@@ -106,22 +119,81 @@ const FeaturedEventsScreen = () => {
 
   return (
     <View style={tw`flex-1`}>
-      {loading ? (
-        <ActivityIndicator size="large" color="#ff4d4f" />
-      ) : (
-        <FlatList
-          data={featuredEvents}
-          keyExtractor={(item, index) =>
-            item?._id?.toString() || index.toString()
-          }
-          renderItem={renderEvent}
-          contentContainerStyle={tw`p-2`}
-          ListEmptyComponent={
-            <Text style={tw`text-gray-500 text-center mt-4`}>
-              No featured events found
+      {/* Tabs for state filter */}
+      <View style={tw`flex-row justify-around bg-gray-100 p-2 mt-6`}>
+        {STATES.map((st) => (
+          <TouchableOpacity
+            key={st}
+            style={tw`px-3 py-1 rounded-full ${
+              stateFilter === st ? "bg-red-500" : "bg-white"
+            }`}
+            onPress={() => {
+              setStateFilter(st);
+              setPage(1); // reset to first page when filter changes
+            }}
+          >
+            <Text
+              style={tw`text-sm ${
+                stateFilter === st ? "text-white" : "text-black"
+              }`}
+            >
+              {st}
             </Text>
-          }
-        />
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#ff4d4f" style={tw`mt-10`} />
+      ) : (
+        <>
+          <FlatList
+            data={featuredEvents}
+            keyExtractor={(item, index) =>
+              item?._id?.toString() || index.toString()
+            }
+            renderItem={renderEvent}
+            contentContainerStyle={tw`p-2`}
+            ListEmptyComponent={
+              <Text style={tw`text-gray-500 text-center mt-4`}>
+                No featured events found
+              </Text>
+            }
+          />
+
+          {/* Pagination controls */}
+          <View style={tw`flex-row justify-between items-center p-4`}>
+            <TouchableOpacity
+              disabled={page <= 1}
+              style={tw`px-4 py-2 rounded bg-gray-200 ${
+                page <= 1 ? "opacity-50" : "bg-red-500"
+              }`}
+              onPress={() => setPage((prev) => Math.max(prev - 1, 1))}
+            >
+              <Text style={tw`${page <= 1 ? "text-gray-500" : "text-white"}`}>
+                Prev
+              </Text>
+            </TouchableOpacity>
+
+            <Text style={tw`text-black`}>
+              Page {page} of {totalPages}
+            </Text>
+
+            <TouchableOpacity
+              disabled={page >= totalPages}
+              style={tw`px-4 py-2 rounded bg-gray-200 ${
+                page >= totalPages ? "opacity-50" : "bg-red-500"
+              }`}
+              onPress={() => setPage((prev) => prev + 1)}
+            >
+              <Text
+                style={tw`${page >= totalPages ? "text-gray-500" : "text-white"}`}
+              >
+                Next
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
       )}
     </View>
   );
