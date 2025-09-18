@@ -28,12 +28,12 @@ const menuItems = [
     icon: "user-edit",
     navigateTo: "EditProfile",
   },
-  // {
-  //   id: "2",
-  //   label: "Account Security",
-  //   icon: "shield-alt",
-  //   navigateTo: "AccountSecurity",
-  // },
+  {
+    id: "2",
+    label: "Account Security",
+    icon: "shield-alt",
+    navigateTo: "AccountSecurity",
+  },
   // { id: "3", label: "Scan Member", icon: "qrcode", navigateTo: "QRCodeScreen" },
   {
     id: "4",
@@ -41,13 +41,13 @@ const menuItems = [
     icon: "credit-card",
     navigateTo: "PaymentSettings",
   },
-  // {
-  //   id: "5",
-  //   label: "General Settings",
-  //   icon: "cogs",
-  //   navigateTo: "GeneralSetting",
-  // },
-  // { id: "6", label: "Help Centre", icon: "calendar-day", navigateTo: "Help" },
+  {
+    id: "5",
+    label: "General Settings",
+    icon: "cogs",
+    navigateTo: "GeneralSetting",
+  },
+  { id: "6", label: "Help Centre", icon: "calendar-day", navigateTo: "Help" },
 ];
 
 const requestCameraPermission = async () => {
