@@ -14,6 +14,7 @@ import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
 import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { Platform } from "react-native";
 
 export default function CreateEvent({ navigation }) {
   const [roles, setRoles] = useState([]);
@@ -205,12 +206,12 @@ export default function CreateEvent({ navigation }) {
             date && setEventForm((p) => ({ ...p, endDate: date }))
           }
         />
-
+                               
         {/* Roles */}
         <Text style={tw`mb-1 text-sm font-semibold text-gray-700`}>
           Select Role
         </Text>
-        {loadingRoles ? (
+        {loadingRoles ? (                                                         
           <ActivityIndicator color="#DC2626" />
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>

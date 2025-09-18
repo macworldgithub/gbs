@@ -24,8 +24,9 @@ const staticItems = [
   { title: "My Business" },
   { title: "Saved offers" },
   { title: "Profile" },
-  { title: "Conversation" },
+  // { title: "Events" },
   { title: "Upgrade Package" },
+  { title: "Featured Events" },
   { title: "Delete User Package" },
   { title: "Logout" },
 ];
@@ -56,6 +57,7 @@ export default function Drawer({ isOpen, onClose }) {
         } else {
           const ud = await getUserData();
           setRoleLabel(ud?.activatedPackage?.role?.label || null);
+          
         }
 
         // Load user profile data with signed URL (same logic as Profile.js)
@@ -109,7 +111,6 @@ export default function Drawer({ isOpen, onClose }) {
         Alert.alert("Error", "No token found, please login again.");
         return;
       }
-      
 
       // Show confirmation dialog
       Alert.alert(
@@ -207,9 +208,9 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "Profile") {
         onClose();
         navigation.navigate("Profile");
-      } else if (item.title === "Conversation") {
+      } else if (item.title === "Featured Events") {
         onClose();
-        navigation.navigate("conversation");
+        navigation.navigate("Featured");
       } else if (item.title === "Chat Groups") {
         onClose();
         navigation.navigate("GroupConversations");
