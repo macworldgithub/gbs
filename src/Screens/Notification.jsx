@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/FontAwesome5";
 import tw from "tailwind-react-native-classnames";
@@ -55,38 +62,36 @@ export default function NotificationScreen() {
     }));
   };
 
-
   const deleteNotification = (id) => {
-    Alert.alert("Delete", "Are you sure you want to delete this notification?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            const res = await fetch(
-              `${API_BASE_URL}/notification/${id}`,
-              {
+    Alert.alert(
+      "Delete",
+      "Are you sure you want to delete this notification?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const res = await fetch(`${API_BASE_URL}/notification/${id}`, {
                 method: "DELETE",
                 headers: { Accept: "*/*" },
+              });
+              if (res.ok) {
+                Alert.alert("Success", "Notification deleted");
+                fetchNotifications(); // refresh list
+              } else {
+                Alert.alert("Error", "Failed to delete notification");
               }
-            );
-            if (res.ok) {
-              Alert.alert("Success", "Notification deleted");
-              fetchNotifications(); // refresh list
-            } else {
-              Alert.alert("Error", "Failed to delete notification");
+            } catch (error) {
+              console.error("❌ Delete error:", error);
+              Alert.alert("Error", "Something went wrong");
             }
-          } catch (error) {
-            console.error("❌ Delete error:", error);
-            Alert.alert("Error", "Something went wrong");
-          }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
-
-
 
   const renderItem = (item) => (
     <View
@@ -111,8 +116,9 @@ export default function NotificationScreen() {
       <View style={tw`flex-row items-center ml-2`}>
         {/* Update Button */}
         <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("NotificationForm", { notification: item }) // 👈 ye notification data bhej raha
+          onPress={
+            () =>
+              navigation.navigate("NotificationForm", { notification: item }) // 👈 ye notification data bhej raha
           }
           style={tw`mr-3`}
         >
@@ -124,8 +130,6 @@ export default function NotificationScreen() {
           <Icon name="trash" size={18} color="#dc2626" />
         </TouchableOpacity>
       </View>
-
-
     </View>
   );
 
@@ -138,7 +142,7 @@ export default function NotificationScreen() {
   }
 
   return (
-    <ScrollView style={tw`flex-1 bg-white pt-10 mt-8`}>
+    <ScrollView style={tw`flex-1 bg-white pt-10 `}>
       {/* Header */}
       <View
         style={tw`flex-row justify-between items-center px-4 py-4 border-b border-gray-100`}
@@ -152,7 +156,8 @@ export default function NotificationScreen() {
 
         <TouchableOpacity
           onPress={() => navigation.navigate("NotificationForm")}
-          style={tw`border border-red-500 rounded-full px-3 py-0.5`}>
+          style={tw`border border-red-500 rounded-full px-3 py-0.5`}
+        >
           <Text style={tw`text-red-500 text-xs font-medium p-2`}>
             create Notification
           </Text>

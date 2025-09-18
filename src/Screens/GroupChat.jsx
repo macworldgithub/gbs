@@ -1226,7 +1226,10 @@ export default function GroupChat() {
 
       // Scroll to end only for initial load
       if (newPage === 1) {
-        setTimeout(() => listRef.current?.scrollToEnd?.({ animated: false }), 0);
+        setTimeout(
+          () => listRef.current?.scrollToEnd?.({ animated: false }),
+          0
+        );
       }
 
       // ✅ Mark unread messages as read
@@ -1630,7 +1633,9 @@ export default function GroupChat() {
           isLoadingOlder ? (
             <View style={tw`py-2 items-center`}>
               <ActivityIndicator size="small" color="#3b82f6" />
-              <Text style={tw`text-gray-500 text-xs mt-1`}>Loading older messages...</Text>
+              <Text style={tw`text-gray-500 text-xs mt-1`}>
+                Loading older messages...
+              </Text>
             </View>
           ) : null
         }
@@ -1648,7 +1653,7 @@ export default function GroupChat() {
               <View
                 style={tw.style(
                   " rounded-2xl px-4 py-2",
-                  isMe ? "bg-pink-500" : "bg-gray-200"
+                  isMe ? "bg-red-500" : "bg-gray-200"
                 )}
               >
                 {/* Media (image/video) */}

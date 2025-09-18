@@ -13,6 +13,7 @@ import { API_BASE_URL } from "../../src/utils/config";
 import { getUserData } from "../../src/utils/storage";
 import gift1 from "../../assets/gift1.png";
 import Icon from "react-native-vector-icons/Ionicons";
+import { Ionicons } from "@expo/vector-icons";
 
 const tabs = ["All", "Member Offers", "Partner Deals"];
 
@@ -68,70 +69,69 @@ const Offers = ({ navigation }) => {
   };
 
   const saveOffer = async (offerId) => {
-  try {
-    const isSaved = offers
-      .find((offer) => offer._id === offerId)
-      ?.savedBy?.includes(userId);
-    const action = isSaved ? "unsave" : "save";
-    const setAction = isSaved ? setUnsaving : setSaving;
-    setAction((prev) => ({ ...prev, [offerId]: true }));
+    try {
+      const isSaved = offers
+        .find((offer) => offer._id === offerId)
+        ?.savedBy?.includes(userId);
+      const action = isSaved ? "unsave" : "save";
+      const setAction = isSaved ? setUnsaving : setSaving;
+      setAction((prev) => ({ ...prev, [offerId]: true }));
 
-    const userData = await getUserData();
-    const token = userData?.token;
+      const userData = await getUserData();
+      const token = userData?.token;
 
-    if (!token || !userId) {
-      Alert.alert("Error", "User not logged in");
-      return;
-    }
-
-    // ✅ Updated API URLs (no userId in path)
-    const url = `${API_BASE_URL}/offer/${offerId}/${action}`;
-    console.log(`Performing ${action} offer:`, url);
-
-    const res = await axios({
-      method: action === "save" ? "post" : "delete",
-      url: url,
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    console.log(`${action} Offer Response:`, res.status, res.data);
-
-    if (res.status === 200 || res.status === 201) {
-      setOffers((prevOffers) =>
-        prevOffers.map((offer) =>
-          offer._id === offerId
-            ? {
-                ...offer,
-                savedBy:
-                  action === "save"
-                    ? [...(offer.savedBy || []), userId]
-                    : offer.savedBy.filter((id) => id !== userId),
-              }
-            : offer
-        )
-      );
-
-      if (action === "save") {
-        Alert.alert("Success", "This offer is saved");
-      } else {
-        Alert.alert("Success", "This offer is unsaved");
+      if (!token || !userId) {
+        Alert.alert("Error", "User not logged in");
+        return;
       }
-    } else {
-      Alert.alert("Error", `Failed to ${action} offer`);
-    }
-  } catch (err) {
-    console.error(
-      `Error ${isSaved ? "unsaving" : "saving"} offer:`,
-      err.response?.status,
-      err.response?.data || err.message
-    );
-    Alert.alert("Error", `Could not ${isSaved ? "unsave" : "save"} offer`);
-  } finally {
-    setSaving((prev) => ({ ...prev, [offerId]: false }));
-    setUnsaving((prev) => ({ ...prev, [offerId]: false }));
-  }
-};
 
+      // ✅ Updated API URLs (no userId in path)
+      const url = `${API_BASE_URL}/offer/${offerId}/${action}`;
+      console.log(`Performing ${action} offer:`, url);
+
+      const res = await axios({
+        method: action === "save" ? "post" : "delete",
+        url: url,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log(`${action} Offer Response:`, res.status, res.data);
+
+      if (res.status === 200 || res.status === 201) {
+        setOffers((prevOffers) =>
+          prevOffers.map((offer) =>
+            offer._id === offerId
+              ? {
+                  ...offer,
+                  savedBy:
+                    action === "save"
+                      ? [...(offer.savedBy || []), userId]
+                      : offer.savedBy.filter((id) => id !== userId),
+                }
+              : offer
+          )
+        );
+
+        if (action === "save") {
+          Alert.alert("Success", "This offer is saved");
+        } else {
+          Alert.alert("Success", "This offer is unsaved");
+        }
+      } else {
+        Alert.alert("Error", `Failed to ${action} offer`);
+      }
+    } catch (err) {
+      console.error(
+        `Error ${isSaved ? "unsaving" : "saving"} offer:`,
+        err.response?.status,
+        err.response?.data || err.message
+      );
+      Alert.alert("Error", `Could not ${isSaved ? "unsave" : "save"} offer`);
+    } finally {
+      setSaving((prev) => ({ ...prev, [offerId]: false }));
+      setUnsaving((prev) => ({ ...prev, [offerId]: false }));
+    }
+  };
 
   useEffect(() => {
     fetchOffers(activeTab);
@@ -141,7 +141,11 @@ const Offers = ({ navigation }) => {
     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
       {/* Header */}
       <View style={tw`flex-row justify-between items-center mt-14 mb-1`}>
-        <Text style={tw`text-xl font-bold text-gray-800`}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} />
+        </TouchableOpacity>
+
+        <Text style={tw`text-xl font-bold text-gray-800 mr-28`}>
           Exclusive offers
         </Text>
       </View>

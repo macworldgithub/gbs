@@ -114,9 +114,11 @@ export default function Conversations({ navigation }) {
   );
 
   return (
-    <View style={tw`flex-1 bg-white mt-16`}>
+    <View style={tw`flex-1 bg-white mt-0`}>
       <View style={tw`p-4 flex-row  items-center border-b border-gray-200`}>
-        
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} />
+        </TouchableOpacity>
         <Text style={tw`text-lg font-bold pl-4`}>Conversations</Text>
       </View>
       {loading ? (
@@ -131,4 +133,3 @@ export default function Conversations({ navigation }) {
     </View>
   );
 }
-

@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import tw from "twrnc";
 import { useNavigation } from "@react-navigation/native";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
 
 const BASE_API_URL = "https://gbs.westsidecarcare.com.au/events/featured";
 const STATES = ["All", "VIC", "NSW", "QLD", "SA", "WA"];
@@ -17,7 +18,7 @@ const FeaturedEventsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [stateFilter, setStateFilter] = useState("All");
   const [page, setPage] = useState(1);
-  const [limit] = useState(5); // change to how many per page you want
+  const [limit] = useState(50); // change to how many per page you want
   const [totalPages, setTotalPages] = useState(1);
 
   const navigation = useNavigation();
@@ -34,15 +35,17 @@ const FeaturedEventsScreen = () => {
       const response = await fetch(url);
       const data = await response.json();
 
+      // Make sure data is always an array
+      const eventsArray = Array.isArray(data?.events) ? data.events : data;
+
       // ✅ filter featured only
-      const featured = (
-        Array.isArray(data?.events) ? data.events : data
-      ).filter((event) => event.isFeatured);
+      const featured = eventsArray.filter((event) => event.isFeatured);
 
       setFeaturedEvents(featured);
 
-      // if API returns pagination info, use it. Otherwise fallback
-      setTotalPages(data?.totalPages || 1);
+      // ✅ Calculate total pages manually if API doesn't send it
+      const totalCount = data?.total || eventsArray.length;
+      setTotalPages(Math.ceil(totalCount / limit));
     } catch (error) {
       console.error("Error fetching featured events:", error);
       setFeaturedEvents([]);
@@ -119,6 +122,14 @@ const FeaturedEventsScreen = () => {
 
   return (
     <View style={tw`flex-1`}>
+      <View style={tw`flex-row items-center mb-1 mt-14 px-4`}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} />
+        </TouchableOpacity>
+        <Text style={tw`text-xl font-bold text-gray-800 mb-1 ml-2`}>
+          Featured Events
+        </Text>
+      </View>
       {/* Tabs for state filter */}
       <View style={tw`flex-row justify-around bg-gray-100 p-2 mt-6`}>
         {STATES.map((st) => (
