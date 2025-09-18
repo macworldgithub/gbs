@@ -28,26 +28,26 @@ const menuItems = [
     icon: "user-edit",
     navigateTo: "EditProfile",
   },
-  {
-    id: "2",
-    label: "Account Security",
-    icon: "shield-alt",
-    navigateTo: "AccountSecurity",
-  },
-  { id: "3", label: "Scan Member", icon: "qrcode", navigateTo: "QRCodeScreen" },
+  // {
+  //   id: "2",
+  //   label: "Account Security",
+  //   icon: "shield-alt",
+  //   navigateTo: "AccountSecurity",
+  // },
+  // { id: "3", label: "Scan Member", icon: "qrcode", navigateTo: "QRCodeScreen" },
   {
     id: "4",
     label: "Payment Method",
     icon: "credit-card",
     navigateTo: "PaymentSettings",
   },
-  {
-    id: "5",
-    label: "General Settings",
-    icon: "cogs",
-    navigateTo: "GeneralSetting",
-  },
-  { id: "6", label: "Help Centre", icon: "calendar-day", navigateTo: "Help" },
+  // {
+  //   id: "5",
+  //   label: "General Settings",
+  //   icon: "cogs",
+  //   navigateTo: "GeneralSetting",
+  // },
+  // { id: "6", label: "Help Centre", icon: "calendar-day", navigateTo: "Help" },
 ];
 
 const requestCameraPermission = async () => {
@@ -293,8 +293,8 @@ const Profile = () => {
       {/* Header */}
       <View style={tw`px-4 pt-6 flex-row justify-between items-center`}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={tw`mr-3`}>
-            <MaterialIcons name="arrow-back" size={26} color="black" />
-          </TouchableOpacity>
+          <MaterialIcons name="arrow-back" size={26} color="black" />
+        </TouchableOpacity>
         <Text style={tw`text-lg font-bold text-gray-800`}>Profile</Text>
         <TouchableOpacity
           style={tw`bg-red-100 px-3 py-1 rounded-full`}
