@@ -11,35 +11,34 @@ import { useNavigation } from "@react-navigation/native";
 
 const BASE_API_URL = "https://gbs.westsidecarcare.com.au/events";
 
-const Cards = ({ stateFilter }) => {
-  const [events, setEvents] = useState([]);
+const FeaturedEventsScreen = () => {
+  const [featuredEvents, setFeaturedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  console.log("events", events);
   const navigation = useNavigation();
+
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchFeaturedEvents = async () => {
       try {
         setLoading(true);
-
-        // Build URL with state param if not "all"
-        const url =
-          stateFilter && stateFilter !== "all"
-            ? `${BASE_API_URL}?state=${stateFilter}`
-            : BASE_API_URL;
-
-        const response = await fetch(url);
+        const response = await fetch(BASE_API_URL);
         const data = await response.json();
-        setEvents(Array.isArray(data) ? data : []);
+
+        // ✅ filter only featured events
+        const featured = (Array.isArray(data) ? data : []).filter(
+          (event) => event.isFeatured
+        );
+
+        setFeaturedEvents(featured);
       } catch (error) {
-        console.error("Error fetching events:", error);
-        setEvents([]);
+        console.error("Error fetching featured events:", error);
+        setFeaturedEvents([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEvents();
-  }, [stateFilter]); // refetch whenever tab changes
+    fetchFeaturedEvents();
+  }, []);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "Date not available";
@@ -63,7 +62,7 @@ const Cards = ({ stateFilter }) => {
     return (
       <Pressable
         style={({ pressed }) => [
-          tw`bg-white p-4 m-2 rounded-xl shadow`,
+          tw`bg-white p-4 m-2 rounded-xl shadow relative`,
           pressed && tw`bg-gray-100`,
         ]}
         onPress={() =>
@@ -71,13 +70,12 @@ const Cards = ({ stateFilter }) => {
         }
       >
         {/* Featured label */}
-        {item?.isFeatured && (
-          <View
-            style={tw`absolute top-2 right-2 bg-red-500 px-2 py-1 rounded-full`}
-          >
-            <Text style={tw`text-white text-xs font-bold`}>FEATURED</Text>
-          </View>
-        )}
+        <View
+          style={tw`absolute top-2 right-2 bg-red-500 px-2 py-1 rounded-full`}
+        >
+          <Text style={tw`text-white text-xs font-bold`}>FEATURED</Text>
+        </View>
+
         <Text style={tw`text-lg font-bold text-black`}>
           {item?.title || "Untitled Event"}
         </Text>
@@ -112,7 +110,7 @@ const Cards = ({ stateFilter }) => {
         <ActivityIndicator size="large" color="#ff4d4f" />
       ) : (
         <FlatList
-          data={events}
+          data={featuredEvents}
           keyExtractor={(item, index) =>
             item?._id?.toString() || index.toString()
           }
@@ -120,7 +118,7 @@ const Cards = ({ stateFilter }) => {
           contentContainerStyle={tw`p-2`}
           ListEmptyComponent={
             <Text style={tw`text-gray-500 text-center mt-4`}>
-              No events found for {stateFilter}
+              No featured events found
             </Text>
           }
         />
@@ -129,4 +127,4 @@ const Cards = ({ stateFilter }) => {
   );
 };
 
-export default Cards;
+export default FeaturedEventsScreen;

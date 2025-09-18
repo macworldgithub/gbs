@@ -17,25 +17,27 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as turf from "@turf/turf";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { API_BASE_URL } from "../utils/config";
+import { Platform } from "react-native";
 
 export default function NotificationForm({
   onSubmit,
   onCancel,
   isLoading = false,
 }) {
-
   const navigation = useNavigation();
-   const route = useRoute();
-  const notification = route.params?.notification; 
-  
-  
+  const route = useRoute();
+  const notification = route.params?.notification;
+
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "",
     message: "",
     area: { type: "MultiPolygon", coordinates: [] },
     startDate: new Date(),
     endDate: new Date(),
-    SendToAll: true,
+    SendToAll: false,
     roles: [], // 👈 selected roles
   });
 
@@ -44,28 +46,27 @@ export default function NotificationForm({
 
   // Pre-fill form when editing
   useEffect(() => {
-  if (notification) {
-    const coords = notification.area?.coordinates || [];
-    setFormData({
-      ...notification,
-      startDate: notification.startDate
-        ? new Date(notification.startDate)
-        : new Date(),
-      endDate: notification.endDate
-        ? new Date(notification.endDate)
-        : new Date(),
-       roles: (notification.roles || []).map(r =>
-        typeof r === "string" ? r : r._id
-      ),
+    if (notification) {
+      const coords = notification.area?.coordinates || [];
+      setFormData({
+        ...notification,
+        startDate: notification.startDate
+          ? new Date(notification.startDate)
+          : new Date(),
+        endDate: notification.endDate
+          ? new Date(notification.endDate)
+          : new Date(),
+        roles: (notification.roles || []).map((r) =>
+          typeof r === "string" ? r : r._id
+        ),
 
-      area: {
-        type: "MultiPolygon",
-        coordinates: Array.isArray(coords) ? coords : [],
-      },
-    });
-  }
-}, [notification]);
-
+        area: {
+          type: "MultiPolygon",
+          coordinates: Array.isArray(coords) ? coords : [],
+        },
+      });
+    }
+  }, [notification]);
 
   // Load roles from API
   useEffect(() => {
@@ -90,7 +91,10 @@ export default function NotificationForm({
 
       setRoles(res.data || []);
     } catch (e) {
-      console.log("[NotificationForm] roles error:", e.response?.data || e.message);
+      console.log(
+        "[NotificationForm] roles error:",
+        e.response?.data || e.message
+      );
       Alert.alert("Error", "Failed to load roles");
     } finally {
       setLoadingRoles(false);
@@ -109,80 +113,82 @@ export default function NotificationForm({
     });
   };
 
- const handleSubmit = async () => {
-  try {
-    let fixedCoords = [];
+  const handleSubmit = async () => {
+    try {
+      let fixedCoords = [];
 
-    if (formData.area.coordinates.length > 0) {
-      const coords = formData.area.coordinates[0][0] || [];
+      if (formData.area.coordinates.length > 0) {
+        const coords = formData.area.coordinates[0][0] || [];
 
-      if (coords.length < 4) {
-        Alert.alert("Error", "Polygon must have at least 4 points.");
-        return;
-      }
-
-      let polygon = turf.polygon([coords]);
-      polygon = turf.cleanCoords(polygon);
-
-      if (!turf.booleanValid(polygon)) {
-        const unkinked = turf.unkinkPolygon(polygon);
-        if (unkinked.features.length > 0) {
-          polygon = unkinked.features[0];
+        if (coords.length < 4) {
+          Alert.alert("Error", "Polygon must have at least 4 points.");
+          return;
         }
+
+        let polygon = turf.polygon([coords]);
+        polygon = turf.cleanCoords(polygon);
+
+        if (!turf.booleanValid(polygon)) {
+          const unkinked = turf.unkinkPolygon(polygon);
+          if (unkinked.features.length > 0) {
+            polygon = unkinked.features[0];
+          }
+        }
+
+        fixedCoords =
+          polygon.geometry.type === "Polygon"
+            ? [[polygon.geometry.coordinates[0]]]
+            : polygon.geometry.coordinates;
       }
 
-      fixedCoords =
-        polygon.geometry.type === "Polygon"
-          ? [[polygon.geometry.coordinates[0]]]
-          : polygon.geometry.coordinates;
-    }
+      const payload = {
+        ...formData,
+        SendToAll: false,
+        area: { type: "MultiPolygon", coordinates: fixedCoords },
+        startDate: formData.startDate.toISOString(),
+        endDate: formData.endDate.toISOString(),
+      };
 
-    const payload = {
-      ...formData,
-      area: { type: "MultiPolygon", coordinates: fixedCoords },
-      startDate: formData.startDate.toISOString(),
-      endDate: formData.endDate.toISOString(),
-    };
+      console.log("📦 Payload:", JSON.stringify(payload, null, 2));
 
-    console.log("📦 Payload:", JSON.stringify(payload, null, 2));
+      // 🔄 Check create or update
+      let res;
+      if (notification?._id) {
+        // UPDATE
+        res = await axios.put(
+          `${API_BASE_URL}/notification/${notification._id}`,
+          payload,
+          { headers: { "Content-Type": "application/json" } }
+        );
+      } else {
+        // CREATE
+        res = await axios.post(`${API_BASE_URL}/notification`, payload, {
+          headers: { "Content-Type": "application/json" },
+        });
+      }
 
-    // 🔄 Check create or update
-    let res;
-    if (notification?._id) {
-      // UPDATE
-      res = await axios.put(
-        `${API_BASE_URL}/notification/${notification._id}`,
-        payload,
-        { headers: { "Content-Type": "application/json" } }
-      );
-    } else {
-      // CREATE
-      res = await axios.post(`${API_BASE_URL}/notification`, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+      console.log("✅ API Response:", res.data);
 
-    console.log("✅ API Response:", res.data);
-
-    Alert.alert(
-      "Success",
-      notification ? "Notification updated successfully!" : "Notification created successfully!",
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            if (onSubmit) onSubmit(payload);
-            navigation.goBack(); // 👈 list me wapas
+      Alert.alert(
+        "Success",
+        notification
+          ? "Notification updated successfully!"
+          : "Notification created successfully!",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              if (onSubmit) onSubmit(payload);
+              navigation.goBack(); // 👈 list me wapas
+            },
           },
-        },
-      ]
-    );
-  } catch (error) {
-    console.error("❌ API Error:", error.response?.data || error.message);
-    Alert.alert("Error", "Failed to save notification.");
-  }
-};
-
+        ]
+      );
+    } catch (error) {
+      console.error("❌ API Error:", error.response?.data || error.message);
+      Alert.alert("Error", "Failed to save notification.");
+    }
+  };
 
   return (
     <ScrollView style={tw`flex-1 bg-white p-4 mt-14 mb-20`}>
@@ -215,25 +221,130 @@ export default function NotificationForm({
 
       {/* Start & End Date */}
       <Text style={tw`text-sm text-gray-700 mb-1`}>Start Date</Text>
-      <DateTimePicker
-        value={formData.startDate}
-        mode="datetime"
-        onChange={(e, date) =>
-          date && setFormData((p) => ({ ...p, startDate: date }))
-        }
-      />
+      <TouchableOpacity
+        onPress={() => setShowStartPicker(true)}
+        style={tw`border p-2 rounded mb-4`}
+      >
+        <Text>
+          {formData.startDate
+            ? formData.startDate.toLocaleString()
+            : "Select start date"}
+        </Text>
+      </TouchableOpacity>
+
+      {/* {showStartPicker && (
+        <DateTimePicker
+          value={formData.startDate || new Date()}
+          mode="datetime"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(e, date) => {
+            setShowStartPicker(Platform.OS === "ios"); // iOS me open rehne de, Android me band karo
+            if (date) {
+              setFormData((p) => ({ ...p, startDate: date }));
+            }
+          }}
+        />
+      )} */}
+
+      {showStartPicker && (
+        <DateTimePicker
+          value={formData.startDate || new Date()}
+          mode="datetime"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, date) => {
+            if (Platform.OS === "android") {
+              setShowStartPicker(false); // Android: close manually
+            }
+
+            // 👉 Android crash avoid
+            if (event?.type === "dismissed" || !date) {
+              return;
+            }
+
+            setFormData((p) => ({ ...p, startDate: date }));
+          }}
+        />
+      )}
 
       <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
-      <DateTimePicker
-        value={formData.endDate}
-        mode="datetime"
-        onChange={(e, date) =>
-          date && setFormData((p) => ({ ...p, endDate: date }))
-        }
-      />
+      <TouchableOpacity
+        onPress={() => setShowEndPicker(true)}
+        style={tw`border p-2 rounded mb-4`}
+      >
+        <Text>
+          {formData.endDate
+            ? formData.endDate.toLocaleString()
+            : "Select end date"}
+        </Text>
+      </TouchableOpacity>
+
+      {/* {showEndPicker && (
+        <DateTimePicker
+          value={formData.endDate || new Date()}
+          mode="datetime"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(e, date) => {
+            setShowEndPicker(Platform.OS === "ios"); // iOS me open rehne de, Android me band karo
+            if (date) {
+              setFormData((p) => ({ ...p, endDate: date }));
+            }
+          }}
+        />
+      )} */}
+
+      {showEndPicker && (
+        <DateTimePicker
+          value={formData.endDate || new Date()}
+          mode="datetime"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, date) => {
+            if (Platform.OS === "android") {
+              setShowEndPicker(false);
+            }
+
+            if (event?.type === "dismissed" || !date) {
+              return;
+            }
+
+            setFormData((p) => ({ ...p, endDate: date }));
+          }}
+        />
+      )}
+
+      <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
+      <TouchableOpacity
+        onPress={() => setShowEndPicker(true)}
+        style={tw`border p-2 rounded mb-4`}
+      >
+        <Text>
+          {formData.endDate
+            ? formData.endDate.toLocaleString()
+            : "Select end date"}
+        </Text>
+      </TouchableOpacity>
+ß
+      {showEndPicker && (
+        <DateTimePicker
+          value={formData.endDate || new Date()}
+          mode="datetime"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(event, date) => {
+            if (Platform.OS === "android") {
+              setShowEndPicker(false);
+              if (event.type === "dismissed") {
+                return;
+              }
+            }
+
+            if (date) {
+              setFormData((p) => ({ ...p, endDate: date }));
+            }
+          }}
+        />
+      )}
 
       {/* Send to All */}
-      <View style={tw`flex-row items-center mt-4`}>
+      {/* <View style={tw`flex-row items-center mt-4`}>
         <Text style={tw`flex-1 text-sm text-gray-700`}>Send to World</Text>
         <Switch
           value={formData.SendToAll}
@@ -241,19 +352,15 @@ export default function NotificationForm({
             setFormData((p) => ({ ...p, SendToAll: val }))
           }
         />
-      </View>
+      </View> */}
 
       {/* Roles */}
       <View style={tw`mt-6`}>
-        <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
-          Roles *
-        </Text>
+        <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>Roles *</Text>
         {loadingRoles ? (
           <View style={tw`flex-row items-center`}>
             <ActivityIndicator color="#DC2626" size="small" />
-            <Text style={tw`ml-2 text-gray-500 text-sm`}>
-              Loading roles...
-            </Text>
+            <Text style={tw`ml-2 text-gray-500 text-sm`}>Loading roles...</Text>
           </View>
         ) : (
           <View style={tw`flex-row flex-wrap`}>
@@ -327,4 +434,3 @@ export default function NotificationForm({
     </ScrollView>
   );
 }
-

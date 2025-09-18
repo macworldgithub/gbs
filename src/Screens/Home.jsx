@@ -48,6 +48,7 @@ const tabs = [
   { key: "NSW", label: "NSW", icon: "location-on" },
   { key: "QLD", label: "QLD", icon: "location-on" },
   { key: "SA", label: "SA", icon: "location-on" },
+  { key: "WA", label: "WA", icon: "location-on" },
 ];
 
 export default function Home() {
@@ -146,15 +147,14 @@ export default function Home() {
     }
   };
 
-
   useEffect(() => {
     if (coordinates.length > 0) {
-      console.log("[Home] Selected coordinates:", JSON.stringify(coordinates, null, 2));
+      console.log(
+        "[Home] Selected coordinates:",
+        JSON.stringify(coordinates, null, 2)
+      );
     }
   }, [coordinates]);
-
-
-
 
   const createEvent = async () => {
     if (
@@ -192,7 +192,6 @@ export default function Home() {
       };
 
       console.log("[Home] Final Event Payload:", JSON.stringify(body, null, 2));
-
 
       const res = await axios.post(`${API_BASE_URL}/events`, body, {
         headers: {
@@ -284,13 +283,14 @@ export default function Home() {
               />
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => navigation.navigate("CreateEvent")}
             style={tw`flex-row items-center border border-red-500 px-3 py-1 rounded-full`}
-          >
-            {/* <Ionicons name="log-out-outline" size={20} color="#ef4444" /> */}
-            <Text style={tw`ml-1 text-red-500 `}>Create Events</Text>
-          </TouchableOpacity>
+          > */}
+          {/* <Ionicons name="log-out-outline" size={20} color="#ef4444" /> */}
+
+          {/* <Text style={tw`ml-1 text-red-500 `}>Create Events</Text> */}
+          {/* </TouchableOpacity> */}
         </View>
       </View>
 
@@ -300,9 +300,9 @@ export default function Home() {
       >
         <Ionicons name="search" size={18} color="#9CA3AF" />
         <TextInput
-          style={tw`ml-2 flex-1 text-sm`}
+          style={tw`ml-2 flex-1 text-sm p-4`}
           placeholder="Search businesses, offers, users"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor="gray"
           value={searchQuery}
           onChangeText={setSearchQuery}
           blurOnSubmit={false}
@@ -433,7 +433,9 @@ export default function Home() {
       {/* Upcoming Events Section */}
       <View style={tw`mb-2`}>
         <View style={tw`flex-row justify-between mb-2`}>
-          <Text style={tw`font-semibold`}>Latest News</Text>
+          {/* <Text style={tw`font-semibold`}>Latest News</Text> */}
+          <Text style={tw`font-extrabold`}>Latest News</Text>
+
           <Text style={tw`text-red-500 text-sm`}>See all News</Text>
         </View>
 
@@ -467,8 +469,8 @@ export default function Home() {
         data={[{}]}
         renderItem={() => (
           <View style={tw`px-4`}>
-            <View style={tw`flex-row justify-between mb-2`}>
-              <Text style={tw`font-semibold`}>
+            <View style={tw`flex-row justify-between mb-2 `}>
+              <Text style={tw`font-extrabold`}>
                 {activeTab === "all" ? "All Events" : `${activeTab} Events`}
               </Text>
               <TouchableOpacity

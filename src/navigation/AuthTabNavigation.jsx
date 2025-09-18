@@ -28,7 +28,7 @@ export default function AuthTabs() {
       <Tab.Screen name="Directory" component={DirectoryStack} />
       <Tab.Screen name="Business" component={BusinessPage} />
       <Tab.Screen name="Wellbeing" component={WellbeingScreen} />
-      <Tab.Screen name="Social" component={Social} />
+      <Tab.Screen name="Social" component={Conversations} />
       {/* <Tab.Screen name="Wellbeing" component={WellbeingScreen} /> */}
       <Tab.Screen name="Offers" component={Offers} />
     </Tab.Navigator>
