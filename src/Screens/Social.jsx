@@ -116,7 +116,7 @@
 //   return (
 //     <View style={tw`flex-1 bg-white mt-16`}>
 //       <View style={tw`p-4 flex-row  items-center border-b border-gray-200`}>
-        
+
 //         <Text style={tw`text-lg font-bold pl-4`}>Conversations</Text>
 //       </View>
 //       {loading ? (
@@ -131,9 +131,6 @@
 //     </View>
 //   );
 // }
-
-
-
 
 import React, { useState, useEffect } from "react";
 import {
@@ -190,7 +187,6 @@ const Social = () => {
     fetchUser();
   }, []);
 
-
   const fetchEvents = async (stateFilter = "All") => {
     try {
       setLoading(true);
@@ -236,7 +232,6 @@ const Social = () => {
   //   });
   //   setModalVisible(true);
   // };
-
 
   // const submitUpdate = async () => {
   //     if (!editingEvent) return;
@@ -288,8 +283,6 @@ const Social = () => {
   //     }
   // };
 
-
-
   // const submitUpdate = async () => {
   //   if (!editingEvent) return;
 
@@ -339,8 +332,6 @@ const Social = () => {
   //     Alert.alert("Error", error.message);
   //   }
   // };
-
-
 
   // const handleDelete = async (event) => {
   //   const loggedInUserId = user?.user?._id || user?._id || user?.sub;
@@ -473,7 +464,11 @@ const Social = () => {
         setForm({ ...form, imageUrl: finalData.url });
 
         // NEW: Update local events state immediately to reflect image in card
-        setEvents(events.map(e => e._id === eventId ? { ...e, imageUrl: finalData.url } : e));
+        setEvents(
+          events.map((e) =>
+            e._id === eventId ? { ...e, imageUrl: finalData.url } : e
+          )
+        );
 
         Alert.alert("Success", "Image uploaded successfully!");
       } catch (err) {
@@ -483,7 +478,6 @@ const Social = () => {
     });
   };
 
-
   return (
     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
       {/* Header */}
@@ -492,12 +486,11 @@ const Social = () => {
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <View>
-        <Text style={tw`text-xl font-bold`}>Social</Text>
-        <Text style={tw`text-sm text-gray-600`}>Community & Events</Text>
+          <Text style={tw`text-xl font-bold`}>Social</Text>
+          <Text style={tw`text-sm text-gray-600`}>Community & Events</Text>
         </View>
         <View style={{ width: 24 }} />
       </View>
-
 
       {/* Tabs */}
       <View style={tw`flex-row mb-4`}>
@@ -505,12 +498,14 @@ const Social = () => {
           <TouchableOpacity
             key={tab}
             onPress={() => setActiveTab(tab)}
-            style={tw`px-4 py-2 mr-2 rounded-md ${activeTab === tab ? "bg-red-500" : "bg-gray-100"
-              }`}
+            style={tw`px-4 py-2 mr-2 rounded-md ${
+              activeTab === tab ? "bg-red-500" : "bg-gray-100"
+            }`}
           >
             <Text
-              style={tw`text-sm ${activeTab === tab ? "text-white" : "text-gray-700"
-                }`}
+              style={tw`text-sm ${
+                activeTab === tab ? "text-white" : "text-gray-700"
+              }`}
             >
               {tab}
             </Text>
@@ -528,14 +523,16 @@ const Social = () => {
           <TouchableOpacity
             key={st}
             onPress={() => setSelectedState(st)}
-            style={tw`px-4 py-2 mr-2 rounded-md border ${selectedState === st
-              ? "bg-red-100 border-red-500"
-              : "bg-white border-gray-300"
-              }`}
+            style={tw`px-4 py-2 mr-2 rounded-md border ${
+              selectedState === st
+                ? "bg-red-100 border-red-500"
+                : "bg-white border-gray-300"
+            }`}
           >
             <Text
-              style={tw`text-sm ${selectedState === st ? "text-red-600" : "text-gray-700"
-                }`}
+              style={tw`text-sm ${
+                selectedState === st ? "text-red-600" : "text-gray-700"
+              }`}
             >
               {st}
             </Text>
@@ -555,8 +552,11 @@ const Social = () => {
 
       {activeTab === "Events" &&
         events.map((event) => (
-          <TouchableOpacity key={event._id}
-            onPress={() => navigation.navigate("EventDetail", { eventId: event._id })}
+          <TouchableOpacity
+            key={event._id}
+            onPress={() =>
+              navigation.navigate("EventDetail", { eventId: event._id })
+            }
             style={tw`bg-gray-50 rounded-lg mb-4 overflow-hidden border border-gray-300 p-4`}
           >
             {event.imageUrl ? (
@@ -573,6 +573,13 @@ const Social = () => {
               />
             )}
             <View style={tw`flex-row justify-between items-center`}>
+              {event?.isFeatured && (
+                <View
+                  style={tw`absolute top-2 right-2 bg-red-500 px-2 py-1 rounded-full`}
+                >
+                  <Text style={tw`text-white text-xs font-bold`}>FEATURED</Text>
+                </View>
+              )}
               <Text style={tw`text-base font-bold text-gray-800`}>
                 {event.title}
               </Text>
@@ -622,7 +629,7 @@ const Social = () => {
                     ? event.locationNames.join(", ")
                     : "N/A"
                   : typeof event?.locationNames === "string" &&
-                    event.locationNames.trim() !== ""
+                      event.locationNames.trim() !== ""
                     ? event.locationNames
                     : "N/A"}
               </Text>

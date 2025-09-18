@@ -57,6 +57,7 @@ export default function Drawer({ isOpen, onClose }) {
         } else {
           const ud = await getUserData();
           setRoleLabel(ud?.activatedPackage?.role?.label || null);
+          
         }
 
         // Load user profile data with signed URL (same logic as Profile.js)
