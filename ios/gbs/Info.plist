@@ -22,10 +22,10 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
 	<key>LSMinimumSystemVersion</key>
 	<string>12.0</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -33,6 +33,20 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to take profile photos.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs your location even when the app is in the background.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app requires background location access for better service delivery.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to provide location-based features.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app requires access to the microphone for recording audio.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs permission to save photos or videos to your library.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to select profile images.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -49,27 +63,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-
-	<!-- iOS Permissions -->
-	<key>NSCameraUsageDescription</key>
-	<string>This app requires access to the camera to take photos or videos.</string>
-
-	<key>NSMicrophoneUsageDescription</key>
-	<string>This app requires access to the microphone for recording audio.</string>
-
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to your photo library to select images or videos.</string>
-
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>This app needs permission to save photos or videos to your library.</string>
-
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app uses your location to provide location-based features.</string>
-
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This app needs your location even when the app is in the background.</string>
-
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app requires background location access for better service delivery.</string>
 </dict>
 </plist>

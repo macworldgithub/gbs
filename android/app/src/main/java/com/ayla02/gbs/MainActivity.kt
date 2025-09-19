@@ -1,4 +1,4 @@
-package com.gbs
+package com.ayla02.gbs
 
 import android.os.Build
 import android.os.Bundle

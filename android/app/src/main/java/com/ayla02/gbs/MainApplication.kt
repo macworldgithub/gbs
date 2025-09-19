@@ -1,4 +1,4 @@
-package com.gbs
+package com.ayla02.gbs
 
 import android.app.Application
 import android.content.res.Configuration

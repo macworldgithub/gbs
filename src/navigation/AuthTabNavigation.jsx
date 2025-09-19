@@ -3,9 +3,18 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import Home from "../Screens/Home";
 import Profile from "../Screens/Profile";
-import CustomTabBar from "../../components/CustomTabBar"
+import CustomTabBar from "../../components/CustomTabBar";
 import Favorite from "../Screens/Favorite";
 import AllChat from "../Screens/AllChat";
+import MembersDirectory from "../Screens/Directory";
+import BusinessPage from "../Screens/BusinessPage";
+import Chat from "../Screens/Chat";
+import WellbeingScreen from "../Screens/Wellbeing";
+import OffersStack from "./OffersStackNavigation";
+import Conversations from "../Screens/Conversations";
+import Offers from "../Screens/Offers";
+import DirectoryStack from "./DirectoryStackNavigation";
+import Social from "../Screens/Social";
 
 const Tab = createBottomTabNavigator();
 
@@ -16,9 +25,12 @@ export default function AuthTabs() {
       tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="Favorite" component={Favorite}/>
-      <Tab.Screen name="Chat" component={AllChat} />
-      <Tab.Screen name="Profile" component={Profile} />
+      <Tab.Screen name="Directory" component={DirectoryStack} />
+      <Tab.Screen name="Business" component={BusinessPage} />
+      <Tab.Screen name="Wellbeing" component={WellbeingScreen} />
+      <Tab.Screen name="Social" component={Conversations} />
+      {/* <Tab.Screen name="Wellbeing" component={WellbeingScreen} /> */}
+      <Tab.Screen name="Offers" component={Offers} />
     </Tab.Navigator>
   );
 }

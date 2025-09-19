@@ -1,70 +1,132 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity } from 'react-native';
-import tw from 'tailwind-react-native-classnames';
-import { FontAwesome } from '@expo/vector-icons';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  Pressable,
+} from "react-native";
+import tw from "twrnc";
+import { useNavigation } from "@react-navigation/native";
 
-const popularEvents = [
-    {
-        id: '1',
-        title: 'BMTH Tour 2024',
-        location: 'Mandala Krida, Yogyakarta',
-        price: '$60.00 - $300.00',
-        image: require('../assets/popular1.png'),
-    },
-    {
-        id: '2',
-        title: 'Moshing Metal Fest 2024',
-        location: 'Sleman, Yogyakarta',
-        price: '$15.00 - $30.00',
-        image: require('../assets/popular2.png'),
-    },
-    {
-        id: '3',
-        title: 'Moshing Metal Fest II 2024',
-        location: 'Maguwo, Yogyakarta',
-        price: '$15.00 - $30.00',
-        image: require('../assets/popular3.png'),
-    },
-     {
-        id: '4',
-        title: 'Moshing Metal Fest II 2024',
-        location: 'Maguwo, Yogyakarta',
-        price: '$15.00 - $30.00',
-        image: require('../assets/popular3.png'),
-    },
-];
+const BASE_API_URL = "https://gbs.westsidecarcare.com.au/events";
 
-const Cards = () => {
-    const [likedEvents, setLikedEvents] = useState({});
+const Cards = ({ stateFilter }) => {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  console.log("events", events);
+  const navigation = useNavigation();
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
 
-    const toggleLike = (id) => {
-        setLikedEvents((prev) => ({ ...prev, [id]: !prev[id] }));
+        // Build URL with state param if not "all"
+        const url =
+          stateFilter && stateFilter !== "all"
+            ? `${BASE_API_URL}?state=${stateFilter}`
+            : BASE_API_URL;
+
+        const response = await fetch(url);
+        const data = await response.json();
+        setEvents(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
+    fetchEvents();
+  }, [stateFilter]); // refetch whenever tab changes
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "Date not available";
+    const date = new Date(dateStr);
+    return date
+      .toLocaleString("en-US", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+      .replace(",", "");
+  };
+
+  const renderEvent = ({ item }) => {
+    const startDate = formatDate(item?.startDate);
+    const endDate = formatDate(item?.endDate);
+
     return (
-        <FlatList
-            data={popularEvents}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-                <View style={tw`flex-row items-center bg-gray-100 rounded-lg p-2 mb-2`}>
-                    <Image source={item.image} style={{ width: 60, height: 60, borderRadius: 8, marginRight: 10 }} />
-                    <View style={tw`flex-1`}>
-                        <Text style={tw`font-semibold text-sm`}>{item.title}</Text>
-                        <Text style={tw`text-red-500 text-xs`}>{item.price}</Text>
-                        <Text style={tw`text-gray-500 text-xs`}>{item.location}</Text>
-                    </View>
-                    <TouchableOpacity onPress={() => toggleLike(item.id)}>
-                        <FontAwesome
-                            name={likedEvents[item.id] ? 'heart' : 'heart-o'}
-                            size={16}
-                            color={likedEvents[item.id] ? 'red' : '#9CA3AF'}
-                        />
-                    </TouchableOpacity>
-                </View>
-            )}
-        />
+      <Pressable
+        style={({ pressed }) => [
+          tw`bg-white p-4 m-2 rounded-xl shadow`,
+          pressed && tw`bg-gray-100`,
+        ]}
+        onPress={() =>
+          navigation.navigate("EventDetail", { eventId: item?._id })
+        }
+      >
+        {/* Featured label */}
+        {item?.isFeatured && (
+          <View
+            style={tw`absolute top-2 right-2 bg-red-500 px-2 py-1 rounded-full`}
+          >
+            <Text style={tw`text-white text-xs font-bold`}>FEATURED</Text>
+          </View>
+        )}
+        <Text style={tw`text-lg font-bold text-black`}>
+          {item?.title || "Untitled Event"}
+        </Text>
+        <Text style={tw`text-gray-600 mt-1`}>
+          {item?.description || "No description available"}
+        </Text>
+
+        {/* Start Date */}
+        <View style={tw`mt-2 flex-row`}>
+          <Text style={tw`text-black text-sm font-semibold`}>StartDate: </Text>
+          <Text style={tw`text-black text-sm`}>{startDate}</Text>
+        </View>
+
+        {/* End Date */}
+        <View style={tw`mt-1 flex-row`}>
+          <Text style={tw`text-black text-sm font-semibold`}>EndDate: </Text>
+          <Text style={tw`text-black text-sm`}>{endDate}</Text>
+        </View>
+
+        {/* State */}
+        <View style={tw`mt-1 mb-2 flex-row`}>
+          <Text style={tw`text-black text-sm font-semibold`}>State: </Text>
+          <Text style={tw`text-red-500 text-sm`}>{item?.state || "N/A"}</Text>
+        </View>
+      </Pressable>
     );
+  };
+
+  return (
+    <View style={tw`flex-1`}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#ff4d4f" />
+      ) : (
+        <FlatList
+          data={events}
+          keyExtractor={(item, index) =>
+            item?._id?.toString() || index.toString()
+          }
+          renderItem={renderEvent}
+          contentContainerStyle={tw`p-2`}
+          ListEmptyComponent={
+            <Text style={tw`text-gray-500 text-center mt-4`}>
+              No events found for {stateFilter}
+            </Text>
+          }
+        />
+      )}
+    </View>
+  );
 };
 
 export default Cards;
