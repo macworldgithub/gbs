@@ -19,30 +19,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
-// Sidebar menu items
-const menuItems = [
-  {
-    title: "Chat Groups",
-    subItems: [
-      { title: "Announcements " },
-      { title: "Business" },
-      {
-        title: "Social",
-        subItems: [
-          { title: "General" },
-          { title: "Horse Tipping" },
-          { title: "Competitions" },
-          { title: "Golf" },
-          { title: "Wine Club" },
-        ],
-      },
-    ],
-  },
+// Dynamic menu: Chat Groups will be loaded from API
+const staticItems = [
   { title: "My Business" },
   { title: "Saved offers" },
   { title: "Profile" },
-  { title: "Conversation" },
+  // { title: "Events" },
   { title: "Upgrade Package" },
+  { title: "Featured Events" },
   { title: "Delete User Package" },
   { title: "Logout" },
 ];
@@ -54,6 +38,7 @@ export default function Drawer({ isOpen, onClose }) {
   const [roleLabel, setRoleLabel] = useState(null);
   const [userProfile, setUserProfile] = useState({ name: "", avatarUrl: null });
   console.log(userProfile, "drawer");
+  const [groups, setGroups] = useState([]);
 
   const toggleExpand = (title) => {
     setExpandedItems((prev) => ({
@@ -72,6 +57,7 @@ export default function Drawer({ isOpen, onClose }) {
         } else {
           const ud = await getUserData();
           setRoleLabel(ud?.activatedPackage?.role?.label || null);
+          
         }
 
         // Load user profile data with signed URL (same logic as Profile.js)
@@ -112,6 +98,8 @@ export default function Drawer({ isOpen, onClose }) {
     };
     loadUserData();
   }, [isOpen]);
+
+  // Instead of listing groups here, tapping "Chat Groups" will navigate to the groups screen
 
   // Delete user package function
   const deleteUserPackage = async () => {
@@ -220,9 +208,12 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "Profile") {
         onClose();
         navigation.navigate("Profile");
-      } else if (item.title === "Conversation") {
+      } else if (item.title === "Featured Events") {
         onClose();
-        navigation.navigate("conversation");
+        navigation.navigate("Featured");
+      } else if (item.title === "Chat Groups") {
+        onClose();
+        navigation.navigate("GroupConversations");
       } else if (item.title === "Upgrade Package") {
         onClose();
         navigation.navigate("UpgradePackage");
@@ -261,8 +252,9 @@ export default function Drawer({ isOpen, onClose }) {
               },
             ]}
           >
-            {item.title}
-            {item.title === "Chat Groups"}
+            {item.title?.startsWith?.("GROUP::")
+              ? item.title.replace("GROUP::", "")
+              : item.title}
           </Text>
           {item.subItems && (
             <Ionicons
@@ -342,7 +334,9 @@ export default function Drawer({ isOpen, onClose }) {
             style={tw`flex-1 px-3 ml-4`}
             showsVerticalScrollIndicator={false}
           >
-            {menuItems.map((menu) => renderMenuItem(menu))}
+            {[{ title: "Chat Groups" }, ...staticItems].map((menu) =>
+              renderMenuItem(menu)
+            )}
           </ScrollView>
         </View>
       </Animated.View>

@@ -135,107 +135,125 @@ const AddBusinessModal = ({ visible, onClose, onBusinessAdded }) => {
     <Modal visible={visible} animationType="slide" transparent>
       <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
         <ScrollView
-          style={[tw`bg-white w-11/12 rounded-2xl p-5`, { maxHeight: "85%" }]}
+          style={[tw`bg-white w-11/12 rounded-2xl p-5 `, { maxHeight: "85%" }]}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={tw`text-lg font-bold mb-4`}>Add Business</Text>
+          <Text style={tw`text-lg font-bold mb-4 text-black-400 `}>Add Business</Text>
 
           <TextInput
             placeholder="Company Name"
-            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            placeholderTextColor="#000000"
+           style={[tw`border border-gray-300 rounded-lg p-3 mb-3`, { color: '#000000' }]}
             value={companyName}
             onChangeText={setCompanyName}
           />
           <TextInput
             placeholder="Title"
-            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            placeholderTextColor="#000000"
+            style={[tw`border border-gray-300 rounded-lg p-3 mb-3`, { color: '#000000' }]}
             value={title}
             onChangeText={setTitle}
           />
 
-          <View style={tw`border border-gray-300 rounded-lg mb-3`}>
+          <View style={[tw`border border-gray-300 rounded-lg mb-3`,{ color: '#000000' }]}>
             <Picker
               selectedValue={industry}
               onValueChange={(itemValue) => setIndustry(itemValue)}
               style={tw`p-3`}
               dropdownIconColor="#000"
+               placeholderTextColor="#000000"
             >
-              <Picker.Item label="Select Industry" value={null} />
+              <Picker.Item label="Select Industry" value={null} color="#000" />
               {industries.map((ind) => (
-                <Picker.Item key={ind} label={ind} value={ind} />
+                <Picker.Item key={ind} label={ind} value={ind} color="#000" />
               ))}
             </Picker>
           </View>
 
-          <View style={tw`border border-gray-300 rounded-lg mb-3`}>
+          <View style={[tw`border border-gray-300 rounded-lg mb-3`, { color: '#000000' }] }>
             <Picker
               selectedValue={state}
               onValueChange={(itemValue) => setState(itemValue)}
               style={tw`p-3`}
               dropdownIconColor="#000"
+              placeholderTextColor="#000000"
             >
-              <Picker.Item label="Select State" value={null} />
+              <Picker.Item label="Select State" value={null} color="#000"
+                
+              placeholderTextColor="#000000" />
               {states.map((st) => (
-                <Picker.Item key={st} label={st} value={st} />
+                <Picker.Item key={st} label={st} value={st} color="#000" 
+                
+              placeholderTextColor="#000000" />
               ))}
             </Picker>
           </View>
 
           <TextInput
             placeholder="City"
-            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            style={[tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`, { color: '#000000' }] }
             value={city}
             onChangeText={setCity}
+            placeholderTextColor="#000000"
           />
           <TextInput
             placeholder="About"
-            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            style={[tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`, { color: '#000000' }]}
             value={about}
             onChangeText={setAbout}
+            placeholderTextColor="#000000"
+
           />
           <TextInput
             placeholder="Services (comma separated)"
-            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            style={[tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`,{ color: '#000000' }]}
             value={services}
             onChangeText={setServices}
+            placeholderTextColor="#000000"
           />
           <TextInput
             placeholder="Phone"
-            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            style={[tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`, { color: '#000000' }]}
             value={phone}
             onChangeText={setPhone}
+            placeholderTextColor="#000000"
           />
           <TextInput
             placeholder="Email"
-            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            style={[tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`, { color: '#000000' }]}
             value={email}
             onChangeText={setEmail}
+            placeholderTextColor="#000000"
           />
           <TextInput
             placeholder="Website"
-            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            style={[tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`,{ color: '#000000' }]}
             value={website}
             onChangeText={setWebsite}
+             placeholderTextColor="#000000"
           />
 
           <TextInput
             placeholder="Industries Served (comma separated)"
-            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            style={[tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`,{ color: '#000000' }]}
             value={industriesServed}
             onChangeText={setIndustriesServed}
+            placeholderTextColor="#000000"
           />
           <TextInput
             placeholder="Looking For"
-            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            style={[tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`,{ color: '#000000' }]}
             value={lookingFor}
             onChangeText={setLookingFor}
+            placeholderTextColor="#000000"
           />
           <TextInput
             placeholder="Rating (0-5)"
             keyboardType="numeric"
-            style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`}
+            style={[tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-500`,{ color: '#000000' }]}
             value={rating}
             onChangeText={setRating}
+            placeholderTextColor="#000000"
           />
 
           <Text style={tw`font-bold mb-2`}>Social Links</Text>
@@ -243,13 +261,15 @@ const AddBusinessModal = ({ visible, onClose, onBusinessAdded }) => {
             <View key={index} style={tw`mb-2`}>
               <TextInput
                 placeholder="Platform (e.g. LinkedIn)"
-                style={tw`border border-gray-300 rounded-lg p-3 mb-1 text-gray-500`}
+                style={[tw`border border-gray-300 rounded-lg p-3 mb-1 text-gray-500`,{ color: '#000000' }]}
+                placeholderTextColor="#000000"
                 value={link.platform}
                 onChangeText={(text) => handleSocialLinkChange(index, "platform", text)}
               />
               <TextInput
                 placeholder="URL"
-                style={tw`border border-gray-300 rounded-lg p-3 text-gray-500`}
+                style={[tw`border border-gray-300 rounded-lg p-3 text-gray-500`,{ color: '#000000' }]}
+                 placeholderTextColor="#000000"
                 value={link.url}
                 onChangeText={(text) => handleSocialLinkChange(index, "url", text)}
               />

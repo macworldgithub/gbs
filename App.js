@@ -35,6 +35,7 @@ import GroupInfo from "./src/Screens/GroupInfo";
 import GroupChat from "./src/Screens/GroupChat";
 import Gallery from "./src/Screens/Gallery";
 import MuteGroup from "./src/Screens/MuteGroup";
+import GroupConversations from "./src/Screens/GroupConversations";
 import FavoriteEmpty from "./src/Screens/FavoriteEmpty";
 import Favorite from "./src/Screens/Favorite";
 import ForgotPass from "./src/Screens/ForgotPass";
@@ -58,6 +59,10 @@ import SavedOffers from "./src/Screens/SavedOffers";
 import UpgradePackage from "./src/Screens/UpgradePackage";
 import Social from "./src/Screens/Social";
 import EventDetail from "./src/Screens/EventDetail";
+import NotificationForm from "./src/Screens/NotificationForm";
+import CreateEvent from "./src/Screens/CreateEvent";
+import FeaturedEventsScreen from "./src/Screens/FeaturedEventsScreen";
+import messaging from '@react-native-firebase/messaging';
 
 const Stack = createStackNavigator();
 
@@ -95,6 +100,60 @@ export default function App() {
       });
     }, 4000);
 
+    async function requestUserPermission() {
+  const authorizationStatus = await messaging().requestPermission();
+
+  if (authorizationStatus) {
+    console.log('Permission status:', authorizationStatus);
+  }
+}
+
+async function checkApplicationPermission() {
+  const authorizationStatus = await messaging().requestPermission();
+
+  if (authorizationStatus === messaging.AuthorizationStatus.AUTHORIZED) {
+    console.log('User has notification permissions enabled.');
+  } else if (authorizationStatus === messaging.AuthorizationStatus.PROVISIONAL) {
+    console.log('User has provisional notification permissions.');
+  } else {
+    console.log('User has notification permissions disabled');
+  }
+}
+
+
+const getToken = async () => {
+  try {
+    // Request permission for iOS
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    if (enabled) {
+      console.log('Authorization status:', authStatus);
+
+      // Get the FCM token
+      const token = await messaging().getToken();
+      console.log('FCM Token:', token);
+
+      return token;
+    } else {
+      console.log('Permission not granted for push notifications');
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching FCM token:', error);
+    return null;
+  }
+};
+
+
+
+    requestUserPermission();
+    checkApplicationPermission();
+    // getToken();
+
+    
     return () => clearTimeout(timer);
   }, []);
 
@@ -152,6 +211,10 @@ export default function App() {
             <Stack.Screen name="Chat" component={Chat} />
             <Stack.Screen name="CreateGroup" component={CreateGroup} />
             <Stack.Screen name="GroupChat" component={GroupChat} />
+            <Stack.Screen
+              name="GroupConversations"
+              component={GroupConversations}
+            />
             <Stack.Screen name="GroupInfo" component={GroupInfo} />
             <Stack.Screen name="Gallery" component={Gallery} />
             <Stack.Screen name="MuteGroup" component={MuteGroup} />
@@ -174,6 +237,12 @@ export default function App() {
             <Stack.Screen name="SavedOffers" component={SavedOffers} />
             <Stack.Screen name="social" component={Social} />
             <Stack.Screen name="UpgradePackage" component={UpgradePackage} />
+            <Stack.Screen
+              name="NotificationForm"
+              component={NotificationForm}
+            />
+            <Stack.Screen name="CreateEvent" component={CreateEvent} />
+            <Stack.Screen name="Featured" component={FeaturedEventsScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

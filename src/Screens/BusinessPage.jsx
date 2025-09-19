@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import AddBusinessModal from "../../components/AddBusinessModal";
 import tw from "tailwind-react-native-classnames";
-import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
+import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons";
 
 const API_URL = `${API_BASE_URL}/business/search`;
 
@@ -38,6 +38,9 @@ const BusinessPage = ({ navigation }) => {
   const [roles, setRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [packageLoading, setPackageLoading] = useState(false);
+  const [actionMenuVisible, setActionMenuVisible] = useState(false);
+  const [featuredBusinesses, setFeaturedBusinesses] = useState([]);
+  const [showFeatured, setShowFeatured] = useState(false);
 
   useEffect(() => {
     if (isFocused) {
@@ -103,6 +106,35 @@ const BusinessPage = ({ navigation }) => {
       setError("Failed to fetch package options");
     } finally {
       setRolesLoading(false);
+    }
+  };
+
+  // Fetch featured businesses
+  const fetchFeaturedBusinesses = async () => {
+    try {
+      setLoading(true);
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      if (!token) {
+        setError("No token found, please login again.");
+        return;
+      }
+
+      const response = await axios.get(`${API_BASE_URL}/business/featured`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setFeaturedBusinesses(response.data || []);
+      setShowFeatured(true);
+    } catch (error) {
+      console.error(
+        "Error fetching featured businesses:",
+        error.response?.data || error.message
+      );
+      Alert.alert("Error", "Failed to fetch featured businesses");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -305,6 +337,7 @@ const BusinessPage = ({ navigation }) => {
       setLoading(true);
       setError(null);
       setNoPackage(false);
+      setShowFeatured(false);
 
       // Always refresh user data first to get the latest package status
       await refreshUserData();
@@ -369,23 +402,83 @@ const BusinessPage = ({ navigation }) => {
     fetchBusinesses();
   }, [search, selectedState, page, limit]);
 
+  // Action Menu Modal Component
+  const ActionMenuModal = ({
+    visible,
+    onClose,
+    onAddBusiness,
+    onFeaturedBusiness,
+  }) => {
+    return (
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={visible}
+        onRequestClose={onClose}
+      >
+        <View
+          style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}
+        >
+          <View style={tw`bg-white rounded-2xl p-4 w-3/4`}>
+            <TouchableOpacity
+              style={tw`border border-red-500 rounded-lg py-2 mb-2 items-center`}
+              onPress={() => {
+                onAddBusiness();
+                onClose();
+              }}
+            >
+              <Text style={tw`text-gray-700 font-medium`}>Add Business</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={tw`border border-red-500 rounded-lg py-2 mb-2 items-center`}
+              onPress={() => {
+                onFeaturedBusiness();
+                onClose();
+              }}
+            >
+              <Text style={tw`text-gray-700 font-medium`}>
+                Featured Business
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={tw`bg-red-500 rounded-lg py-2 items-center`}
+              onPress={onClose}
+            >
+              <Text style={tw`text-white font-medium`}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
   return (
-    <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
+    <ScrollView style={tw`flex-1 bg-gray-200 px-4 py-4`}>
       {/* Section Title */}
       <View style={tw`pt-14`}>
         <View style={tw`flex-row justify-between items-center`}>
-          <Text style={tw`text-xl font-bold text-gray-800 mb-1`}>Business</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} />
+          </TouchableOpacity>
+          <Text style={tw`text-xl font-bold text-gray-800 mb-1 mr-36 `}>
+            Business
+          </Text>
 
-          {/* Add Business */}
-          <TouchableOpacity
-            style={tw`bg-red-500 px-4 py-2 rounded-lg`}
-            onPress={() => setModalVisible(true)}
-          >
-            <Text style={tw`text-white font-bold`}>Add Business</Text>
+          {/* Three Dots Menu Button */}
+          <TouchableOpacity onPress={() => setActionMenuVisible(true)}>
+            <Ionicons name="ellipsis-vertical" size={24} color="black" />
           </TouchableOpacity>
         </View>
 
-        {/* Add Modal */}
+        {/* Action Menu Modal */}
+        <ActionMenuModal
+          visible={actionMenuVisible}
+          onClose={() => setActionMenuVisible(false)}
+          onAddBusiness={() => setModalVisible(true)}
+          onFeaturedBusiness={fetchFeaturedBusinesses}
+        />
+
+        {/* Add Business Modal */}
         <AddBusinessModal
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
@@ -431,6 +524,13 @@ const BusinessPage = ({ navigation }) => {
         ))}
       </ScrollView>
 
+      {/* Show Featured Businesses Title if applicable */}
+      {showFeatured && (
+        <Text style={tw`text-lg font-bold text-gray-800 mb-4`}>
+          Featured Businesses
+        </Text>
+      )}
+
       {/* Loading/Error State */}
       {loading && <Text style={tw`text-center text-gray-500`}>Loading...</Text>}
 
@@ -441,7 +541,7 @@ const BusinessPage = ({ navigation }) => {
             No Active Package Found
           </Text>
           <Text style={tw`text-sm text-gray-600 mt-1 text-center px-6`}>
-            You don’t have an active package. Please purchase a package to view
+            You don't have an active package. Please purchase a package to view
             business listings.
           </Text>
 
@@ -459,183 +559,189 @@ const BusinessPage = ({ navigation }) => {
 
       {error && <Text style={tw`text-center text-red-500`}>{error}</Text>}
 
-      {/* Business Listings */}
-      {businessListings.map((business) => (
-        <TouchableOpacity
-          key={business._id}
-          style={tw`bg-gray-50 rounded-lg p-4 mb-4`}
-          onPress={() =>
-            navigation.navigate("BusinessDetail", { id: business._id })
-          }
-        >
-          {/* Company Info */}
-          <View style={tw`flex-row items-center mb-2`}>
-            <Image
-              source={
-                business.logo
-                  ? { uri: business.logo }
-                  : require("../../assets/profile.png")
-              }
-              style={tw`w-12 h-12 rounded-full mr-3`}
-            />
-            <View>
-              <Text style={tw`text-lg font-bold text-gray-800`}>
-                {business.companyName}
+      {/* Business Listings - Show either featured or regular businesses */}
+      {(showFeatured ? featuredBusinesses : businessListings).map(
+        (business) => (
+          <TouchableOpacity
+            key={business._id}
+            style={tw`bg-white rounded-lg p-4 mb-4`}
+            onPress={() =>
+              navigation.navigate("BusinessDetail", { id: business._id })
+            }
+          >
+            {/* Company Info */}
+            <View style={tw`flex-row items-center mb-2`}>
+              <Image
+                source={
+                  business.logo
+                    ? { uri: business.logo }
+                    : require("../../assets/profile.png")
+                }
+                style={tw`w-12 h-12 rounded-full mr-3`}
+              />
+              <View>
+                <Text style={tw`text-lg font-bold text-gray-800`}>
+                  {business.companyName}
+                </Text>
+                <Text style={tw`text-xs text-gray-500`}>
+                  by {business.user?.name}
+                </Text>
+              </View>
+            </View>
+
+            {/* Rating & Location */}
+            <View style={tw`flex-row items-center`}>
+              <MaterialIcons name="star" size={16} color="#F59E0B" />
+              <Text style={tw`text-xs text-gray-700 ml-1`}>
+                {business.rating}
               </Text>
-              <Text style={tw`text-xs text-gray-500`}>
-                by {business.user?.name}
+              <Text style={tw`text-xs text-gray-500 ml-2`}>
+                {business.city}, {business.state}
               </Text>
             </View>
-          </View>
 
-          {/* Rating & Location */}
-          <View style={tw`flex-row items-center`}>
-            <MaterialIcons name="star" size={16} color="#F59E0B" />
-            <Text style={tw`text-xs text-gray-700 ml-1`}>
-              {business.rating}
-            </Text>
-            <Text style={tw`text-xs text-gray-500 ml-2`}>
-              {business.city}, {business.state}
-            </Text>
-          </View>
+            {/* About */}
+            <Text style={tw`text-sm text-gray-600 mb-3`}>{business.about}</Text>
 
-          {/* About */}
-          <Text style={tw`text-sm text-gray-600 mb-3`}>{business.about}</Text>
-
-          {/* Services */}
-          <View style={tw`flex-row flex-wrap mb-3`}>
-            {business.services &&
-              business.services.map((service) => (
-                <View
-                  key={service}
-                  style={tw`bg-gray-200 rounded-full px-3 py-1 mr-2 mb-2`}
-                >
-                  <Text style={tw`text-xs text-gray-700`}>{service}</Text>
-                </View>
-              ))}
-          </View>
-
-          {/* Social Links */}
-          {business.socialLinks && business.socialLinks.length > 0 && (
+            {/* Services */}
             <View style={tw`flex-row flex-wrap mb-3`}>
-              {business.socialLinks.map((link) => {
-                let iconName;
-                let iconType = "FontAwesome5";
-
-                switch (link.platform?.toLowerCase()) {
-                  case "linkedin":
-                    iconName = "linkedin";
-                    break;
-                  case "facebook":
-                    iconName = "facebook";
-                    break;
-                  case "instagram":
-                    iconName = "instagram";
-                    break;
-                  case "twitter":
-                    iconName = "twitter";
-                    break;
-                  case "youtube":
-                    iconName = "youtube";
-                    break;
-                  default:
-                    iconName = "link";
-                    iconType = "MaterialIcons";
-                }
-
-                return (
-                  <TouchableOpacity
-                    key={link._id || link.url}
-                    style={tw`mr-3 mb-2`}
-                    onPress={() => Linking.openURL(link.url)}
+              {business.services &&
+                business.services.map((service) => (
+                  <View
+                    key={service}
+                    style={tw`bg-gray-200 rounded-full px-3 py-1 mr-2 mb-2`}
                   >
-                    {iconType === "FontAwesome5" ? (
-                      <FontAwesome5 name={iconName} size={20} color="#DC2626" />
-                    ) : (
-                      <MaterialIcons
-                        name={iconName}
-                        size={20}
-                        color="#DC2626"
-                      />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          )}
-
-          {business.gallery && business.gallery.length > 0 && (
-            <View style={tw`mb-3`}>
-              <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>
-                Gallery
-              </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {business.gallery.slice(0, 2).map((img, idx) => (
-                  <Image
-                    key={idx}
-                    source={{ uri: img }}
-                    style={tw`w-20 h-20 rounded-lg mr-2`}
-                  />
+                    <Text style={tw`text-xs text-gray-700`}>{service}</Text>
+                  </View>
                 ))}
-                {business.gallery.length > 2 && (
-                  <TouchableOpacity
-                    style={tw`w-20 h-20 rounded-lg mr-2 justify-center items-center`}
-                    onPress={() =>
-                      navigation.navigate("BusinessDetail", {
-                        id: business._id,
-                      })
-                    }
-                  >
-                    <Text style={tw`text-blue-600 font-medium underline`}>
-                      View More
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </ScrollView>
             </View>
-          )}
-          {/* Action Buttons */}
-          <View style={tw`flex-row justify-between`}>
-            <TouchableOpacity
-              style={tw`flex-1 bg-red-500 rounded-lg py-2 mr-2 items-center`}
-              onPress={(e) => {
-                e.stopPropagation();
-                if (business.phone) {
-                  Linking.openURL(`tel:${business.phone}`);
-                } else {
-                  Alert.alert("No phone number available");
-                }
-              }}
-            >
-              <Text style={tw`text-white font-medium`}>Call</Text>
-            </TouchableOpacity>
 
-            <TouchableOpacity
-              style={tw`flex-1 bg-red-500 rounded-lg py-2 mr-2 items-center`}
-              onPress={(e) => {
-                e.stopPropagation();
-                if (business.email) {
-                  Linking.openURL(`mailto:${business.email}`);
-                } else {
-                  Alert.alert("No email available");
-                }
-              }}
-            >
-              <Text style={tw`text-white font-medium`}>Email</Text>
-            </TouchableOpacity>
+            {/* Social Links */}
+            {business.socialLinks && business.socialLinks.length > 0 && (
+              <View style={tw`flex-row flex-wrap mb-3`}>
+                {business.socialLinks.map((link) => {
+                  let iconName;
+                  let iconType = "FontAwesome5";
 
-            <TouchableOpacity
-              style={tw`flex-1 bg-red-500 rounded-lg py-2 items-center`}
-              onPress={(e) => {
-                e.stopPropagation();
-                navigation.navigate("BusinessDetail", { id: business._id });
-              }}
-            >
-              <Text style={tw`text-white font-medium`}>View Details</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      ))}
+                  switch (link.platform?.toLowerCase()) {
+                    case "linkedin":
+                      iconName = "linkedin";
+                      break;
+                    case "facebook":
+                      iconName = "facebook";
+                      break;
+                    case "instagram":
+                      iconName = "instagram";
+                      break;
+                    case "twitter":
+                      iconName = "twitter";
+                      break;
+                    case "youtube":
+                      iconName = "youtube";
+                      break;
+                    default:
+                      iconName = "link";
+                      iconType = "MaterialIcons";
+                  }
+
+                  return (
+                    <TouchableOpacity
+                      key={link._id || link.url}
+                      style={tw`mr-3 mb-2`}
+                      onPress={() => Linking.openURL(link.url)}
+                    >
+                      {iconType === "FontAwesome5" ? (
+                        <FontAwesome5
+                          name={iconName}
+                          size={20}
+                          color="#DC2626"
+                        />
+                      ) : (
+                        <MaterialIcons
+                          name={iconName}
+                          size={20}
+                          color="#DC2626"
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+
+            {business.gallery && business.gallery.length > 0 && (
+              <View style={tw`mb-3`}>
+                <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>
+                  Gallery
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {business.gallery.slice(0, 2).map((img, idx) => (
+                    <Image
+                      key={idx}
+                      source={{ uri: img }}
+                      style={tw`w-20 h-20 rounded-lg mr-2`}
+                    />
+                  ))}
+                  {business.gallery.length > 2 && (
+                    <TouchableOpacity
+                      style={tw`w-20 h-20 rounded-lg mr-2 justify-center items-center`}
+                      onPress={() =>
+                        navigation.navigate("BusinessDetail", {
+                          id: business._id,
+                        })
+                      }
+                    >
+                      <Text style={tw`text-blue-600 font-medium underline`}>
+                        View More
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </ScrollView>
+              </View>
+            )}
+            {/* Action Buttons */}
+            <View style={tw`flex-row justify-between`}>
+              <TouchableOpacity
+                style={tw`flex-1 bg-red-500 rounded-lg py-2 mr-2 items-center`}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  if (business.phone) {
+                    Linking.openURL(`tel:${business.phone}`);
+                  } else {
+                    Alert.alert("No phone number available");
+                  }
+                }}
+              >
+                <Text style={tw`text-white font-medium`}>Call</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={tw`flex-1 bg-red-500 rounded-lg py-2 mr-2 items-center`}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  if (business.email) {
+                    Linking.openURL(`mailto:${business.email}`);
+                  } else {
+                    Alert.alert("No email available");
+                  }
+                }}
+              >
+                <Text style={tw`text-white font-medium`}>Email</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={tw`flex-1 bg-red-500 rounded-lg py-2 items-center`}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  navigation.navigate("BusinessDetail", { id: business._id });
+                }}
+              >
+                <Text style={tw`text-white font-medium`}>View Details</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        )
+      )}
 
       {packagesModalVisible && (
         <Modal

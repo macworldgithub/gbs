@@ -550,9 +550,21 @@ export default function MembersDirectory({ navigation }) {
 
   return (
     <View style={tw`flex-1 bg-white px-4 pt-4`}>
-      <Text style={tw`text-sm text-black mb-4 mt-14 font-bold`}>
-        Members Directory
-      </Text>
+      <View style={tw` flex-row mt-14  border-b border-gray-200`}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} />
+        </TouchableOpacity>
+        <Text style={tw`text-lg text-black mb-4  pl-4 font-extrabold`}>
+          Members Directory
+        </Text>
+      </View>
+      {/* Create Group Chat button */}
+      <TouchableOpacity
+        onPress={() => navigation.navigate("CreateGroup")}
+        style={tw`self-stretch bg-red-500 rounded-xl py-3 items-center mb-3`}
+      >
+        <Text style={tw`text-white font-semibold`}>Create Group Chat</Text>
+      </TouchableOpacity>
 
       {/* 🔍 Search Bar */}
       <View

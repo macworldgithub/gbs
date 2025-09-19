@@ -4,6 +4,7 @@ import tw from "tailwind-react-native-classnames";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../utils/config";
 import axios from "axios";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 export default function Conversations({ navigation }) {
   const [token, setToken] = useState(null);
@@ -24,7 +25,6 @@ export default function Conversations({ navigation }) {
     };
     init();
   }, []);
-
   useEffect(() => {
     const fetchConversations = async () => {
       if (!token || !myUserId) return;
@@ -39,9 +39,11 @@ export default function Conversations({ navigation }) {
         );
         console.log("✅ Conversations GET response:", data);
 
+        // ✅ Filter out group chats
         const conversations = Array.isArray(data?.conversations)
-          ? data.conversations
+          ? data.conversations.filter((c) => !c.isGroup)
           : [];
+
         const mapped = conversations.map((c) => {
           const other =
             (c.participants || []).find((p) => p._id !== myUserId) || {};
@@ -49,6 +51,7 @@ export default function Conversations({ navigation }) {
             Array.isArray(c.messages) && c.messages.length > 0
               ? c.messages[0]
               : null;
+
           return {
             id: c._id,
             otherUser: {
@@ -59,6 +62,7 @@ export default function Conversations({ navigation }) {
             lastText: last?.content || "",
           };
         });
+
         console.log("✅ Conversations mapped for UI:", mapped);
         setItems(mapped);
       } catch (e) {
@@ -110,9 +114,12 @@ export default function Conversations({ navigation }) {
   );
 
   return (
-    <View style={tw`flex-1 bg-white mt-10`}>
-      <View style={tw`p-4`}>
-        <Text style={tw`text-lg font-bold`}>Conversations</Text>
+    <View style={tw`flex-1 bg-white mt-0`}>
+      <View style={tw`p-4 flex-row  items-center border-b border-gray-200`}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} />
+        </TouchableOpacity>
+        <Text style={tw`text-lg font-bold pl-4`}>Conversations</Text>
       </View>
       {loading ? (
         <Text style={tw`text-center text-gray-500 mt-10`}>Loading...</Text>
