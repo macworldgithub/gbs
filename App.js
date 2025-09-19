@@ -156,7 +156,7 @@ async function requestNotificationPermission() {
 
 const getToken = async () => {
   try {
-    // Request permission for iOS
+    // Request permission for notifications
     const authStatus = await messaging().requestPermission();
     const enabled =
       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
@@ -168,6 +168,38 @@ const getToken = async () => {
       // Get the FCM token
       const token = await messaging().getToken();
       console.log('FCM Token:', token);
+
+      // Retrieve JWT token from AsyncStorage
+      const userData = await AsyncStorage.getItem('userData'); // Adjust key based on your storage
+      let jwtToken = null;
+
+      if (userData) {
+        const parsedData = JSON.parse(userData);
+        jwtToken = parsedData.token || parsedData.jwtToken; // Adjust based on your data structure
+      }
+
+      if (jwtToken) {
+        console.log('JWT Token found:', jwtToken);
+
+        // Call the register-token API
+        try {
+          const response = await axios.post(
+            'http://your-backend-url/notification/register-token', // Replace with your backend URL
+            { fcmToken: token },
+            {
+              headers: {
+                Authorization: `Bearer ${jwtToken}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+          console.log('FCM token registered successfully:', response.data);
+        } catch (error) {
+          console.error('Error registering FCM token:', error.response?.data || error.message);
+        }
+      } else {
+        console.log('User is not logged in (no JWT token), skipping FCM token registration');
+      }
 
       return token;
     } else {
