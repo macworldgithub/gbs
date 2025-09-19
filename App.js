@@ -63,6 +63,8 @@ import NotificationForm from "./src/Screens/NotificationForm";
 import CreateEvent from "./src/Screens/CreateEvent";
 import FeaturedEventsScreen from "./src/Screens/FeaturedEventsScreen";
 import messaging from '@react-native-firebase/messaging';
+import {PermissionsAndroid,Platform} from 'react-native';
+import { Alert } from 'react-native';
 
 const Stack = createStackNavigator();
 
@@ -120,6 +122,37 @@ async function checkApplicationPermission() {
   }
 }
 
+async function requestNotificationPermission() {
+  if (Platform.OS === "android" && Platform.Version >= 33) {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        {
+          title: "Notification Permission",
+          message: "This app would like to send you notifications.",
+          buttonPositive: "Allow",
+          buttonNegative: "Deny",
+        }
+      );
+
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log("✅ Notification permission granted");
+        return true;
+      } else {
+        console.log("❌ Notification permission denied");
+        return false;
+      }
+    } catch (err) {
+      console.warn("⚠️ Permission error:", err);
+      return false;
+    }
+  } else {
+    // For iOS or lower Android versions, permission is either automatic or handled separately
+    return true;
+  }
+}
+
+
 
 const getToken = async () => {
   try {
@@ -151,10 +184,19 @@ const getToken = async () => {
 
     requestUserPermission();
     checkApplicationPermission();
-    // getToken();
+    requestNotificationPermission();
+    getToken();
 
     
     return () => clearTimeout(timer);
+  }, []);
+
+    useEffect(() => {
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+    });
+
+    return unsubscribe;
   }, []);
 
   if (showSplash) {
