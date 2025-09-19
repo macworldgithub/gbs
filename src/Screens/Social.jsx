@@ -204,8 +204,14 @@ const Social = () => {
       const data = await res.json();
       console.log("Fetched events data:", data);
 
+      // if (res.ok) {
+      //   setEvents(data);
+      // } else {
+      //   Alert.alert("Error", data.message || "Failed to load events");
+      // }
+
       if (res.ok) {
-        setEvents(data);
+        setEvents(Array.isArray(data.events) ? data.events : []);
       } else {
         Alert.alert("Error", data.message || "Failed to load events");
       }
