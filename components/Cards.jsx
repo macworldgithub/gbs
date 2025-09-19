@@ -27,9 +27,12 @@ const Cards = ({ stateFilter }) => {
             ? `${BASE_API_URL}?state=${stateFilter}`
             : BASE_API_URL;
 
+        // const response = await fetch(url);
+        // const data = await response.json();
+        // setEvents(Array.isArray(data) ? data : []);
         const response = await fetch(url);
         const data = await response.json();
-        setEvents(Array.isArray(data) ? data : []);
+        setEvents(Array.isArray(data.events) ? data.events : []);
       } catch (error) {
         console.error("Error fetching events:", error);
         setEvents([]);

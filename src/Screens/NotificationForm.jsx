@@ -195,7 +195,6 @@ export default function NotificationForm({
       <Text style={tw`text-lg font-semibold mb-4`}>
         {notification ? "Edit Notification" : "Create Notification"}
       </Text>
-
       {/* Title */}
       <Text style={tw`text-sm text-gray-700 mb-1`}>Title</Text>
       <TextInput
@@ -206,7 +205,6 @@ export default function NotificationForm({
         }
         placeholder="Enter notification title"
       />
-
       {/* Message */}
       <Text style={tw`text-sm text-gray-700 mb-1`}>Message</Text>
       <TextInput
@@ -218,7 +216,6 @@ export default function NotificationForm({
         placeholder="Enter notification message"
         multiline
       />
-
       {/* Start & End Date */}
       <Text style={tw`text-sm text-gray-700 mb-1`}>Start Date</Text>
       <TouchableOpacity
@@ -231,8 +228,7 @@ export default function NotificationForm({
             : "Select start date"}
         </Text>
       </TouchableOpacity>
-
-      {/* {showStartPicker && (
+      {showStartPicker && (
         <DateTimePicker
           value={formData.startDate || new Date()}
           mode="datetime"
@@ -244,8 +240,7 @@ export default function NotificationForm({
             }
           }}
         />
-      )} */}
-
+      )}
       {showStartPicker && (
         <DateTimePicker
           value={formData.startDate || new Date()}
@@ -265,7 +260,6 @@ export default function NotificationForm({
           }}
         />
       )}
-
       <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
       <TouchableOpacity
         onPress={() => setShowEndPicker(true)}
@@ -277,8 +271,7 @@ export default function NotificationForm({
             : "Select end date"}
         </Text>
       </TouchableOpacity>
-
-      {/* {showEndPicker && (
+      {showEndPicker && (
         <DateTimePicker
           value={formData.endDate || new Date()}
           mode="datetime"
@@ -290,8 +283,7 @@ export default function NotificationForm({
             }
           }}
         />
-      )} */}
-
+      )}
       {showEndPicker && (
         <DateTimePicker
           value={formData.endDate || new Date()}
@@ -310,7 +302,6 @@ export default function NotificationForm({
           }}
         />
       )}
-
       <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
       <TouchableOpacity
         onPress={() => setShowEndPicker(true)}
@@ -322,7 +313,7 @@ export default function NotificationForm({
             : "Select end date"}
         </Text>
       </TouchableOpacity>
-ß
+      ß
       {showEndPicker && (
         <DateTimePicker
           value={formData.endDate || new Date()}
@@ -342,7 +333,6 @@ export default function NotificationForm({
           }}
         />
       )}
-
       {/* Send to All */}
       {/* <View style={tw`flex-row items-center mt-4`}>
         <Text style={tw`flex-1 text-sm text-gray-700`}>Send to World</Text>
@@ -353,7 +343,6 @@ export default function NotificationForm({
           }
         />
       </View> */}
-
       {/* Roles */}
       <View style={tw`mt-6`}>
         <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>Roles *</Text>
@@ -390,7 +379,6 @@ export default function NotificationForm({
           </View>
         )}
       </View>
-
       {/* Map Polygon Drawer */}
       {!formData.SendToAll && (
         <View style={tw`mt-6 h-80`}>
@@ -412,7 +400,6 @@ export default function NotificationForm({
           />
         </View>
       )}
-
       {/* Actions */}
       <View style={tw`flex-row justify-end mt-6`}>
         <TouchableOpacity
