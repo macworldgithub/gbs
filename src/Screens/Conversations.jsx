@@ -115,7 +115,9 @@ export default function Conversations({ navigation }) {
 
   return (
     <View style={tw`flex-1 bg-white mt-0`}>
-      <View style={tw`p-4 flex-row  items-center border-b border-gray-200`}>
+      <View
+        style={tw`p-4 flex-row  items-center border-b border-gray-200 mt-8`}
+      >
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>

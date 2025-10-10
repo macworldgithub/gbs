@@ -1,4 +1,5 @@
 import * as React from "react";
+import "@react-native-firebase/app";
 import { useEffect, useRef, useState } from "react";
 import { Animated, View, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
@@ -105,37 +106,39 @@ export default function App() {
     }, 4000);
 
     async function requestUserPermission() {
-  const authorizationStatus = await messaging().requestPermission();
+      const authorizationStatus = await messaging().requestPermission();
 
-  if (authorizationStatus) {
-    console.log('Permission status:', authorizationStatus);
-  }
-}
+      if (authorizationStatus) {
+        console.log("Permission status:", authorizationStatus);
+      }
+    }
 
-async function checkApplicationPermission() {
-  const authorizationStatus = await messaging().requestPermission();
+    async function checkApplicationPermission() {
+      const authorizationStatus = await messaging().requestPermission();
 
-  if (authorizationStatus === messaging.AuthorizationStatus.AUTHORIZED) {
-    console.log('User has notification permissions enabled.');
-  } else if (authorizationStatus === messaging.AuthorizationStatus.PROVISIONAL) {
-    console.log('User has provisional notification permissions.');
-  } else {
-    console.log('User has notification permissions disabled');
-  }
-}
+      if (authorizationStatus === messaging.AuthorizationStatus.AUTHORIZED) {
+        console.log("User has notification permissions enabled.");
+      } else if (
+        authorizationStatus === messaging.AuthorizationStatus.PROVISIONAL
+      ) {
+        console.log("User has provisional notification permissions.");
+      } else {
+        console.log("User has notification permissions disabled");
+      }
+    }
 
-async function requestNotificationPermission() {
-  if (Platform.OS === "android" && Platform.Version >= 33) {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-        {
-          title: "Notification Permission",
-          message: "This app would like to send you notifications.",
-          buttonPositive: "Allow",
-          buttonNegative: "Deny",
-        }
-      );
+    async function requestNotificationPermission() {
+      if (Platform.OS === "android" && Platform.Version >= 33) {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+            {
+              title: "Notification Permission",
+              message: "This app would like to send you notifications.",
+              buttonPositive: "Allow",
+              buttonNegative: "Deny",
+            }
+          );
 
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         console.log("✅ Notification permission granted");
@@ -164,8 +167,8 @@ const getToken = async () => {
       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
       authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-    if (enabled) {
-      console.log('Authorization status:', authStatus);
+        if (enabled) {
+          console.log("Authorization status:", authStatus);
 
       // Get the FCM token
       const token = await messaging().getToken();
@@ -203,31 +206,28 @@ const getToken = async () => {
         console.log('User is not logged in (no JWT token), skipping FCM token registration');
       }
 
-      return token;
-    } else {
-      console.log('Permission not granted for push notifications');
-      return null;
-    }
-  } catch (error) {
-    console.error('Error fetching FCM token:', error);
-    return null;
-  }
-};
-
-
+          return token;
+        } else {
+          console.log("Permission not granted for push notifications");
+          return null;
+        }
+      } catch (error) {
+        console.error("Error fetching FCM token:", error);
+        return null;
+      }
+    };
 
     requestUserPermission();
     checkApplicationPermission();
     requestNotificationPermission();
     getToken();
 
-    
     return () => clearTimeout(timer);
   }, []);
 
-    useEffect(() => {
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+      Alert.alert("A new FCM message arrived!", JSON.stringify(remoteMessage));
     });
 
     return unsubscribe;
