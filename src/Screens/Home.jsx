@@ -67,6 +67,7 @@ export default function Home() {
   const [coordinates, setCoordinates] = useState([]);
 
   // Create Event Modal state
+
   const [createEventModalVisible, setCreateEventModalVisible] = useState(false);
   const [roles, setRoles] = useState([]);
   const [loadingRoles, setLoadingRoles] = useState(false);
@@ -501,7 +502,7 @@ export default function Home() {
             </Text>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-            
+
               <View style={tw`mb-4`}>
                 <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
                   Title *
@@ -515,7 +516,7 @@ export default function Home() {
                   }
                 />
               </View>
-            
+
               <View style={tw`mb-4`}>
                 <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
                   Description *
@@ -532,7 +533,6 @@ export default function Home() {
                 />
               </View>
 
-        
               <View style={tw`mb-4`}>
                 <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
                   State *
@@ -601,7 +601,6 @@ export default function Home() {
                   </Text>
                 </TouchableOpacity>
               </View>
-
 
               <View style={tw`mb-6`}>
                 <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
@@ -689,7 +688,6 @@ export default function Home() {
             </View>
           </View>
 
-
           {showStartDatePicker && (
             <DateTimePicker
               value={eventForm.startDate}
@@ -712,3 +710,5 @@ export default function Home() {
     </View>
   );
 }
+
+

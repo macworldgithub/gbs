@@ -47,9 +47,6 @@ const OfferDetails = ({ route, navigation }) => {
     fetchOfferDetail();
   }, [id]);
 
-
-
-
   const fetchOfferDetail = async () => {
     try {
       setLoading(true);
@@ -102,7 +99,11 @@ const OfferDetails = ({ route, navigation }) => {
     } catch (err) {
       console.error("Review submit error:", err.response?.data || err.message);
       const errorResponse = err.response?.data;
-      if (errorResponse?.statusCode === 409 && errorResponse?.error === "Conflict" && errorResponse?.message === "User has already reviewed this offer") {
+      if (
+        errorResponse?.statusCode === 409 &&
+        errorResponse?.error === "Conflict" &&
+        errorResponse?.message === "User has already reviewed this offer"
+      ) {
         Alert.alert("Alert", "You have already reviewed this offer");
       } else {
         Alert.alert("Error", "Failed to submit review");
@@ -121,8 +122,6 @@ const OfferDetails = ({ route, navigation }) => {
       await axios.delete(`${API_BASE_URL}/offer/${id}/review`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      
 
       setOffer((prevOffer) => ({
         ...prevOffer,
@@ -224,7 +223,10 @@ const OfferDetails = ({ route, navigation }) => {
       <ScrollView style={tw`flex-1`}>
         {/* Top Header */}
         <View style={tw`flex-row items-center bg-red-500 px-4 py-3`}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={tw`mr-3`}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={tw`mr-3`}
+          >
             <MaterialIcons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text style={tw`text-white text-lg font-bold`}>Offer Details</Text>
@@ -247,7 +249,9 @@ const OfferDetails = ({ route, navigation }) => {
           </Text>
 
           <View style={tw`mb-4 bg-gray-50 p-3 rounded-lg shadow-sm`}>
-            <Text style={tw`text-sm text-gray-500`}>Type: {offer.offerType}</Text>
+            <Text style={tw`text-sm text-gray-500`}>
+              Type: {offer.offerType}
+            </Text>
             <Text style={tw`text-sm text-gray-500`}>
               Category: {offer.category}
             </Text>
@@ -280,7 +284,9 @@ const OfferDetails = ({ route, navigation }) => {
           </View>
 
           <View style={tw`mt-6 bg-gray-50 p-4 rounded-lg shadow`}>
-            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Reviews</Text>
+            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>
+              Reviews
+            </Text>
 
             {reviews.length > 0 ? (
               reviews.map((rev) => (
@@ -302,18 +308,26 @@ const OfferDetails = ({ route, navigation }) => {
 
                     {String(rev.userId._id) === String(currentUserId) && (
                       <TouchableOpacity
-                        onPress={() => setMenuVisible(menuVisible === rev._id ? null : rev._id)}
+                        onPress={() =>
+                          setMenuVisible(
+                            menuVisible === rev._id ? null : rev._id
+                          )
+                        }
                       >
-                        <Entypo name="dots-three-vertical" size={18} color="gray" />
+                        <Entypo
+                          name="dots-three-vertical"
+                          size={18}
+                          color="gray"
+                        />
                       </TouchableOpacity>
                     )}
-
-
                   </View>
 
                   {/* Menu Options */}
                   {menuVisible === rev._id && (
-                    <View style={tw`absolute right-0 top-8 bg-white shadow-md rounded-md z-10`}>
+                    <View
+                      style={tw`absolute right-0 top-8 bg-white shadow-md rounded-md z-10`}
+                    >
                       <TouchableOpacity
                         style={tw`px-4 py-2 border-b border-gray-200`}
                         onPress={() => openEditModal(rev)}
@@ -328,14 +342,17 @@ const OfferDetails = ({ route, navigation }) => {
                             "Are you sure you want to delete this review?",
                             [
                               { text: "Cancel", style: "cancel" },
-                              { text: "Delete", onPress: () => deleteReview(rev._id), style: "destructive" }
+                              {
+                                text: "Delete",
+                                onPress: () => deleteReview(rev._id),
+                                style: "destructive",
+                              },
                             ]
                           );
                         }}
                       >
                         <Text style={tw`text-red-500`}>Delete</Text>
                       </TouchableOpacity>
-
                     </View>
                   )}
 
@@ -415,13 +432,18 @@ const OfferDetails = ({ route, navigation }) => {
         visible={editModalVisible}
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+        <View
+          style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}
+        >
           <View style={tw`bg-white p-5 rounded-lg w-11/12`}>
             <Text style={tw`text-lg font-bold mb-4`}>Edit Your Review</Text>
 
             <View style={tw`flex-row mb-4`}>
               {[1, 2, 3, 4, 5].map((star) => (
-                <TouchableOpacity key={star} onPress={() => setEditRating(star)}>
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => setEditRating(star)}
+                >
                   <FontAwesome
                     name={star <= editRating ? "star" : "star-o"}
                     size={28}
@@ -445,7 +467,9 @@ const OfferDetails = ({ route, navigation }) => {
                 style={tw`bg-gray-300 py-3 rounded-lg flex-1 mr-2`}
                 onPress={() => setEditModalVisible(false)}
               >
-                <Text style={tw`text-gray-800 text-center font-bold`}>Cancel</Text>
+                <Text style={tw`text-gray-800 text-center font-bold`}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -466,5 +490,3 @@ const OfferDetails = ({ route, navigation }) => {
 };
 
 export default OfferDetails;
-
-
