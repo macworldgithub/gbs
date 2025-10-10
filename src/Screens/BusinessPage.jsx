@@ -456,7 +456,7 @@ const BusinessPage = ({ navigation }) => {
     <ScrollView style={tw`flex-1 bg-gray-200 px-4 py-4`}>
       {/* Section Title */}
       <View style={tw`pt-14`}>
-        <View style={tw`flex-row justify-between items-center`}>
+        <View style={tw`flex-row justify-between items-cente mt-8`}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} />
           </TouchableOpacity>
