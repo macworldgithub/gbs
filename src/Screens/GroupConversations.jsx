@@ -45,12 +45,12 @@ export default function GroupConversations({ navigation }) {
   }, [navigation]);
 
   const openGroup = (conv) => {
-    navigation.navigate("GroupChat", {
-      conversationId: conv._id,
-      group: { name: conv.groupName || "Group" },
-      participants: conv.participants || [],
-    });
-  };
+  navigation.navigate("GroupChat", {
+    conversationId: conv._id,
+    group: { name: conv.groupName || "Group", groupImage: conv.groupImage },
+    participants: conv.participants || [],
+  });
+};
 
   return (
     <View style={tw`flex-1 bg-white pt-10 px-4`}>

@@ -65,6 +65,8 @@ import FeaturedEventsScreen from "./src/Screens/FeaturedEventsScreen";
 import messaging from '@react-native-firebase/messaging';
 import {PermissionsAndroid,Platform} from 'react-native';
 import { Alert } from 'react-native';
+import { API_BASE_URL } from "./src/utils/config";
+import axios from "axios";
 
 const Stack = createStackNavigator();
 
@@ -184,7 +186,7 @@ const getToken = async () => {
         // Call the register-token API
         try {
           const response = await axios.post(
-            'http://your-backend-url/notification/register-token', // Replace with your backend URL
+            `${API_BASE_URL}/notification/register-token`, // Replace with your backend URL
             { fcmToken: token },
             {
               headers: {
