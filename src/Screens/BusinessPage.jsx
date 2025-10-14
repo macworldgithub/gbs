@@ -67,7 +67,7 @@ const BusinessPage = ({ navigation }) => {
   // Listen for focus events to refresh when coming back from other screens
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
-      // Force refresh user data and check package status when screen comes into focus
+    // Force refresh user data and check package status when screen comes into focus
       refreshUserData().then(() => {
         fetchBusinesses();
       });

@@ -27,6 +27,7 @@ const staticItems = [
   // { title: "Events" },
   { title: "Upgrade Package" },
   { title: "Featured Events" },
+  { title: "Contact Us" },
   { title: "Delete User Package" },
   { title: "Logout" },
 ];
@@ -57,7 +58,6 @@ export default function Drawer({ isOpen, onClose }) {
         } else {
           const ud = await getUserData();
           setRoleLabel(ud?.activatedPackage?.role?.label || null);
-          
         }
 
         // Load user profile data with signed URL (same logic as Profile.js)
@@ -217,6 +217,9 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "Upgrade Package") {
         onClose();
         navigation.navigate("UpgradePackage");
+      } else if (item.title === "Contact Us") {
+        onClose();
+        navigation.navigate("ContactUs");
       } else if (item.title === "Delete User Package") {
         deleteUserPackage();
       } else if (item.title === "Logout") {

@@ -49,6 +49,7 @@ import MembersDirectory from "./src/Screens/Directory";
 import BusinessPage from "./src/Screens/BusinessPage";
 import BusinessDetail from "./src/Screens/BusinessDetail";
 import Wellbeing from "./src/Screens/Wellbeing";
+import ContactUs from "./src/Screens/ContactUs";
 import Toast from "react-native-toast-message";
 import OfferDetails from "./src/Screens/OfferDetails";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -319,6 +320,7 @@ const getToken = async () => {
             />
             <Stack.Screen name="CreateEvent" component={CreateEvent} />
             <Stack.Screen name="Featured" component={FeaturedEventsScreen} />
+            <Stack.Screen name="ContactUs" component={ContactUs} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
