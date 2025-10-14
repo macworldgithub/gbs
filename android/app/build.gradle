@@ -365,3 +365,6 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+// Required for React Native Firebase to process google-services.json
+apply plugin: 'com.google.gms.google-services'
