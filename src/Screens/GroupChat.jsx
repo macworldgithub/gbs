@@ -996,6 +996,7 @@ export default function GroupChat() {
   const [availableUsers, setAvailableUsers] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [groupImage, setGroupImage] = useState(initialGroupImage);
+
   console.log(groupImage, "group image");
 
   // Load auth and participants
