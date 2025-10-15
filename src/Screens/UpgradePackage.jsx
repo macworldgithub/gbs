@@ -63,7 +63,7 @@ const UpgradePackage = ({ navigation }) => {
       const body = {
         role: role._id,
         startDate: new Date().toISOString(),
-        months: 6,
+        months: 12,
         trial: false,
       };
 
@@ -84,7 +84,7 @@ const UpgradePackage = ({ navigation }) => {
           startDate: body.startDate,
           endDate: new Date(
             new Date(body.startDate).setMonth(
-              new Date(body.startDate).getMonth() + 6
+              new Date(body.startDate).getMonth() + 12
             )
           ).toISOString(),
         };
