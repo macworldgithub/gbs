@@ -113,15 +113,17 @@ const UpgradePackage = ({ navigation }) => {
   return (
     <View style={tw`flex-1 bg-white`}>
       {/* Header */}
-       <View style={tw`bg-white border-b border-gray-200 pt-14 pb-4 px-4  bg-red-500 `}>
+      <View
+        style={tw`bg-white border-b border-gray-200 pt-14 pb-4 px-4  bg-red-500 `}
+      >
         <TouchableOpacity
           style={tw`absolute top-14 left-4 z-10`}
           onPress={() => navigation.goBack()}
         >
-          <MaterialIcons name="arrow-back" size={24} color="white"  />
+          <MaterialIcons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         <Text style={tw`text-center text-white text-2xl font-bold`}>
-          Upgrade Your Package
+          Upgrade Memberships
         </Text>
         <Text style={tw`text-center text-white text-xs mt-1`}>
           Choose a package to unlock Business features
@@ -157,7 +159,7 @@ const UpgradePackage = ({ navigation }) => {
                     {role.label}
                   </Text>
                   <Text style={tw`text-xs text-gray-500 mt-1`}>
-                    Months: 6 • Trial: false
+                    Months: 12 • Trial: false
                   </Text>
                 </View>
                 <TouchableOpacity

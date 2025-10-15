@@ -25,7 +25,7 @@ const staticItems = [
   { title: "Saved offers" },
   { title: "Profile" },
   // { title: "Events" },
-  { title: "Upgrade Package" },
+  { title: "Upgrade Memberships" },
   { title: "Featured Events" },
   { title: "Contact Us" },
   { title: "Delete User Package" },
@@ -214,7 +214,7 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "Chat Groups") {
         onClose();
         navigation.navigate("GroupConversations");
-      } else if (item.title === "Upgrade Package") {
+      } else if (item.title === "Upgrade Memberships") {
         onClose();
         navigation.navigate("UpgradePackage");
       } else if (item.title === "Contact Us") {

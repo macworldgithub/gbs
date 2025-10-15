@@ -971,6 +971,11 @@ export default function GroupChat() {
   const conversationId = route?.params?.conversationId || null;
   console.log(conversationId, "conversationId of current group chat");
   const group = route?.params?.group || { name: "Group" };
+  const initialGroupImage = group?.groupImage
+    ? group.groupImage.startsWith("http")
+      ? group.groupImage
+      : `${API_BASE_URL}/${group.groupImage}`
+    : null;
   const initialParticipants = route?.params?.participants || [];
 
   const [token, setToken] = useState(null);
@@ -990,7 +995,7 @@ export default function GroupChat() {
   const [showViewParticipants, setShowViewParticipants] = useState(false);
   const [availableUsers, setAvailableUsers] = useState([]);
   const [participants, setParticipants] = useState([]);
-  const [groupImage, setGroupImage] = useState(group?.groupImage || null);
+  const [groupImage, setGroupImage] = useState(initialGroupImage);
   console.log(groupImage, "group image");
 
   // Load auth and participants

@@ -1379,9 +1379,6 @@ export default function Chat({ navigation }) {
               source={
                 chatUser?.avatarUrl
                   ? { uri: chatUser.avatarUrl }
-
-
-                  
                   : require("../../assets/user.jpg")
               }
               style={tw`w-10 h-10 rounded-full mr-2`}
@@ -1414,8 +1411,6 @@ export default function Chat({ navigation }) {
             listRef.current?.scrollToEnd?.({ animated: true })
           }
           renderItem={({ item }) => {
-           
-
             return (
               <View
                 style={tw.style(

@@ -30,7 +30,13 @@ export default function GroupConversations({ navigation }) {
         }
       );
       const list = (res.data?.conversations || []).filter((c) => c.isGroup);
-      setGroups(list);
+      // Sort by last message createdAt desc; ignore conversation updatedAt so uploads don't reorder
+      const sorted = [...list].sort((a, b) => {
+        const aTime = new Date(a?.messages?.[0]?.createdAt || 0).getTime();
+        const bTime = new Date(b?.messages?.[0]?.createdAt || 0).getTime();
+        return bTime - aTime;
+      });
+      setGroups(sorted);
     } catch (e) {
       setGroups([]);
     } finally {
@@ -45,12 +51,12 @@ export default function GroupConversations({ navigation }) {
   }, [navigation]);
 
   const openGroup = (conv) => {
-  navigation.navigate("GroupChat", {
-    conversationId: conv._id,
-    group: { name: conv.groupName || "Group", groupImage: conv.groupImage },
-    participants: conv.participants || [],
-  });
-};
+    navigation.navigate("GroupChat", {
+      conversationId: conv._id,
+      group: { name: conv.groupName || "Group", groupImage: conv.groupImage },
+      participants: conv.participants || [],
+    });
+  };
 
   return (
     <View style={tw`flex-1 bg-white pt-10 px-4`}>
@@ -82,7 +88,13 @@ export default function GroupConversations({ navigation }) {
               style={tw`flex-row items-center bg-gray-100 p-3 mb-3 rounded-xl`}
             >
               <Image
-                source={require("../../assets/user.png")}
+                source={
+                  item.groupImage
+                    ? item.groupImage.startsWith("http")
+                      ? { uri: item.groupImage }
+                      : { uri: `${API_BASE_URL}/${item.groupImage}` }
+                    : require("../../assets/user.png")
+                }
                 style={tw`w-10 h-10 rounded-full mr-3`}
               />
               <View style={tw`flex-1`}>
