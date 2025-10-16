@@ -44,6 +44,7 @@ export default function Conversations({ navigation }) {
           ? data.conversations.filter((c) => !c.isGroup)
           : [];
 
+
         const mapped = conversations.map((c) => {
           const other =
             (c.participants || []).find((p) => p._id !== myUserId) || {};

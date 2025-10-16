@@ -93,7 +93,7 @@ export default function GroupConversations({ navigation }) {
                     ? item.groupImage.startsWith("http")
                       ? { uri: item.groupImage }
                       : { uri: `${API_BASE_URL}/${item.groupImage}` }
-                    : require("../../assets/user.png")
+                    : require("../../assets/user.jpg")
                 }
                 style={tw`w-10 h-10 rounded-full mr-3`}
               />
