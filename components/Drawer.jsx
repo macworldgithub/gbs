@@ -48,56 +48,66 @@ export default function Drawer({ isOpen, onClose }) {
     }));
   };
 
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const stored = await AsyncStorage.getItem("currentPackage");
-        if (stored) {
-          const pkg = JSON.parse(stored);
-          setRoleLabel(pkg?.role?.label || null);
-        } else {
-          const ud = await getUserData();
-          setRoleLabel(ud?.activatedPackage?.role?.label || null);
-        }
-
-        // Load user profile data with signed URL (same logic as Profile.js)
-        const userData = await getUserData();
-        if (userData) {
-          let profilePicUri = null;
-
-          // Check both avatarUrl and profilePicKey like in Profile.js
-          const fileKey = userData.profilePicKey || userData.avatarUrl;
-
-          if (fileKey && userData._id) {
-            try {
-              const res = await axios.get(
-                `${API_BASE_URL}/user/${userData._id}/profile-picture`
-              );
-              if (res.data && res.data.url) {
-                profilePicUri = res.data.url;
-              }
-            } catch (err) {
-              console.error(
-                "Error fetching signed profile picture in drawer:",
-                err
-              );
-              // Fallback to direct avatarUrl if API fails
-              profilePicUri = userData.avatarUrl;
-            }
-          }
-
-          setUserProfile({
-            name: userData.name || "",
-            avatarUrl: profilePicUri,
-          });
-        }
-      } catch (e) {
-        setRoleLabel(null);
-        setUserProfile({ name: "", avatarUrl: null });
+  // Centralized loader to be reused on drawer open and navigation focus
+  const loadUserData = async () => {
+    try {
+      const stored = await AsyncStorage.getItem("currentPackage");
+      if (stored) {
+        const pkg = JSON.parse(stored);
+        setRoleLabel(pkg?.role?.label || null);
+      } else {
+        const ud = await getUserData();
+        setRoleLabel(ud?.activatedPackage?.role?.label || null);
       }
-    };
-    loadUserData();
+
+      // Load user profile data with signed URL (same logic as Profile.js)
+      const userData = await getUserData();
+      if (userData) {
+        let profilePicUri = null;
+        const userId = userData._id || userData.user?._id;
+
+        // Check both avatarUrl and profilePicKey like in Profile.js
+        const fileKey = userData.profilePicKey || userData.avatarUrl;
+
+        if (fileKey && userId) {
+          try {
+            const res = await axios.get(
+              `${API_BASE_URL}/user/${userId}/profile-picture`
+            );
+            if (res.data && res.data.url) {
+              profilePicUri = res.data.url;
+            }
+          } catch (err) {
+            console.error(
+              "Error fetching signed profile picture in drawer:",
+              err
+            );
+            // Fallback to direct avatarUrl if API fails
+            profilePicUri = userData.avatarUrl;
+          }
+        }
+
+        setUserProfile({
+          name: userData.name || userData.user?.name || "",
+          avatarUrl: profilePicUri,
+        });
+      }
+    } catch (e) {
+      setRoleLabel(null);
+      setUserProfile({ name: "", avatarUrl: null });
+    }
+  };
+
+  // Load when drawer opens (covers post-biometric hydration once user opens it)
+  useEffect(() => {
+    if (isOpen) loadUserData();
   }, [isOpen]);
+
+  // Refresh on navigation focus as well (e.g., returning from Signin or Profile updates)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", loadUserData);
+    return unsubscribe;
+  }, [navigation]);
 
   // Instead of listing groups here, tapping "Chat Groups" will navigate to the groups screen
 

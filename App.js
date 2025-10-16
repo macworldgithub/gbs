@@ -69,6 +69,7 @@ import {PermissionsAndroid,Platform} from 'react-native';
 import { Alert } from 'react-native';
 import { API_BASE_URL } from "./src/utils/config";
 import axios from "axios";
+import { getBiometricsEnabled, isBiometricAvailable, getSession } from "./src/utils/secureAuth";
 
 const Stack = createStackNavigator();
 
@@ -80,9 +81,29 @@ export default function App() {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
+        const enabled = await getBiometricsEnabled();
+        if (enabled) {
+          const { available } = await isBiometricAvailable();
+          if (available) {
+            const sess = await getSession({ prompt: true });
+            if (sess && sess.token) {
+              // Hydrate AsyncStorage for legacy code paths that expect userData
+              try {
+                const existing = await AsyncStorage.getItem("userData");
+                let merged = {};
+                if (existing) {
+                  try { merged = JSON.parse(existing) || {}; } catch {}
+                }
+                // Merge entire session payload (may include name, email, etc.)
+                merged = { ...merged, ...sess };
+                await AsyncStorage.setItem("userData", JSON.stringify(merged));
+              } catch {}
+              setInitialRoute("Tabs");
+              return;
+            }
+          }
+        }
         const userData = await AsyncStorage.getItem("userData");
-        console.log("🚀 Existing user data at startup:", userData);
-
         if (userData) {
           setInitialRoute("Tabs");
         } else {
@@ -234,7 +255,7 @@ const getToken = async () => {
     return unsubscribe;
   }, []);
 
-  if (showSplash) {
+  if (showSplash || initialRoute === null) {
     return (
       <Animated.View
         style={[styles.splashContainer, { opacity: splashOpacity }]}

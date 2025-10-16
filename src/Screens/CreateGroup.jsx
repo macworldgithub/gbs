@@ -11,7 +11,7 @@ import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUserData } from "../utils/storage";
 import { API_BASE_URL } from "../utils/config";
 
 export default function CreateGroup() {
@@ -26,10 +26,9 @@ export default function CreateGroup() {
   useEffect(() => {
     const load = async () => {
       try {
-        const stored = await AsyncStorage.getItem("userData");
-        const parsed = stored ? JSON.parse(stored) : null;
+        const parsed = await getUserData();
         const token = parsed?.token;
-        const meId = parsed?._id || null;
+        const meId = parsed?._id || parsed?.user?._id || null;
         setMyUserId(meId);
 
         const res = await axios.get(`${API_BASE_URL}/user`, {
@@ -60,8 +59,7 @@ export default function CreateGroup() {
 
     try {
       setSubmitting(true);
-      const stored = await AsyncStorage.getItem("userData");
-      const parsed = stored ? JSON.parse(stored) : null;
+      const parsed = await getUserData();
       const token = parsed?.token;
       if (!token) {
         Alert.alert("Error", "Please login again");

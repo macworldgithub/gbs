@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
 import tw from "tailwind-react-native-classnames";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../utils/config";
 import axios from "axios";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { getUserData } from "../utils/storage";
 
 export default function Conversations({ navigation }) {
   const [token, setToken] = useState(null);
@@ -15,11 +15,10 @@ export default function Conversations({ navigation }) {
   useEffect(() => {
     const init = async () => {
       try {
-        const stored = await AsyncStorage.getItem("userData");
-        if (stored) {
-          const parsed = JSON.parse(stored);
+        const parsed = await getUserData();
+        if (parsed) {
           setToken(parsed.token);
-          setMyUserId(parsed._id);
+          setMyUserId(parsed._id || parsed.user?._id);
         }
       } catch (e) {}
     };

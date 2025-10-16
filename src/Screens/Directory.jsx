@@ -10,7 +10,7 @@
 // import { Ionicons } from "@expo/vector-icons";
 // import tw from "tailwind-react-native-classnames";
 // import { API_BASE_URL } from "../utils/config";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
+// import { getUserData } from "../utils/storage";
 
 // export default function MembersDirectory({ navigation }) {
 //   const [search, setSearch] = useState("");
@@ -324,6 +324,7 @@ import { Ionicons } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUserData } from "../utils/storage";
 
 export default function MembersDirectory({ navigation }) {
   const [search, setSearch] = useState("");
@@ -414,11 +415,10 @@ export default function MembersDirectory({ navigation }) {
   useEffect(() => {
     const init = async () => {
       try {
-        const stored = await AsyncStorage.getItem("userData");
-        if (stored) {
-          const parsed = JSON.parse(stored);
+        const parsed = await getUserData();
+        if (parsed) {
           setToken(parsed.token);
-          setMyUserId(parsed._id);
+          setMyUserId(parsed._id || parsed.user?._id);
         }
       } catch (e) {
         console.error("❌ Error loading userData:", e);
