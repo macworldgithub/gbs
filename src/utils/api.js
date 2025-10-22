@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { API_BASE_URL } from './config';
+import axios from "axios";
+import { API_BASE_URL } from "./config";
 
 // export const SigninUser = async (email, password) => {
 //   try {
@@ -23,7 +23,6 @@ import { API_BASE_URL } from './config';
 //   }
 // };
 
-
 export const SignupUser = async (userData) => {
   try {
     const response = await axios.post(
@@ -33,24 +32,30 @@ export const SignupUser = async (userData) => {
         email: userData.email,
         password: userData.password,
         phone: userData.phone,
+        businessName: userData.businessName,
+        shortBio: userData.shortBio,
+        interestedIn: userData.interestedIn,
+        state: userData.state,
       },
       {
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': '*/*',
+          "Content-Type": "application/json",
+          Accept: "*/*",
         },
       }
     );
     return response.data;
   } catch (error) {
-    console.error('Signup API error:', error);
+    console.error("Signup API error:", error);
     throw error;
   }
 };
 
-
 export const sendForgotPasswordOtp = async (email) => {
-  const res = await axios.post(`${API_BASE_URL}/user/forgot-password/send-otp`, { email });
+  const res = await axios.post(
+    `${API_BASE_URL}/user/forgot-password/send-otp`,
+    { email }
+  );
   return res.data;
 };
 
@@ -72,11 +77,8 @@ export const resetForgotPassword = async ({ email, otp, newPassword }) => {
 //     });
 //     console.log('Pre-login response:', res.data);
 //     return res.data;
-    
+
 //   } catch (error) {
 //     throw error.response?.data || { message: 'Unknown error' };
 //   }
 // };
-
-
-
