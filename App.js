@@ -64,9 +64,9 @@ import EventDetail from "./src/Screens/EventDetail";
 import NotificationForm from "./src/Screens/NotificationForm";
 import CreateEvent from "./src/Screens/CreateEvent";
 import FeaturedEventsScreen from "./src/Screens/FeaturedEventsScreen";
-import messaging from '@react-native-firebase/messaging';
-import {PermissionsAndroid,Platform} from 'react-native';
-import { Alert } from 'react-native';
+import messaging from "@react-native-firebase/messaging";
+import { PermissionsAndroid, Platform } from "react-native";
+import { Alert } from "react-native";
 import { API_BASE_URL } from "./src/utils/config";
 import axios from "axios";
 
@@ -129,7 +129,7 @@ export default function App() {
     }
 
     async function requestNotificationPermission() {
-      if (Platform.OS === "android" && Platform.Version >= 33) {
+      if (Platform.OS === "android") {
         try {
           const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
@@ -141,71 +141,74 @@ export default function App() {
             }
           );
 
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log("✅ Notification permission granted");
-        return true;
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log("✅ Notification permission granted");
+            return true;
+          } else {
+            console.log("❌ Notification permission denied");
+            return false;
+          }
+        } catch (err) {
+          console.warn("⚠️ Permission error:", err);
+          return false;
+        }
       } else {
-        console.log("❌ Notification permission denied");
-        return false;
+        // For iOS or lower Android versions, permission is either automatic or handled separately
+        return true;
       }
-    } catch (err) {
-      console.warn("⚠️ Permission error:", err);
-      return false;
     }
-  } else {
-    // For iOS or lower Android versions, permission is either automatic or handled separately
-    return true;
-  }
-}
 
-
-
-const getToken = async () => {
-  try {
-    // Request permission for notifications
-    const authStatus = await messaging().requestPermission();
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+    const getToken = async () => {
+      try {
+        // Request permission for notifications
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
         if (enabled) {
           console.log("Authorization status:", authStatus);
 
-      // Get the FCM token
-      const token = await messaging().getToken();
-      console.log('FCM Token:', token);
+          // Get the FCM token
+          const token = await messaging().getToken();
+          console.log("FCM Token:", token);
 
-      // Retrieve JWT token from AsyncStorage
-      const userData = await AsyncStorage.getItem('userData'); // Adjust key based on your storage
-      let jwtToken = null;
+          // Retrieve JWT token from AsyncStorage
+          const userData = await AsyncStorage.getItem("userData"); // Adjust key based on your storage
+          let jwtToken = null;
 
-      if (userData) {
-        const parsedData = JSON.parse(userData);
-        jwtToken = parsedData.token || parsedData.jwtToken; // Adjust based on your data structure
-      }
+          if (userData) {
+            const parsedData = JSON.parse(userData);
+            jwtToken = parsedData.token || parsedData.jwtToken; // Adjust based on your data structure
+          }
 
-      if (jwtToken) {
-        console.log('JWT Token found:', jwtToken);
+          if (jwtToken) {
+            console.log("JWT Token found:", jwtToken);
 
-        // Call the register-token API
-        try {
-          const response = await axios.post(
-            `${API_BASE_URL}/notification/register-token`, // Replace with your backend URL
-            { fcmToken: token },
-            {
-              headers: {
-                Authorization: `Bearer ${jwtToken}`,
-                'Content-Type': 'application/json',
-              },
+            // Call the register-token API
+            try {
+              const response = await axios.post(
+                `${API_BASE_URL}/notification/register-token`, // Replace with your backend URL
+                { fcmToken: token },
+                {
+                  headers: {
+                    Authorization: `Bearer ${jwtToken}`,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+              console.log("FCM token registered successfully:", response.data);
+            } catch (error) {
+              console.error(
+                "Error registering FCM token:",
+                error.response?.data || error.message
+              );
             }
-          );
-          console.log('FCM token registered successfully:', response.data);
-        } catch (error) {
-          console.error('Error registering FCM token:', error.response?.data || error.message);
-        }
-      } else {
-        console.log('User is not logged in (no JWT token), skipping FCM token registration');
-      }
+          } else {
+            console.log(
+              "User is not logged in (no JWT token), skipping FCM token registration"
+            );
+          }
 
           return token;
         } else {
