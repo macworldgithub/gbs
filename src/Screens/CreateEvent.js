@@ -8,13 +8,13 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
 import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Platform } from "react-native";
+import { getUserData } from "../utils/storage";
 
 export default function CreateEvent({ navigation }) {
   const [roles, setRoles] = useState([]);
@@ -37,8 +37,7 @@ export default function CreateEvent({ navigation }) {
   const loadRoles = async () => {
     try {
       setLoadingRoles(true);
-      const userData = await AsyncStorage.getItem("userData");
-      const parsedUserData = JSON.parse(userData);
+      const parsedUserData = await getUserData();
       const token = parsedUserData?.token;
 
       if (!token) {
@@ -94,8 +93,7 @@ export default function CreateEvent({ navigation }) {
 
     try {
       setSubmittingEvent(true);
-      const userData = await AsyncStorage.getItem("userData");
-      const parsedUserData = JSON.parse(userData);
+      const parsedUserData = await getUserData();
       const token = parsedUserData?.token;
 
       if (!token) {

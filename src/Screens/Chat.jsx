@@ -17,7 +17,7 @@
 // import * as DocumentPicker from "expo-document-picker";
 // import { API_BASE_URL } from "../utils/config";
 // import * as FileSystem from "expo-file-system";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
+// import { getUserData } from "../utils/storage";
 // import { io } from "socket.io-client";
 // import { useSafeAreaInsets } from "react-native-safe-area-context";
 // import { launchCamera, launchImageLibrary } from "react-native-image-picker";
@@ -822,6 +822,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 import axios from "axios";
 import Video from "react-native-video";
+import { getUserData } from "../utils/storage";
 
 export default function Chat({ navigation }) {
   const route = useRoute();
@@ -858,14 +859,13 @@ export default function Chat({ navigation }) {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        const stored = await AsyncStorage.getItem("userData");
-        if (stored) {
-          const parsed = JSON.parse(stored);
+        const parsed = await getUserData();
+        if (parsed) {
           setToken(parsed.token);
-          setMyUserId(parsed._id); // ✅ use _id not id
+          setMyUserId(parsed._id || parsed.user?._id); // ✅ use _id not id
           console.log("🔍 Loaded user data:", {
             token: parsed.token ? "present" : "missing",
-            userId: parsed._id,
+            userId: parsed._id || parsed.user?._id,
           });
         } else {
           console.log("❌ No user data found in AsyncStorage");
