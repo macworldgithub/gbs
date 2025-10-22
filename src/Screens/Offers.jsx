@@ -15,7 +15,7 @@ import gift1 from "../../assets/gift1.png";
 import Icon from "react-native-vector-icons/Ionicons";
 import { Ionicons } from "@expo/vector-icons";
 
-const tabs = ["All", "Member Offers", "Partner Deals"];
+const tabs = ["All", "Member Offers", "Business Collaborat"];
 
 const Offers = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState("All");
@@ -150,7 +150,7 @@ const Offers = ({ navigation }) => {
         </Text>
       </View>
       <Text style={tw`text-sm text-gray-600 mb-4`}>
-        Member Benefits & Partner Deals
+        Member Benefits & Business Collaboration
       </Text>
 
       {/* Tabs */}

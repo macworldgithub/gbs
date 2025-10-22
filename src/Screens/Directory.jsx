@@ -367,7 +367,12 @@ export default function MembersDirectory({ navigation }) {
           name: user.name,
           email: user.email,
           phone: user.phone,
+          // preserve role
           role: user?.activatedPackage?.role?.label || "Member",
+          // businessName may be provided directly or nested under business
+          businessName: user.businessName || user?.business?.name || null,
+          // category may be provided as user.category or nested under business
+          businessCategory: user.category || user?.business?.category || null,
           avatarUrl: user.avatarUrl || null,
           image: user.avatarUrl
             ? { uri: user.avatarUrl }
@@ -648,11 +653,20 @@ const openChat = async (user) => {
                   {item.name}
                 </Text>
                 <Text style={tw`text-red-500 text-sm`}>{item.email}</Text>
-                {/* <Text style={tw`text-gray-500 text-xs`}>
-                  {item.role} • {item.state}
-                </Text> */}
+                <Text style={tw`text-black text-xs`}>{item.role}</Text>
 
-                <Text style={tw`text-gray-500 text-xs mt-1`}>{item.role} </Text>
+                {item.businessName ? (
+                  <Text style={tw`text-black text-xs mt-1`}>
+                    BusinessnName:
+                    {item.businessName}
+                  </Text>
+                ) : null}
+
+                {item.businessCategory ? (
+                  <Text style={tw`text-black text-xs mt-1`}>
+                    Category: {item.businessCategory}
+                  </Text>
+                ) : null}
 
                 <Text style={tw`text-gray-500 text-xs mt-1`}>
                   <Text style={tw`text-black`}>State:</Text>

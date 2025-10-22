@@ -65,7 +65,7 @@ export default function EventDetailsScreen({ navigation }) {
                         </View>
                     ))}
                 </View>
-
+        
                 {/* Organizer */}
                 <View style={tw`flex-row items-center px-4 mt-4`}>
                     <Image
