@@ -102,9 +102,23 @@ export default function DirectoryDetail({ route, navigation }) {
             </Text>
           </View>
 
+          {/* Anniversary / Member info card: include Member since, Business and Interested In here */}
           <View style={tw`mt-6 bg-gray-100 rounded-xl p-4`}>
-            {anniversary && (
-              <View style={tw`mt-3 `}>
+            {/* Member since (from createdAt) */}
+            {user?.createdAt ? (
+              <View style={tw`mb-3`}>
+                <Text style={tw`text-black font-semibold`}>Member since</Text>
+                <Text style={tw`text-gray-700`}>
+                  {moment(user.createdAt).format("MMMM DD, YYYY")}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* Business and Interested In moved below (where Trusted Devices was) */}
+
+            {/* Anniversary date and renewal notice */}
+            {anniversary ? (
+              <View style={tw`mt-2`}>
                 <Text style={tw`text-black font-semibold`}>
                   Member Anniversary Date:
                 </Text>
@@ -117,14 +131,14 @@ export default function DirectoryDetail({ route, navigation }) {
                   </Text>
                 )}
               </View>
-            )}
+            ) : null}
           </View>
 
           <View style={tw`mt-6 bg-gray-100 rounded-xl p-4`}>
             <Text style={tw`text-black font-semibold mb-2`}>
               Activated Package
             </Text>
-            <Text style={tw`text-gray-700`}>
+            <Text style={tw`text-gray-700 font-bold`}>
               {user?.activatedPackage?.role?.label || "Member"}
             </Text>
             {Array.isArray(user?.activatedPackage?.role?.permissions) && (
@@ -144,24 +158,33 @@ export default function DirectoryDetail({ route, navigation }) {
             )}
           </View>
 
-          {Array.isArray(user.trustedDevices) &&
-            user.trustedDevices.length > 0 && (
-              <View style={tw`mt-6 bg-gray-100 rounded-xl p-4`}>
-                <Text style={tw`text-black font-semibold mb-2`}>
-                  Trusted Devices
-                </Text>
-                {user.trustedDevices.map((d) => (
-                  <View key={d._id} style={tw`mb-3`}>
-                    <Text style={tw`text-gray-800`}>
-                      {d.deviceName} ({d.platform})
+          {/* Business & Interested In card (replaces Trusted Devices location) */}
+          {(user?.business?.name ||
+            (Array.isArray(user.interestedIn) &&
+              user.interestedIn.length > 0)) && (
+            <View style={tw`mt-6 bg-gray-100 rounded-xl p-4`}>
+              {user?.business?.name ? (
+                <View style={tw`mb-3`}>
+                  <Text style={tw`text-black font-semibold`}>Business</Text>
+                  <Text style={tw`text-gray-700`}>{user.business.name}</Text>
+                </View>
+              ) : null}
+
+              {Array.isArray(user.interestedIn) &&
+              user.interestedIn.length > 0 ? (
+                <View style={tw`mb-3`}>
+                  <Text style={tw`text-black font-semibold`}>
+                    Interested In
+                  </Text>
+                  {user.interestedIn.map((it, idx) => (
+                    <Text key={it._id || idx} style={tw`text-gray-700`}>
+                      • {it.label || it.name || it}
                     </Text>
-                    <Text style={tw`text-gray-500 text-xs`}>
-                      ID: {d.deviceId}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
+                  ))}
+                </View>
+              ) : null}
+            </View>
+          )}
         </ScrollView>
       )}
     </View>
