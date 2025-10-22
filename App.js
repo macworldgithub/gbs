@@ -76,7 +76,6 @@ import {
 } from "./src/utils/secureAuth";
 
 const Stack = createStackNavigator();
-
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [initialRoute, setInitialRoute] = useState(null); // <-- dynamic initial route
@@ -126,7 +125,7 @@ export default function App() {
               return;
             } else {
               // ✅ Biometric failed or was canceled → go to password screen
-              setInitialRoute("Signin"); // <-- change to your credentials screen route
+              setInitialRoute("Login"); // <-- change to your credentials screen route
               return;
             }
           }
