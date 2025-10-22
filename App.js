@@ -69,7 +69,11 @@ import { PermissionsAndroid, Platform } from "react-native";
 import { Alert } from "react-native";
 import { API_BASE_URL } from "./src/utils/config";
 import axios from "axios";
-import { getBiometricsEnabled, isBiometricAvailable, getSession } from "./src/utils/secureAuth";
+import {
+  getBiometricsEnabled,
+  isBiometricAvailable,
+  getSession,
+} from "./src/utils/secureAuth";
 
 const Stack = createStackNavigator();
 
@@ -78,36 +82,63 @@ export default function App() {
   const [initialRoute, setInitialRoute] = useState(null); // <-- dynamic initial route
   const splashOpacity = useRef(new Animated.Value(1)).current;
 
+  async function hasDesiredBiometric() {
+    try {
+      const { available, biometryType } = await isBiometricAvailable();
+      if (!available) return false;
+
+      // iOS must be Face ID specifically
+      if (Platform.OS === "ios") {
+        return biometryType === ReactNativeBiometrics.FaceID;
+      }
+      // Android: any enrolled biometric is fine
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  
+
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
         const enabled = await getBiometricsEnabled();
+
         if (enabled) {
-          const { available } = await isBiometricAvailable();
-          if (available) {
+          const ok = await hasDesiredBiometric(); // iOS: Face ID only, Android: any biometric
+          if (ok) {
+            // Triggers OS biometric prompt (since your keychain entry was saved with BIOMETRY accessControl)
             const sess = await getSession({ prompt: true });
+
             if (sess && sess.token) {
-              // Hydrate AsyncStorage for legacy code paths that expect userData
+              // hydrate legacy userData
               try {
                 const existing = await AsyncStorage.getItem("userData");
                 let merged = {};
                 if (existing) {
-                  try { merged = JSON.parse(existing) || {}; } catch {}
+                  try {
+                    merged = JSON.parse(existing) || {};
+                  } catch {}
                 }
-                // Merge entire session payload (may include name, email, etc.)
                 merged = { ...merged, ...sess };
                 await AsyncStorage.setItem("userData", JSON.stringify(merged));
               } catch {}
-              setInitialRoute("Tabs");
+              setInitialRoute("Signin");
+              return;
+            } else {
+              // ✅ Biometric failed or was canceled → go to password screen
+              setInitialRoute("Signin"); // <-- change to your credentials screen route
               return;
             }
           }
         }
+
+        // If biometrics not enabled / not available, use cached session if present
         const userData = await AsyncStorage.getItem("userData");
         if (userData) {
-          setInitialRoute("Tabs");
+          setInitialRoute("Signin");
         } else {
-          setInitialRoute("OnboardingTwo");
+          setInitialRoute("Signin");
         }
       } catch (err) {
         console.log("Error checking login:", err);
