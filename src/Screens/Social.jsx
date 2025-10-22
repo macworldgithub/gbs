@@ -1,137 +1,3 @@
-// import React, { useEffect, useState } from "react";
-// import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
-// import tw from "tailwind-react-native-classnames";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { API_BASE_URL } from "../utils/config";
-// import axios from "axios";
-// import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-
-// export default function Conversations({ navigation }) {
-//   const [token, setToken] = useState(null);
-//   const [myUserId, setMyUserId] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [items, setItems] = useState([]);
-
-//   useEffect(() => {
-//     const init = async () => {
-//       try {
-//         const stored = await AsyncStorage.getItem("userData");
-//         if (stored) {
-//           const parsed = JSON.parse(stored);
-//           setToken(parsed.token);
-//           setMyUserId(parsed._id);
-//         }
-//       } catch (e) {}
-//     };
-//     init();
-//   }, []);
-//   useEffect(() => {
-//     const fetchConversations = async () => {
-//       if (!token || !myUserId) return;
-//       setLoading(true);
-//       try {
-//         const { data } = await axios.get(
-//           `${API_BASE_URL}/messages/conversations`,
-//           {
-//             params: { page: 1, limit: 50 },
-//             headers: { Authorization: `Bearer ${token}` },
-//           }
-//         );
-//         console.log("✅ Conversations GET response:", data);
-
-//         // ✅ Filter out group chats
-//         const conversations = Array.isArray(data?.conversations)
-//           ? data.conversations.filter((c) => !c.isGroup)
-//           : [];
-
-//         const mapped = conversations.map((c) => {
-//           const other =
-//             (c.participants || []).find((p) => p._id !== myUserId) || {};
-//           const last =
-//             Array.isArray(c.messages) && c.messages.length > 0
-//               ? c.messages[0]
-//               : null;
-
-//           return {
-//             id: c._id,
-//             otherUser: {
-//               id: other._id,
-//               name: other.name || other.email || "Unknown",
-//               avatarUrl: other.avatarUrl || null,
-//             },
-//             lastText: last?.content || "",
-//           };
-//         });
-
-//         console.log("✅ Conversations mapped for UI:", mapped);
-//         setItems(mapped);
-//       } catch (e) {
-//         console.log(
-//           "❌ Conversations GET error:",
-//           e?.response?.data || e.message
-//         );
-//         setItems([]);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-//     fetchConversations();
-//   }, [token, myUserId]);
-
-//   const openChat = (item) => {
-//     console.log("➡️ Open chat: ", item);
-//     navigation.navigate("Chat", {
-//       user: {
-//         id: item.otherUser.id,
-//         name: item.otherUser.name,
-//         avatarUrl: item.otherUser.avatarUrl, // 👈 include this
-//       },
-//       conversationId: item.id,
-//     });
-//   };
-
-//   const renderItem = ({ item }) => (
-//     <TouchableOpacity
-//       onPress={() => openChat(item)}
-//       style={tw`flex-row items-center p-3 border-b border-gray-200`}
-//     >
-//       <Image
-//         source={
-//           item.otherUser?.avatarUrl
-//             ? { uri: item.otherUser.avatarUrl }
-//             : require("../../assets/user.jpg")
-//         }
-//         style={tw`w-10 h-10 rounded-full`}
-//       />
-
-//       <View style={tw`ml-3 flex-1`}>
-//         <Text style={tw`text-base font-semibold`}>{item.otherUser.name}</Text>
-//         <Text style={tw`text-sm text-gray-600`} numberOfLines={1}>
-//           {item.lastText}
-//         </Text>
-//       </View>
-//     </TouchableOpacity>
-//   );
-
-//   return (
-//     <View style={tw`flex-1 bg-white mt-16`}>
-//       <View style={tw`p-4 flex-row  items-center border-b border-gray-200`}>
-
-//         <Text style={tw`text-lg font-bold pl-4`}>Conversations</Text>
-//       </View>
-//       {loading ? (
-//         <Text style={tw`text-center text-gray-500 mt-10`}>Loading...</Text>
-//       ) : (
-//         <FlatList
-//           data={items}
-//           keyExtractor={(i) => i.id}
-//           renderItem={renderItem}
-//         />
-//       )}
-//     </View>
-//   );
-// }
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -150,6 +16,7 @@ import { MaterialIcons, Entypo } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
 import { getUserData } from "../utils/storage"; // ✅ import your storage.js
+import Cards from "../../components/Cards";
 
 const fallbackImage = require("../../assets/fallback.png");
 const tabs = [];
@@ -368,39 +235,6 @@ const Social = () => {
   //   }
   // };
 
-  const handleBookEvent = async (eventId) => {
-    try {
-      const token = user?.token || user?.accessToken || user?.idToken;
-
-      if (!token) {
-        Alert.alert("Error", "You must be logged in to book an event.");
-        return;
-      }
-      const res = await fetch(`${API_URL}/${eventId}/book_event`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
-      });
-      const data = await res.json();
-      console.log("Booking response:", data);
-
-      if (res.ok) {
-        Alert.alert("Success", "You have successfully booked this event!");
-        setBooked(true);
-        fetchEvents(selectedState);
-      } else {
-        const err = await res.json();
-        console.log("Booking error:", err);
-        Alert.alert("Error", err.message || "Failed to book event");
-      }
-    } catch (error) {
-      Alert.alert("Error", error.message);
-    }
-  };
   const handleImageUpload = (eventId) => {
     const options = {
       mediaType: "photo",
@@ -504,14 +338,16 @@ const Social = () => {
           <TouchableOpacity
             key={tab}
             onPress={() => setActiveTab(tab)}
-            style={tw`px-4 py-2 mr-2 rounded-md ${
+            style={tw.style(
+              `px-4 py-2 mr-2 rounded-md`,
               activeTab === tab ? "bg-red-500" : "bg-gray-100"
-            }`}
+            )}
           >
             <Text
-              style={tw`text-sm ${
+              style={tw.style(
+                `text-sm`,
                 activeTab === tab ? "text-white" : "text-gray-700"
-              }`}
+              )}
             >
               {tab}
             </Text>
@@ -519,7 +355,7 @@ const Social = () => {
         ))}
       </View>
 
-      {/* States Filter */}
+      {/* State Filter */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -529,16 +365,18 @@ const Social = () => {
           <TouchableOpacity
             key={st}
             onPress={() => setSelectedState(st)}
-            style={tw`px-4 py-2 mr-2 rounded-md border ${
+            style={tw.style(
+              `px-4 py-2 mr-2 rounded-md border`,
               selectedState === st
                 ? "bg-red-100 border-red-500"
                 : "bg-white border-gray-300"
-            }`}
+            )}
           >
             <Text
-              style={tw`text-sm ${
+              style={tw.style(
+                `text-sm`,
                 selectedState === st ? "text-red-600" : "text-gray-700"
-              }`}
+              )}
             >
               {st}
             </Text>
@@ -551,163 +389,19 @@ const Social = () => {
         <ActivityIndicator size="large" color="red" style={tw`mt-4`} />
       )}
 
-      {/* Events */}
-      {activeTab === "Events" && !loading && events.length === 0 && (
-        <Text style={tw`text-gray-500 text-center mt-6`}>No events found</Text>
+      {/* ✅ Events Section — Use Cards component */}
+      {activeTab === "Events" && !loading && (
+        <View style={tw`mt-2`}>
+          <Cards stateFilter={selectedState} />
+        </View>
       )}
 
-      {activeTab === "Events" &&
-        events.map((event) => (
-          <TouchableOpacity
-            key={event._id}
-            onPress={() =>
-              navigation.navigate("EventDetail", { eventId: event._id })
-            }
-            style={tw`bg-gray-50 rounded-lg mb-4 overflow-hidden border border-gray-300 p-4`}
-          >
-            {event.imageUrl ? (
-              <Image
-                source={{ uri: event.imageUrl }}
-                style={tw`w-full h-40`}
-                resizeMode="cover"
-              />
-            ) : (
-              <Image
-                source={fallbackImage}
-                style={tw`w-full h-40`}
-                resizeMode="cover"
-              />
-            )}
-            <View style={tw`flex-row justify-between items-center`}>
-              {event?.isFeatured && (
-                <View
-                  style={tw`absolute top-2 right-2 bg-red-500 px-2 py-1 rounded-full`}
-                >
-                  <Text style={tw`text-white text-xs font-bold`}>FEATURED</Text>
-                </View>
-              )}
-              <Text style={tw`text-base font-bold text-gray-800`}>
-                {event.title}
-              </Text>
-              {/* <View style={tw`flex-row`}>
-                <TouchableOpacity onPress={() => openEditModal(event)}>
-                  <MaterialIcons
-                    name="edit"
-                    size={22}
-                    color="blue"
-                    style={tw`mr-3`}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDelete(event)}>
-                  <MaterialIcons name="delete" size={22} color="red" />
-                </TouchableOpacity>
-              </View> */}
-            </View>
-
-            {/* Date */}
-            <View style={tw`flex-row items-center mt-2`}>
-              <MaterialIcons name="event" size={16} color="gray" />
-              <Text style={tw`text-sm text-gray-600 ml-2`}>
-                {new Date(event.startDate).toDateString()}
-              </Text>
-            </View>
-
-            {/* State */}
-            <View style={tw`flex-row items-center mt-1`}>
-              <Entypo name="map" size={16} color="gray" />
-              <Text style={tw`text-sm text-gray-600 ml-2`}>
-                {typeof event?.state === "string" && event.state.trim() !== ""
-                  ? event.state
-                  : "N/A"}
-              </Text>
-            </View>
-
-            {/* Location */}
-            <View style={tw`flex-row items-center mt-1`}>
-              <MaterialIcons name="location-pin" size={16} color="gray" />
-              <Text
-                style={tw`text-sm text-gray-600 ml-2 flex-1`}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {Array.isArray(event?.locationNames)
-                  ? event.locationNames.length > 0
-                    ? event.locationNames.join(", ")
-                    : "N/A"
-                  : typeof event?.locationNames === "string" &&
-                      event.locationNames.trim() !== ""
-                    ? event.locationNames
-                    : "N/A"}
-              </Text>
-            </View>
-
-            {/* Creator */}
-            <View style={tw`flex-row items-center mt-1`}>
-              {event.creator?.avatarUrl ? (
-                <Image
-                  source={{ uri: event.creator.avatarUrl }}
-                  style={tw`w-6 h-6 rounded-full mr-2`}
-                />
-              ) : (
-                <MaterialIcons
-                  name="person"
-                  size={20}
-                  color="gray"
-                  style={tw`mr-2`}
-                />
-              )}
-              <Text style={tw`text-sm text-gray-600`}>
-                Created by {event.creator?.name || "Unknown"}
-              </Text>
-            </View>
-
-            {/* Attendees */}
-            {/* <TouchableOpacity
-              style={tw`flex-row items-center mt-2`}
-              onPress={() =>
-                setExpandedEvent(expandedEvent === event._id ? null : event._id)
-              }
-            >
-              <MaterialIcons name="people" size={16} color="gray" />
-              <Text style={tw`text-sm text-gray-600 ml-2`}>
-                {event.attendees?.length || 0} attending
-              </Text>
-              <MaterialIcons
-                name={
-                  expandedEvent === event._id ? "expand-less" : "expand-more"
-                }
-                size={20}
-                color="gray"
-                style={tw`ml-2`}
-              />
-            </TouchableOpacity> */}
-
-            {/* Attendees List */}
-            {expandedEvent === event._id &&
-              event.attendees?.map((att) => (
-                <View key={att._id} style={tw`flex-row items-center mt-2 ml-6`}>
-                  <Image
-                    source={{ uri: att.avatarUrl }}
-                    style={tw`w-6 h-6 rounded-full mr-2`}
-                  />
-                  <Text style={tw`text-sm text-gray-700`}>{att.name}</Text>
-                </View>
-              ))}
-            <TouchableOpacity
-              onPress={() => handleBookEvent(event._id)}
-              style={tw`mt-3 bg-${event.attendees?.some((att) => att._id === loggedInUserId) ? "gray-400" : "red-500"} py-2 px-4 rounded-lg`}
-              disabled={event.attendees?.some(
-                (att) => att._id === loggedInUserId
-              )}
-            >
-              <Text style={tw`text-white text-center text-base`}>
-                {event.attendees?.some((att) => att._id === loggedInUserId)
-                  ? "Booked"
-                  : "Book Event"}
-              </Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        ))}
+      {/* If some other tab selected */}
+      {activeTab !== "Events" && (
+        <Text style={tw`text-gray-500 text-center mt-6`}>
+          Select “Events” tab to view events.
+        </Text>
+      )}
 
       {/* ✅ Edit Modal */}
       {/* <Modal visible={modalVisible} animationType="slide" transparent>
