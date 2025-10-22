@@ -97,7 +97,6 @@ export default function App() {
       return false;
     }
   }
-  
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -123,7 +122,7 @@ export default function App() {
                 merged = { ...merged, ...sess };
                 await AsyncStorage.setItem("userData", JSON.stringify(merged));
               } catch {}
-              setInitialRoute("Signin");
+              setInitialRoute("Tabs");
               return;
             } else {
               // ✅ Biometric failed or was canceled → go to password screen
@@ -136,9 +135,9 @@ export default function App() {
         // If biometrics not enabled / not available, use cached session if present
         const userData = await AsyncStorage.getItem("userData");
         if (userData) {
-          setInitialRoute("Signin");
+          setInitialRoute("Tabs");
         } else {
-          setInitialRoute("Signin");
+          setInitialRoute("OnboardingTwo");
         }
       } catch (err) {
         console.log("Error checking login:", err);
