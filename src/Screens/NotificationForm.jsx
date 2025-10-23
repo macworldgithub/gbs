@@ -204,6 +204,7 @@ export default function NotificationForm({
           setFormData((prev) => ({ ...prev, title: text }))
         }
         placeholder="Enter notification title"
+        placeholderTextColor="black"
       />
       {/* Message */}
       <Text style={tw`text-sm text-gray-700 mb-1`}>Message</Text>
@@ -214,6 +215,7 @@ export default function NotificationForm({
           setFormData((prev) => ({ ...prev, message: text }))
         }
         placeholder="Enter notification message"
+        placeholderTextColor="black"
         multiline
       />
       {/* Start & End Date */}
@@ -234,7 +236,7 @@ export default function NotificationForm({
           mode="datetime"
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={(e, date) => {
-            setShowStartPicker(Platform.OS === "ios"); // iOS me open rehne de, Android me band karo
+            setShowStartPicker(Platform.OS === "ios"); 
             if (date) {
               setFormData((p) => ({ ...p, startDate: date }));
             }
@@ -277,7 +279,7 @@ export default function NotificationForm({
           mode="datetime"
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={(e, date) => {
-            setShowEndPicker(Platform.OS === "ios"); // iOS me open rehne de, Android me band karo
+            setShowEndPicker(Platform.OS === "ios"); 
             if (date) {
               setFormData((p) => ({ ...p, endDate: date }));
             }
@@ -302,8 +304,8 @@ export default function NotificationForm({
           }}
         />
       )}
-      <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
-      <TouchableOpacity
+      {/* <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text> */}
+      {/* <TouchableOpacity
         onPress={() => setShowEndPicker(true)}
         style={tw`border p-2 rounded mb-4`}
       >
@@ -312,7 +314,7 @@ export default function NotificationForm({
             ? formData.endDate.toLocaleString()
             : "Select end date"}
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
       ß
       {showEndPicker && (
         <DateTimePicker
