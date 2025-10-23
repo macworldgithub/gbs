@@ -158,6 +158,11 @@ const UpgradePackage = ({ navigation }) => {
                   <Text style={tw`text-base font-bold text-gray-800`}>
                     {role.label}
                   </Text>
+                  {role.price !== undefined && (
+                    <Text style={tw`text-sm text-red-500 font-semibold mt-1`}>
+                      Price:${role.price}
+                    </Text>
+                  )}
                   <Text style={tw`text-xs text-gray-500 mt-1`}>
                     Months: 12 • Trial: false
                   </Text>
