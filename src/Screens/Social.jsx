@@ -319,7 +319,7 @@ const Social = () => {
   };
 
   return (
-    <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
+    <ScrollView style={tw`flex-1 bg-white py-4`}>
       {/* Header */}
       <View style={tw`flex-row items-center justify-between mt-12 mb-4`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
