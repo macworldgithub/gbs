@@ -23,12 +23,12 @@ const { width } = Dimensions.get("window");
 const staticItems = [
   { title: "My Business" },
   { title: "Saved offers" },
-  { title: "Profile" },
+  { title: "View and Update Profile " },
   // { title: "Events" },
   { title: "Upgrade Memberships" },
   { title: "Featured Events" },
   { title: "Contact Us" },
-  { title: "Delete User Package" },
+  { title: "Resign Membership" },
   { title: "Logout" },
 ];
 
@@ -205,7 +205,7 @@ export default function Drawer({ isOpen, onClose }) {
         navigation.navigate("MyBusiness");
       } else if (item.title === "Saved offers") {
         navigation.navigate("SavedOffers");
-      } else if (item.title === "Profile") {
+      } else if (item.title === "View and Update Profile ") {
         onClose();
         navigation.navigate("Profile");
       } else if (item.title === "Featured Events") {
@@ -220,7 +220,7 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "Contact Us") {
         onClose();
         navigation.navigate("ContactUs");
-      } else if (item.title === "Delete User Package") {
+      } else if (item.title === "Resign Membership") {
         deleteUserPackage();
       } else if (item.title === "Logout") {
         handleLogout();
