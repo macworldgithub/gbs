@@ -106,28 +106,37 @@ export default function App() {
         if (enabled) {
           const ok = await hasDesiredBiometric(); // iOS: Face ID only, Android: any biometric
           if (ok) {
-            // Triggers OS biometric prompt (since your keychain entry was saved with BIOMETRY accessControl)
-            const sess = await getSession({ prompt: true });
-
-            if (sess && sess.token) {
-              // hydrate legacy userData
-              try {
-                const existing = await AsyncStorage.getItem("userData");
-                let merged = {};
-                if (existing) {
-                  try {
-                    merged = JSON.parse(existing) || {};
-                  } catch {}
-                }
-                merged = { ...merged, ...sess };
-                await AsyncStorage.setItem("userData", JSON.stringify(merged));
-              } catch {}
-              setInitialRoute("Tabs");
-              return;
+            // Pre-check: only prompt if a biometric-protected session actually exists
+            const hasStored = await getSession({ prompt: false });
+            if (!hasStored || !hasStored.token) {
+              // No stored biometric session → fall through to normal session check
             } else {
-              // ✅ Biometric failed or was canceled → go to password screen
-              setInitialRoute("Signin"); // <-- change to your credentials screen route
-              return;
+              // Triggers OS biometric prompt (since your keychain entry was saved with BIOMETRY accessControl)
+              const sess = await getSession({ prompt: true });
+
+              if (sess && sess.token) {
+                // hydrate legacy userData
+                try {
+                  const existing = await AsyncStorage.getItem("userData");
+                  let merged = {};
+                  if (existing) {
+                    try {
+                      merged = JSON.parse(existing) || {};
+                    } catch {}
+                  }
+                  merged = { ...merged, ...sess };
+                  await AsyncStorage.setItem(
+                    "userData",
+                    JSON.stringify(merged)
+                  );
+                } catch {}
+                setInitialRoute("Tabs");
+                return;
+              } else {
+                // ✅ Biometric failed or was canceled → go to password screen
+                setInitialRoute("Signin"); // <-- change to your credentials screen route
+                return;
+              }
             }
           }
         }

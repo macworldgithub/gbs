@@ -27,6 +27,7 @@ import {
   setSession,
   setBiometricsEnabled,
   getBiometricsEnabled,
+  clearSession,
 } from "../utils/secureAuth";
 
 const Signin = () => {
@@ -40,11 +41,27 @@ const Signin = () => {
   const [useBiometrics, setUseBiometrics] = useState(false);
   const [biometricCapable, setBiometricCapable] = useState(false);
 
+  const handleToggleBiometrics = async (val) => {
+    try {
+      setUseBiometrics(val);
+      await setBiometricsEnabled(!!val);
+      if (!val) {
+        // Remove any existing biometric-protected session so the app won't prompt on next launch
+        await clearSession();
+      }
+    } catch (e) {}
+  };
+
   React.useEffect(() => {
     (async () => {
       try {
         const { available, biometryType } = await isBiometricAvailable();
-        console.log("Biometric availability:", available, "type:", biometryType);
+        console.log(
+          "Biometric availability:",
+          available,
+          "type:",
+          biometryType
+        );
         setBiometricCapable(!!available);
       } catch (e) {}
 
@@ -268,7 +285,10 @@ const Signin = () => {
             <Text style={tw`text-sm text-gray-700`}>
               Use Face/Touch ID next time
             </Text>
-            <Switch value={useBiometrics} onValueChange={setUseBiometrics} />
+            <Switch
+              value={useBiometrics}
+              onValueChange={handleToggleBiometrics}
+            />
           </View>
         ) : null}
 
