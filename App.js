@@ -74,6 +74,7 @@ import {
   isBiometricAvailable,
   getSession,
 } from "./src/utils/secureAuth";
+import ReactNativeBiometrics from "react-native-biometrics";
 
 const Stack = createStackNavigator();
 export default function App() {

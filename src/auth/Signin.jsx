@@ -22,7 +22,11 @@ import { API_BASE_URL } from "../utils/config";
 import Toast from "react-native-toast-message";
 import { storeUserData } from "../utils/storage";
 import { Switch } from "react-native";
-import { isBiometricAvailable, setSession, setBiometricsEnabled } from "../utils/secureAuth";
+import {
+  isBiometricAvailable,
+  setSession,
+  setBiometricsEnabled,
+} from "../utils/secureAuth";
 
 const Signin = () => {
   const navigation = useNavigation();
@@ -38,6 +42,7 @@ const Signin = () => {
   React.useEffect(() => {
     (async () => {
       const { available } = await isBiometricAvailable();
+      console.log("Biometric availability:", available, "type:", biometryType);
       setBiometricCapable(!!available);
     })();
   }, []);
@@ -252,7 +257,9 @@ const Signin = () => {
 
         {biometricCapable ? (
           <View style={tw`flex-row justify-between items-center mb-6`}>
-            <Text style={tw`text-sm text-gray-700`}>Use Face/Touch ID next time</Text>
+            <Text style={tw`text-sm text-gray-700`}>
+              Use Face/Touch ID next time
+            </Text>
             <Switch value={useBiometrics} onValueChange={setUseBiometrics} />
           </View>
         ) : null}
@@ -319,6 +326,3 @@ const Signin = () => {
 };
 
 export default Signin;
-
-
-
