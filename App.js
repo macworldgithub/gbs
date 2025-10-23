@@ -126,7 +126,7 @@ export default function App() {
               return;
             } else {
               // ✅ Biometric failed or was canceled → go to password screen
-              setInitialRoute("Login"); // <-- change to your credentials screen route
+              setInitialRoute("Signin"); // <-- change to your credentials screen route
               return;
             }
           }

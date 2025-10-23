@@ -26,6 +26,7 @@ import {
   isBiometricAvailable,
   setSession,
   setBiometricsEnabled,
+  getBiometricsEnabled,
 } from "../utils/secureAuth";
 
 const Signin = () => {
@@ -41,9 +42,16 @@ const Signin = () => {
 
   React.useEffect(() => {
     (async () => {
-      const { available } = await isBiometricAvailable();
-      console.log("Biometric availability:", available, "type:", biometryType);
-      setBiometricCapable(!!available);
+      try {
+        const { available, biometryType } = await isBiometricAvailable();
+        console.log("Biometric availability:", available, "type:", biometryType);
+        setBiometricCapable(!!available);
+      } catch (e) {}
+
+      try {
+        const previouslyEnabled = await getBiometricsEnabled();
+        setUseBiometrics(!!previouslyEnabled);
+      } catch (e) {}
     })();
   }, []);
 
