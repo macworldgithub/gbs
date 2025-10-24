@@ -50,6 +50,9 @@ import BusinessPage from "./src/Screens/BusinessPage";
 import BusinessDetail from "./src/Screens/BusinessDetail";
 import Wellbeing from "./src/Screens/Wellbeing";
 import ContactUs from "./src/Screens/ContactUs";
+// import AboutUs from "./src/Screens/AboutUs";
+// import AboutUs from "./src/Screens/Aboutus";
+import AboutUs from "./src/Screens/AboutUs";
 import Toast from "react-native-toast-message";
 import OfferDetails from "./src/Screens/OfferDetails";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -74,9 +77,9 @@ import {
   isBiometricAvailable,
   getSession,
 } from "./src/utils/secureAuth";
+import ReactNativeBiometrics from "react-native-biometrics";
 
 const Stack = createStackNavigator();
-
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [initialRoute, setInitialRoute] = useState(null); // <-- dynamic initial route
@@ -97,7 +100,6 @@ export default function App() {
       return false;
     }
   }
-  
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -107,28 +109,37 @@ export default function App() {
         if (enabled) {
           const ok = await hasDesiredBiometric(); // iOS: Face ID only, Android: any biometric
           if (ok) {
-            // Triggers OS biometric prompt (since your keychain entry was saved with BIOMETRY accessControl)
-            const sess = await getSession({ prompt: true });
-
-            if (sess && sess.token) {
-              // hydrate legacy userData
-              try {
-                const existing = await AsyncStorage.getItem("userData");
-                let merged = {};
-                if (existing) {
-                  try {
-                    merged = JSON.parse(existing) || {};
-                  } catch {}
-                }
-                merged = { ...merged, ...sess };
-                await AsyncStorage.setItem("userData", JSON.stringify(merged));
-              } catch {}
-              setInitialRoute("Signin");
-              return;
+            // Pre-check: only prompt if a biometric-protected session actually exists
+            const hasStored = await getSession({ prompt: false });
+            if (!hasStored || !hasStored.token) {
+              // No stored biometric session → fall through to normal session check
             } else {
-              // ✅ Biometric failed or was canceled → go to password screen
-              setInitialRoute("Signin"); // <-- change to your credentials screen route
-              return;
+              // Triggers OS biometric prompt (since your keychain entry was saved with BIOMETRY accessControl)
+              const sess = await getSession({ prompt: true });
+
+              if (sess && sess.token) {
+                // hydrate legacy userData
+                try {
+                  const existing = await AsyncStorage.getItem("userData");
+                  let merged = {};
+                  if (existing) {
+                    try {
+                      merged = JSON.parse(existing) || {};
+                    } catch {}
+                  }
+                  merged = { ...merged, ...sess };
+                  await AsyncStorage.setItem(
+                    "userData",
+                    JSON.stringify(merged)
+                  );
+                } catch {}
+                setInitialRoute("Tabs");
+                return;
+              } else {
+                // ✅ Biometric failed or was canceled → go to password screen
+                setInitialRoute("Signin"); // <-- change to your credentials screen route
+                return;
+              }
             }
           }
         }
@@ -136,9 +147,9 @@ export default function App() {
         // If biometrics not enabled / not available, use cached session if present
         const userData = await AsyncStorage.getItem("userData");
         if (userData) {
-          setInitialRoute("Signin");
+          setInitialRoute("Tabs");
         } else {
-          setInitialRoute("Signin");
+          setInitialRoute("OnboardingTwo");
         }
       } catch (err) {
         console.log("Error checking login:", err);
@@ -376,6 +387,7 @@ export default function App() {
             <Stack.Screen name="CreateEvent" component={CreateEvent} />
             <Stack.Screen name="Featured" component={FeaturedEventsScreen} />
             <Stack.Screen name="ContactUs" component={ContactUs} />
+            <Stack.Screen name="AboutUs" component={AboutUs} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
