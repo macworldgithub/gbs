@@ -21,6 +21,14 @@ import axios from "axios";
 import { API_BASE_URL } from "../utils/config";
 import Toast from "react-native-toast-message";
 import { storeUserData } from "../utils/storage";
+import { Switch } from "react-native";
+import {
+  isBiometricAvailable,
+  setSession,
+  setBiometricsEnabled,
+  getBiometricsEnabled,
+  clearSession,
+} from "../utils/secureAuth";
 
 const Signin = () => {
   const navigation = useNavigation();
@@ -30,6 +38,39 @@ const Signin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [useBiometrics, setUseBiometrics] = useState(false);
+  const [biometricCapable, setBiometricCapable] = useState(false);
+
+  const handleToggleBiometrics = async (val) => {
+    try {
+      setUseBiometrics(val);
+      await setBiometricsEnabled(!!val);
+      if (!val) {
+        // Remove any existing biometric-protected session so the app won't prompt on next launch
+        await clearSession();
+      }
+    } catch (e) {}
+  };
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const { available, biometryType } = await isBiometricAvailable();
+        console.log(
+          "Biometric availability:",
+          available,
+          "type:",
+          biometryType
+        );
+        setBiometricCapable(!!available);
+      } catch (e) {}
+
+      try {
+        const previouslyEnabled = await getBiometricsEnabled();
+        setUseBiometrics(!!previouslyEnabled);
+      } catch (e) {}
+    })();
+  }, []);
 
   const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -110,6 +151,11 @@ const Signin = () => {
           };
           // Store token & user data in AsyncStorage (same as OTPVerification)
           await storeUserData(userData);
+
+          if (useBiometrics && biometricCapable && signinRes.data?.token) {
+            await setSession(userData, { requireBiometrics: true });
+            await setBiometricsEnabled(true);
+          }
 
           // ✅ Debug: check if stored properly
           const stored = await AsyncStorage.getItem("userData");
@@ -233,6 +279,18 @@ const Signin = () => {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {biometricCapable ? (
+          <View style={tw`flex-row justify-between items-center mb-6`}>
+            <Text style={tw`text-sm text-gray-700`}>
+              Use Face/Touch ID next time
+            </Text>
+            <Switch
+              value={useBiometrics}
+              onValueChange={handleToggleBiometrics}
+            />
+          </View>
+        ) : null}
 
         {/* Sign In Button */}
         <TouchableOpacity

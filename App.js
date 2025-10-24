@@ -64,25 +64,85 @@ import EventDetail from "./src/Screens/EventDetail";
 import NotificationForm from "./src/Screens/NotificationForm";
 import CreateEvent from "./src/Screens/CreateEvent";
 import FeaturedEventsScreen from "./src/Screens/FeaturedEventsScreen";
-import messaging from '@react-native-firebase/messaging';
-import {PermissionsAndroid,Platform} from 'react-native';
-import { Alert } from 'react-native';
+import messaging from "@react-native-firebase/messaging";
+import { PermissionsAndroid, Platform } from "react-native";
+import { Alert } from "react-native";
 import { API_BASE_URL } from "./src/utils/config";
 import axios from "axios";
+import {
+  getBiometricsEnabled,
+  isBiometricAvailable,
+  getSession,
+} from "./src/utils/secureAuth";
+import ReactNativeBiometrics from "react-native-biometrics";
 
 const Stack = createStackNavigator();
-
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [initialRoute, setInitialRoute] = useState(null); // <-- dynamic initial route
   const splashOpacity = useRef(new Animated.Value(1)).current;
 
+  async function hasDesiredBiometric() {
+    try {
+      const { available, biometryType } = await isBiometricAvailable();
+      if (!available) return false;
+
+      // iOS must be Face ID specifically
+      if (Platform.OS === "ios") {
+        return biometryType === ReactNativeBiometrics.FaceID;
+      }
+      // Android: any enrolled biometric is fine
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const userData = await AsyncStorage.getItem("userData");
-        console.log("🚀 Existing user data at startup:", userData);
+        const enabled = await getBiometricsEnabled();
 
+        if (enabled) {
+          const ok = await hasDesiredBiometric(); // iOS: Face ID only, Android: any biometric
+          if (ok) {
+            // Pre-check: only prompt if a biometric-protected session actually exists
+            const hasStored = await getSession({ prompt: false });
+            if (!hasStored || !hasStored.token) {
+              // No stored biometric session → fall through to normal session check
+            } else {
+              // Triggers OS biometric prompt (since your keychain entry was saved with BIOMETRY accessControl)
+              const sess = await getSession({ prompt: true });
+
+              if (sess && sess.token) {
+                // hydrate legacy userData
+                try {
+                  const existing = await AsyncStorage.getItem("userData");
+                  let merged = {};
+                  if (existing) {
+                    try {
+                      merged = JSON.parse(existing) || {};
+                    } catch {}
+                  }
+                  merged = { ...merged, ...sess };
+                  await AsyncStorage.setItem(
+                    "userData",
+                    JSON.stringify(merged)
+                  );
+                } catch {}
+                setInitialRoute("Tabs");
+                return;
+              } else {
+                // ✅ Biometric failed or was canceled → go to password screen
+                setInitialRoute("Signin"); // <-- change to your credentials screen route
+                return;
+              }
+            }
+          }
+        }
+
+        // If biometrics not enabled / not available, use cached session if present
+        const userData = await AsyncStorage.getItem("userData");
         if (userData) {
           setInitialRoute("Tabs");
         } else {
@@ -129,7 +189,7 @@ export default function App() {
     }
 
     async function requestNotificationPermission() {
-      if (Platform.OS === "android" && Platform.Version >= 33) {
+      if (Platform.OS === "android") {
         try {
           const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
@@ -141,71 +201,74 @@ export default function App() {
             }
           );
 
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log("✅ Notification permission granted");
-        return true;
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log("✅ Notification permission granted");
+            return true;
+          } else {
+            console.log("❌ Notification permission denied");
+            return false;
+          }
+        } catch (err) {
+          console.warn("⚠️ Permission error:", err);
+          return false;
+        }
       } else {
-        console.log("❌ Notification permission denied");
-        return false;
+        // For iOS or lower Android versions, permission is either automatic or handled separately
+        return true;
       }
-    } catch (err) {
-      console.warn("⚠️ Permission error:", err);
-      return false;
     }
-  } else {
-    // For iOS or lower Android versions, permission is either automatic or handled separately
-    return true;
-  }
-}
 
-
-
-const getToken = async () => {
-  try {
-    // Request permission for notifications
-    const authStatus = await messaging().requestPermission();
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+    const getToken = async () => {
+      try {
+        // Request permission for notifications
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
         if (enabled) {
           console.log("Authorization status:", authStatus);
 
-      // Get the FCM token
-      const token = await messaging().getToken();
-      console.log('FCM Token:', token);
+          // Get the FCM token
+          const token = await messaging().getToken();
+          console.log("FCM Token:", token);
 
-      // Retrieve JWT token from AsyncStorage
-      const userData = await AsyncStorage.getItem('userData'); // Adjust key based on your storage
-      let jwtToken = null;
+          // Retrieve JWT token from AsyncStorage
+          const userData = await AsyncStorage.getItem("userData"); // Adjust key based on your storage
+          let jwtToken = null;
 
-      if (userData) {
-        const parsedData = JSON.parse(userData);
-        jwtToken = parsedData.token || parsedData.jwtToken; // Adjust based on your data structure
-      }
+          if (userData) {
+            const parsedData = JSON.parse(userData);
+            jwtToken = parsedData.token || parsedData.jwtToken; // Adjust based on your data structure
+          }
 
-      if (jwtToken) {
-        console.log('JWT Token found:', jwtToken);
+          if (jwtToken) {
+            console.log("JWT Token found:", jwtToken);
 
-        // Call the register-token API
-        try {
-          const response = await axios.post(
-            `${API_BASE_URL}/notification/register-token`, // Replace with your backend URL
-            { fcmToken: token },
-            {
-              headers: {
-                Authorization: `Bearer ${jwtToken}`,
-                'Content-Type': 'application/json',
-              },
+            // Call the register-token API
+            try {
+              const response = await axios.post(
+                `${API_BASE_URL}/notification/register-token`, // Replace with your backend URL
+                { fcmToken: token },
+                {
+                  headers: {
+                    Authorization: `Bearer ${jwtToken}`,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+              console.log("FCM token registered successfully:", response.data);
+            } catch (error) {
+              console.error(
+                "Error registering FCM token:",
+                error.response?.data || error.message
+              );
             }
-          );
-          console.log('FCM token registered successfully:', response.data);
-        } catch (error) {
-          console.error('Error registering FCM token:', error.response?.data || error.message);
-        }
-      } else {
-        console.log('User is not logged in (no JWT token), skipping FCM token registration');
-      }
+          } else {
+            console.log(
+              "User is not logged in (no JWT token), skipping FCM token registration"
+            );
+          }
 
           return token;
         } else {
@@ -234,7 +297,7 @@ const getToken = async () => {
     return unsubscribe;
   }, []);
 
-  if (showSplash) {
+  if (showSplash || initialRoute === null) {
     return (
       <Animated.View
         style={[styles.splashContainer, { opacity: splashOpacity }]}
