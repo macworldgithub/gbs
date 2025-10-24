@@ -482,7 +482,7 @@ export default function Home() {
                 <Text style={tw`text-red-500 text-sm`}>See all Events</Text>
               </TouchableOpacity>
             </View>
-            <Cards stateFilter={activeTab} />
+            <Cards stateFilter={activeTab} limit={10}  />
           </View>
         )}
         keyExtractor={() => "footer"}
