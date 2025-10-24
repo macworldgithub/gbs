@@ -27,6 +27,7 @@ const staticItems = [
   // { title: "Events" },
   { title: "Upgrade Memberships" },
   { title: "Featured Events" },
+  { title: "About Us" },
   { title: "Contact Us" },
   { title: "Resign Membership" },
   { title: "Logout" },
@@ -227,6 +228,9 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "Upgrade Memberships") {
         onClose();
         navigation.navigate("UpgradePackage");
+      } else if (item.title === "About Us") {
+        onClose();
+        navigation.navigate("AboutUs");
       } else if (item.title === "Contact Us") {
         onClose();
         navigation.navigate("ContactUs");

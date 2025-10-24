@@ -50,6 +50,9 @@ import BusinessPage from "./src/Screens/BusinessPage";
 import BusinessDetail from "./src/Screens/BusinessDetail";
 import Wellbeing from "./src/Screens/Wellbeing";
 import ContactUs from "./src/Screens/ContactUs";
+// import AboutUs from "./src/Screens/AboutUs";
+// import AboutUs from "./src/Screens/Aboutus";
+import AboutUs from "./src/Screens/AboutUs";
 import Toast from "react-native-toast-message";
 import OfferDetails from "./src/Screens/OfferDetails";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -384,6 +387,7 @@ export default function App() {
             <Stack.Screen name="CreateEvent" component={CreateEvent} />
             <Stack.Screen name="Featured" component={FeaturedEventsScreen} />
             <Stack.Screen name="ContactUs" component={ContactUs} />
+            <Stack.Screen name="AboutUs" component={AboutUs} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
