@@ -482,7 +482,7 @@
 //                 <Text style={tw`text-red-500 text-sm`}>See all Events</Text>
 //               </TouchableOpacity>
 //             </View>
-//             <Cards stateFilter={activeTab} limit={10}  />
+//             <Cards stateFilter={activeTab} />
 //           </View>
 //         )}
 //         keyExtractor={() => "footer"}
@@ -490,10 +490,6 @@
 
 //       {/* Sidebar Component */}
 //       <Drawer isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-
-
-
 
 //       {/* Create Event Modal */}
 //       {/* <Modal visible={createEventModalVisible} transparent animationType="fade">
@@ -714,7 +710,6 @@
 //     </View>
 //   );
 // }
-
 
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -1069,8 +1064,8 @@ export default function Home() {
           days > 0
             ? `${days} days ${hours} hrs`
             : hours > 0
-            ? `${hours} hrs ${mins} mins`
-            : `${mins} mins ${secs} secs`;
+              ? `${hours} hrs ${mins} mins`
+              : `${mins} mins ${secs} secs`;
 
         if (mounted) setGuestRemainingStr(display);
       } catch (e) {
@@ -1118,11 +1113,16 @@ export default function Home() {
           style={tw`bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3 flex-row items-center justify-between`}
           onPress={() => {
             // tapping the banner goes to Signup (encourage upgrade)
-            navigation.navigate("Signup");
+            navigation.navigate("Signin");
           }}
         >
           <View style={tw`flex-row items-center`}>
-            <FontAwesome name="user" size={16} color="#DC2626" style={tw`mr-2`} />
+            <FontAwesome
+              name="user"
+              size={16}
+              color="#DC2626"
+              style={tw`mr-2`}
+            />
             <Text style={tw`text-sm text-red-700`}>
               Guest access — {guestRemainingStr} left
             </Text>
