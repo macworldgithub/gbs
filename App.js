@@ -50,8 +50,6 @@ import BusinessPage from "./src/Screens/BusinessPage";
 import BusinessDetail from "./src/Screens/BusinessDetail";
 import Wellbeing from "./src/Screens/Wellbeing";
 import ContactUs from "./src/Screens/ContactUs";
-// import AboutUs from "./src/Screens/AboutUs";
-// import AboutUs from "./src/Screens/Aboutus";
 import AboutUs from "./src/Screens/AboutUs";
 import Toast from "react-native-toast-message";
 import OfferDetails from "./src/Screens/OfferDetails";
@@ -68,6 +66,7 @@ import NotificationForm from "./src/Screens/NotificationForm";
 import CreateEvent from "./src/Screens/CreateEvent";
 import FeaturedEventsScreen from "./src/Screens/FeaturedEventsScreen";
 import messaging from "@react-native-firebase/messaging";
+import ViewProfile from "./src/Screens/ViewProfile";
 import { PermissionsAndroid, Platform } from "react-native";
 import { Alert } from "react-native";
 import { API_BASE_URL } from "./src/utils/config";
@@ -470,6 +469,7 @@ export default function App() {
             <Stack.Screen name="Featured" component={FeaturedEventsScreen} />
             <Stack.Screen name="ContactUs" component={ContactUs} />
             <Stack.Screen name="AboutUs" component={AboutUs} />
+            <Stack.Screen name="ViewProfile" component={ViewProfile} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

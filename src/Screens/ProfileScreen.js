@@ -21,7 +21,9 @@ export default function ProfileScreen() {
 
       {/* Profile Section */}
       <View style={tw`items-center mb-8`}>
-        <View style={tw`w-20 h-20 bg-red-500 rounded-full items-center justify-center mb-3`}>
+        <View
+          style={tw`w-20 h-20 bg-red-500 rounded-full items-center justify-center mb-3`}
+        >
           <Ionicons name="person" size={40} color="white" />
         </View>
         <Text style={tw`text-lg font-bold text-black`}>Franklin Clinton</Text>
@@ -30,8 +32,20 @@ export default function ProfileScreen() {
 
       {/* Menu Items */}
       <View style={tw`space-y-4`}>
+        <TouchableOpacity
+          style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between`}
+        >
+          <View style={tw`flex-row items-center space-x-3`}>
+            <Ionicons name="person" size={20} color="#ef4444" />
+            <Text style={tw`text-base text-black`}>View Profile</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="gray" />
+        </TouchableOpacity>
+
         {/* 1. Edit Profile */}
-        <TouchableOpacity style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between`}>
+        <TouchableOpacity
+          style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between`}
+        >
           <View style={tw`flex-row items-center space-x-3`}>
             <Ionicons name="person" size={20} color="#ef4444" />
             <Text style={tw`text-base text-black`}>Edit Profile</Text>
@@ -40,7 +54,9 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         {/* 2. Account Security */}
-        <TouchableOpacity style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between`}>
+        <TouchableOpacity
+          style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between`}
+        >
           <View style={tw`flex-row items-center space-x-3`}>
             <Ionicons name="shield-checkmark" size={20} color="#ef4444" />
             <Text style={tw`text-base text-black`}>Account Security</Text>
@@ -49,7 +65,9 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         {/* 3. Scan Member */}
-        <TouchableOpacity style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between`}>
+        <TouchableOpacity
+          style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between`}
+        >
           <View style={tw`flex-row items-center space-x-3`}>
             <MaterialIcons name="qr-code-scanner" size={20} color="#ef4444" />
             <Text style={tw`text-base text-black`}>Scan Member</Text>
@@ -58,7 +76,9 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         {/* 4. Payment Method */}
-        <TouchableOpacity style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between`}>
+        <TouchableOpacity
+          style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between`}
+        >
           <View style={tw`flex-row items-center space-x-3`}>
             <FontAwesome5 name="credit-card" size={18} color="#ef4444" />
             <Text style={tw`text-base text-black`}>Payment Method</Text>
@@ -67,7 +87,9 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         {/* 5. General Settings */}
-        <TouchableOpacity style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between`}>
+        <TouchableOpacity
+          style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between`}
+        >
           <View style={tw`flex-row items-center space-x-3`}>
             <Feather name="settings" size={20} color="#ef4444" />
             <Text style={tw`text-base text-black`}>General Settings</Text>
@@ -76,7 +98,9 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         {/* 6. Help Centre */}
-        <TouchableOpacity style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between mb-4`}>
+        <TouchableOpacity
+          style={tw`flex-row items-center bg-gray-100 p-4 rounded-xl justify-between mb-4`}
+        >
           <View style={tw`flex-row items-center space-x-3`}>
             <Feather name="help-circle" size={20} color="#ef4444" />
             <Text style={tw`text-base text-black`}>Help Centre</Text>
@@ -92,4 +116,3 @@ export default function ProfileScreen() {
     </ScrollView>
   );
 }
-

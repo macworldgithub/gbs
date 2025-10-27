@@ -24,12 +24,18 @@ import { useFocusEffect } from "@react-navigation/native";
 const menuItems = [
   {
     id: "1",
+    label: "View Profile",
+    icon: "user-edit",
+    navigateTo: "ViewProfile",
+  },
+  {
+    id: "2",
     label: "Edit Profile",
     icon: "user-edit",
     navigateTo: "EditProfile",
   },
   {
-    id: "2",
+    id: "3",
     label: "Account Security",
     icon: "shield-alt",
     navigateTo: "AccountSecurity",
