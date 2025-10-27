@@ -50,8 +50,6 @@ import BusinessPage from "./src/Screens/BusinessPage";
 import BusinessDetail from "./src/Screens/BusinessDetail";
 import Wellbeing from "./src/Screens/Wellbeing";
 import ContactUs from "./src/Screens/ContactUs";
-// import AboutUs from "./src/Screens/AboutUs";
-// import AboutUs from "./src/Screens/Aboutus";
 import AboutUs from "./src/Screens/AboutUs";
 import Toast from "react-native-toast-message";
 import OfferDetails from "./src/Screens/OfferDetails";
@@ -68,6 +66,7 @@ import NotificationForm from "./src/Screens/NotificationForm";
 import CreateEvent from "./src/Screens/CreateEvent";
 import FeaturedEventsScreen from "./src/Screens/FeaturedEventsScreen";
 import messaging from "@react-native-firebase/messaging";
+import ViewProfile from "./src/Screens/ViewProfile";
 import { PermissionsAndroid, Platform } from "react-native";
 import { Alert } from "react-native";
 import { API_BASE_URL } from "./src/utils/config";
@@ -85,23 +84,104 @@ export default function App() {
   const [initialRoute, setInitialRoute] = useState(null); // <-- dynamic initial route
   const splashOpacity = useRef(new Animated.Value(1)).current;
 
+  // async function hasDesiredBiometric() {
+  //   try {
+  //     const { available, biometryType } = await isBiometricAvailable();
+  //     if (!available) return false;
+
+  //     if (Platform.OS === "ios") {
+  //       return biometryType === ReactNativeBiometrics.FaceID;
+  //     }
+
+  //     return true;
+  //   } catch {
+  //     return false;
+  //   }
+  // }
+
   async function hasDesiredBiometric() {
     try {
       const { available, biometryType } = await isBiometricAvailable();
-      if (!available) return false;
+      console.log(
+        "[App] biometric available:",
+        available,
+        "biometryType:",
+        biometryType
+      );
 
-      // iOS must be Face ID specifically
+      if (!available) return false;
       if (Platform.OS === "ios") {
-        return biometryType === ReactNativeBiometrics.FaceID;
+        if (!biometryType) return false;
+        const typeStr = String(biometryType).toLowerCase();
+        return (
+          typeStr === "faceid" ||
+          typeStr.includes("face") ||
+          typeStr === String(ReactNativeBiometrics.FaceID).toLowerCase()
+        );
       }
-      // Android: any enrolled biometric is fine
       return true;
-    } catch {
+    } catch (e) {
+      console.log("[App] hasDesiredBiometric error:", e);
       return false;
     }
   }
 
   useEffect(() => {
+    // const checkLoginStatus = async () => {
+    //   try {
+    //     const enabled = await getBiometricsEnabled();
+
+    //     if (enabled) {
+    //       const ok = await hasDesiredBiometric(); // iOS: Face ID only, Android: any biometric
+    //       if (ok) {
+    //         // Pre-check: only prompt if a biometric-protected session actually exists
+    //         const hasStored = await getSession({ prompt: false });
+    //         if (!hasStored || !hasStored.token) {
+    //           // No stored biometric session → fall through to normal session check
+    //         } else {
+    //           // Triggers OS biometric prompt (since your keychain entry was saved with BIOMETRY accessControl)
+    //           const sess = await getSession({ prompt: true });
+
+    //           if (sess && sess.token) {
+    //             // hydrate legacy userData
+    //             try {
+    //               const existing = await AsyncStorage.getItem("userData");
+    //               let merged = {};
+    //               if (existing) {
+    //                 try {
+    //                   merged = JSON.parse(existing) || {};
+    //                 } catch {}
+    //               }
+    //               merged = { ...merged, ...sess };
+    //               await AsyncStorage.setItem(
+    //                 "userData",
+    //                 JSON.stringify(merged)
+    //               );
+    //             } catch {}
+    //             setInitialRoute("Tabs");
+    //             return;
+    //           } else {
+    //             // ✅ Biometric failed or was canceled → go to password screen
+    //             setInitialRoute("Signin"); // <-- change to your credentials screen route
+    //             return;
+    //           }
+    //         }
+    //       }
+    //     }
+
+    //     // If biometrics not enabled / not available, use cached session if present
+    //     const userData = await AsyncStorage.getItem("userData");
+    //     if (userData) {
+    //       setInitialRoute("Tabs");
+    //     } else {
+    //       setInitialRoute("OnboardingTwo");
+    //     }
+    //   } catch (err) {
+    //     console.log("Error checking login:", err);
+    //     setInitialRoute("OnboardingTwo");
+    //   }
+    // };
+
     const checkLoginStatus = async () => {
       try {
         const enabled = await getBiometricsEnabled();
@@ -111,35 +191,36 @@ export default function App() {
           if (ok) {
             // Pre-check: only prompt if a biometric-protected session actually exists
             const hasStored = await getSession({ prompt: false });
-            if (!hasStored || !hasStored.token) {
-              // No stored biometric session → fall through to normal session check
-            } else {
-              // Triggers OS biometric prompt (since your keychain entry was saved with BIOMETRY accessControl)
-              const sess = await getSession({ prompt: true });
 
-              if (sess && sess.token) {
-                // hydrate legacy userData
-                try {
-                  const existing = await AsyncStorage.getItem("userData");
-                  let merged = {};
-                  if (existing) {
-                    try {
-                      merged = JSON.parse(existing) || {};
-                    } catch {}
-                  }
-                  merged = { ...merged, ...sess };
-                  await AsyncStorage.setItem(
-                    "userData",
-                    JSON.stringify(merged)
-                  );
-                } catch {}
-                setInitialRoute("Tabs");
-                return;
-              } else {
-                // ✅ Biometric failed or was canceled → go to password screen
-                setInitialRoute("Signin"); // <-- change to your credentials screen route
-                return;
-              }
+            // IMPORTANT: if biometrics are enabled but there is NO biometric-protected session,
+            // do NOT fall back to cached userData — force Signin.
+            if (!hasStored || !hasStored.token) {
+              setInitialRoute("OnboardingTwo");
+              return;
+            }
+
+            // Triggers OS biometric prompt (since your keychain entry was saved with BIOMETRY accessControl)
+            const sess = await getSession({ prompt: true });
+
+            if (sess && sess.token) {
+              // hydrate legacy userData
+              try {
+                const existing = await AsyncStorage.getItem("userData");
+                let merged = {};
+                if (existing) {
+                  try {
+                    merged = JSON.parse(existing) || {};
+                  } catch {}
+                }
+                merged = { ...merged, ...sess };
+                await AsyncStorage.setItem("userData", JSON.stringify(merged));
+              } catch {}
+              setInitialRoute("Tabs");
+              return;
+            } else {
+              // Biometric failed or was canceled → go to password screen
+              setInitialRoute("OnboardingTwo");
+              return;
             }
           }
         }
@@ -388,6 +469,7 @@ export default function App() {
             <Stack.Screen name="Featured" component={FeaturedEventsScreen} />
             <Stack.Screen name="ContactUs" component={ContactUs} />
             <Stack.Screen name="AboutUs" component={AboutUs} />
+            <Stack.Screen name="ViewProfile" component={ViewProfile} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

@@ -108,11 +108,11 @@ const EventDetail = () => {
     // </ScrollView>
     <ScrollView style={tw`flex-1 bg-white p-4 `}>
       {/* Header */}
-      <View style={tw`flex-row items-center justify-between mt-2 mb-6`}>
+      <View style={tw`flex-row items-center justify-between mt-12 mb-6`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
-        <Text style={tw`text-xl font-bold text-red-600`}>Event Offers</Text>
+        <Text style={tw`text-xl font-bold text-red-600`}>Event Detail</Text>
         <View style={{ width: 24 }} />
       </View>
 
