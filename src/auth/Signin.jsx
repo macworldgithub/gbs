@@ -768,7 +768,7 @@ const Signin = () => {
         </View>
 
         {/* Guest Sign-in: visually matches the primary sign-in button */}
-        <View style={tw`mt-2 mb-8`}>
+        {/* <View style={tw`mt-2 mb-8`}>
           <TouchableOpacity
             onPress={handleGuestSignIn}
             style={tw`flex-row items-center justify-center bg-red-500 py-3 rounded-xl`}
@@ -783,7 +783,7 @@ const Signin = () => {
               Continue as Guest
             </Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </ScrollView>
     </KeyboardAvoidingView>
   );

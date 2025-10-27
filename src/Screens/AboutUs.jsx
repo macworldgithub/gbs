@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  Image,
   TouchableOpacity,
   Animated,
   Easing,
@@ -11,8 +10,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import tw from "tailwind-react-native-classnames";
+import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
+
 const CollapsibleSection = ({ title, children, isFirst = false }) => {
   const [isExpanded, setIsExpanded] = useState(isFirst);
   const spinValue = useState(new Animated.Value(0))[0];
@@ -103,37 +104,28 @@ const ContactButton = ({ icon, text, onPress, color = "blue" }) => (
 );
 
 const AboutUs = () => {
+  // ✅ Add this line
+  const navigation = useNavigation();
+
   const handleEmailPress = () => {
-    Linking.openURL("mailto:support@gbsapp.com");
+    Linking.openURL("mailto:concierge@goodblokessociety.com.au");
   };
 
   const handleCallPress = () => {
-    Linking.openURL("tel:1234567890");
+    Linking.openURL("tel:1300071215");
   };
 
   return (
     <SafeAreaView style={tw`flex-1 bg-gray-50`}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* <View style={tw`bg-white shadow-sm`}>
-          <View style={tw`p-5`}>
-            <Text
-              style={tw`text-2xl font-bold text-center text-white bg-red-500 p-3 rounded-lg`}
-            >
-              About GBS
-            </Text>
-            <Text style={tw`text-center text-gray-500 mt-2`}>
-              Connecting Communities, Empowering Businesses
-            </Text>
-          </View>
-        </View> */}
         <View style={tw`flex-row items-center bg-red-500 px-4 py-3`}>
-          {/* <TouchableOpacity
+          <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={tw`mr-3`}
           >
-            <MaterialIcons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity> */}
-          <Text style={tw`text-white text-lg font-bold ml-28`}>About Us</Text>
+            <MaterialIcons name="arrow-back" size={26} color="white" />
+          </TouchableOpacity>
+          <Text style={tw`text-white text-lg font-bold ml-20`}>About Us</Text>
         </View>
 
         <View style={tw`p-5`}>
@@ -210,26 +202,10 @@ const AboutUs = () => {
             />
             <ContactButton
               icon="location"
-              text="627 Chapel St, 
-South Yarra, VIC, 3141"
+              text="627 Chapel St, South Yarra, VIC, 3141"
               onPress={() => {}}
               color="purple"
             />
-
-            {/* <View style={tw`mt-4 flex-row justify-center space-x-4`}>
-              <TouchableOpacity style={tw`bg-blue-100 p-3 rounded-full`}>
-                <Ionicons name="logo-facebook" size={24} color="#3B5998" />
-              </TouchableOpacity>
-              <TouchableOpacity style={tw`bg-blue-100 p-3 rounded-full`}>
-                <Ionicons name="logo-twitter" size={24} color="#1DA1F2" />
-              </TouchableOpacity>
-              <TouchableOpacity style={tw`bg-blue-100 p-3 rounded-full`}>
-                <Ionicons name="logo-instagram" size={24} color="#E1306C" />
-              </TouchableOpacity>
-              <TouchableOpacity style={tw`bg-blue-100 p-3 rounded-full`}>
-                <Ionicons name="logo-linkedin" size={24} color="#0077B5" />
-              </TouchableOpacity>
-            </View> */}
           </CollapsibleSection>
         </View>
       </ScrollView>
