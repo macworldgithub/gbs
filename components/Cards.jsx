@@ -16,10 +16,10 @@ import { getUserData } from "../src/utils/storage";
 const BASE_API_URL = "https://gbs.westsidecarcare.com.au/events";
 
 const Cards = ({
-  stateFilter = "All", 
-  limit = 10, 
+  stateFilter = "All",
+  limit = 10,
   page = 1,
-  showBooking = true, 
+  showBooking = true,
 }) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +69,6 @@ const Cards = ({
     });
   };
 
-  
   const handleBuyTicket = async (eventId) => {
     try {
       const userData = await getUserData();
@@ -159,7 +158,7 @@ const Cards = ({
           </Text>
           <View style={tw`flex-row items-center mb-2`}>
             <Text style={tw`text-black font-semibold mr-2`}>Cost:</Text>
-            <Text>{item?.cost || "Free"}</Text>
+            <Text>{item?.cost || "0"}$ </Text>
           </View>
         </View>
 
