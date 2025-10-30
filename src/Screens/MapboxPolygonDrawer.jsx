@@ -16,40 +16,40 @@ const MapboxPolygonDrawer = ({ coordinates, setCoordinates }) => {
     setPolygon((prev) => [...prev, coords]);
   };
 
-  
+  const closePolygon = () => {
+    if (polygon.length < 3) {
+      Alert.alert("Error", "Polygon needs at least 3 points");
+      return;
+    }
+    setCompleted(true);
 
-const closePolygon = () => {
-  if (polygon.length < 3) {
-    Alert.alert("Error", "Polygon needs at least 3 points");
-    return;
-  }
-  setCompleted(true);
+    // close ring
+    const closed = [...polygon, polygon[0]];
 
-  // close ring
-  const closed = [...polygon, polygon[0]];
+    // Create turf polygon
+    const turfPolygon = turf.polygon([closed]);
 
-  // Create turf polygon
-  const turfPolygon = turf.polygon([closed]);
+    // ✅ Fix invalid polygon automatically
+    const fixed = turf.cleanCoords(turfPolygon);
 
-  // ✅ Fix invalid polygon automatically
-  const fixed = turf.cleanCoords(turfPolygon);
+    if (!turf.booleanValid(fixed)) {
+      Alert.alert(
+        "Invalid Shape",
+        "Polygon edges are crossing. Please draw again."
+      );
+      setPolygon([]);
+      setCompleted(false);
+      return;
+    }
 
-  if (!turf.booleanValid(fixed)) {
-    Alert.alert("Invalid Shape", "Polygon edges are crossing. Please draw again.");
-    setPolygon([]);
-    setCompleted(false);
-    return;
-  }
+    setPolygon(closed);
 
-  setPolygon(closed);
+    // ✅ Wrap correctly
+    const multiPolygonCoords = [[closed]];
+    setCoordinates(multiPolygonCoords);
+  };
 
-  // ✅ Wrap correctly
-  const multiPolygonCoords = [[closed]];
-  setCoordinates(multiPolygonCoords);
-};
-
-
-useEffect(() => {
+  useEffect(() => {
     if (coordinates && coordinates.length > 0) {
       const prePolygon = coordinates[0][0]; // unwrap MultiPolygon -> Polygon -> Ring
       setPolygon(prePolygon);
@@ -72,7 +72,8 @@ useEffect(() => {
       >
         <MapboxGL.Camera
           zoomLevel={10}
-          centerCoordinate={[67.0011, 24.8607]} // Karachi default
+          centerCoordinate={[151.2093, -33.8688]}
+          // centerCoordinate={[67.0011, 24.8607]} // Karachi default
         />
 
         {/* Render polygon */}
