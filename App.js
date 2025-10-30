@@ -70,6 +70,7 @@ import ViewProfile from "./src/Screens/ViewProfile";
 import { PermissionsAndroid, Platform } from "react-native";
 import { Alert } from "react-native";
 import { API_BASE_URL } from "./src/utils/config";
+import VideoScreen from "./src/Screens/VideoScreen"
 import axios from "axios";
 import {
   getBiometricsEnabled,
@@ -470,6 +471,7 @@ export default function App() {
             <Stack.Screen name="ContactUs" component={ContactUs} />
             <Stack.Screen name="AboutUs" component={AboutUs} />
             <Stack.Screen name="ViewProfile" component={ViewProfile} />
+            <Stack.Screen name="VideoScreen" component={VideoScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

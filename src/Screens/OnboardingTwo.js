@@ -180,48 +180,39 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FontAwesome } from "@expo/vector-icons";
-import { storeUserData } from "../utils/storage"; // ✅ keep same helper
+import { storeUserData } from "../utils/storage"; // ✅ helper remains
 
 export default function OnboardingScreen({ navigation }) {
-  // 🧩 Guest Sign-in logic (copied from your Signin screen)
+  // 🧩 Guest Sign-in logic (kept in case you need guest flow later)
   const handleGuestSignIn = async () => {
     try {
       const now = Date.now();
       const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
 
-      // Check for existing guest expiry
       const existingExpiryStr = await AsyncStorage.getItem("guestExpiry");
-      let expiry = now + sevenDaysMs; // Default new expiry
+      let expiry = now + sevenDaysMs;
 
       if (existingExpiryStr) {
         const existingExpiry = parseInt(existingExpiryStr, 10);
         if (now < existingExpiry) {
-          // Reuse existing if not expired
           expiry = existingExpiry;
         } else {
-          // Expired, create new
           expiry = now + sevenDaysMs;
           await AsyncStorage.setItem("guestExpiry", expiry.toString());
         }
       } else {
-        // No existing, create new
         await AsyncStorage.setItem("guestExpiry", expiry.toString());
       }
 
       const guestData = {
-        token: "guest-token", // non-sensitive placeholder
+        token: "guest-token",
         isGuest: true,
         guestExpiry: expiry,
         name: "Guest User",
         email: null,
       };
 
-      // Save guest info
-      try {
-        await storeUserData(guestData);
-      } catch (e) {
-        console.log("storeUserData helper error:", e);
-      }
+      await storeUserData(guestData);
       await AsyncStorage.setItem("userData", JSON.stringify(guestData));
 
       Alert.alert(
@@ -273,10 +264,10 @@ export default function OnboardingScreen({ navigation }) {
 
         {/* ---- Buttons ---- */}
         <View style={styles.buttonContainer}>
-          {/* ✅ Member Login now performs Guest Sign-In */}
+          {/* ✅ Member Login now opens the video screen */}
           <TouchableOpacity
             style={styles.memberButton}
-            onPress={handleGuestSignIn}
+            onPress={() => navigation.replace("VideoScreen")}
           >
             <FontAwesome
               name="user"
