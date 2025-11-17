@@ -128,6 +128,8 @@ const EditProfile = () => {
         body.password = newPassword;
       }
 
+      console.log(" API Payload:", body);
+
       const res = await axios.patch(`${API_BASE_URL}/user/${userId}`, body, {
         headers: { Authorization: `Bearer ${token}` },
       });
