@@ -70,7 +70,8 @@ import ViewProfile from "./src/Screens/ViewProfile";
 import { PermissionsAndroid, Platform } from "react-native";
 import { Alert } from "react-native";
 import { API_BASE_URL } from "./src/utils/config";
-import VideoScreen from "./src/Screens/VideoScreen"
+import VideoScreen from "./src/Screens/VideoScreen";
+import IntroVideoScreen from "./src/Screens/IntroVideoScreen";
 import axios from "axios";
 import {
   getBiometricsEnabled,
@@ -196,7 +197,7 @@ export default function App() {
             // IMPORTANT: if biometrics are enabled but there is NO biometric-protected session,
             // do NOT fall back to cached userData — force Signin.
             if (!hasStored || !hasStored.token) {
-              setInitialRoute("OnboardingTwo");
+              setInitialRoute("IntroVideo");
               return;
             }
 
@@ -220,7 +221,7 @@ export default function App() {
               return;
             } else {
               // Biometric failed or was canceled → go to password screen
-              setInitialRoute("OnboardingTwo");
+              setInitialRoute("IntroVideo");
               return;
             }
           }
@@ -231,11 +232,11 @@ export default function App() {
         if (userData) {
           setInitialRoute("Tabs");
         } else {
-          setInitialRoute("OnboardingTwo");
+          setInitialRoute("IntroVideo");
         }
       } catch (err) {
         console.log("Error checking login:", err);
-        setInitialRoute("OnboardingTwo");
+        setInitialRoute("IntroVideo");
       }
     };
 
@@ -406,6 +407,7 @@ export default function App() {
             <Stack.Screen name="Directory" component={MembersDirectory} />
             <Stack.Screen name="Onboarding" component={Onboarding} />
             <Stack.Screen name="OnboardingTwo" component={OnboardingTwo} />
+            <Stack.Screen name="IntroVideo" component={IntroVideoScreen} />
             <Stack.Screen name="Tabs" component={AuthTabs} />
             <Stack.Screen name="Signup" component={Signup} />
             <Stack.Screen name="Home" component={Home} />

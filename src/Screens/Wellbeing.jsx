@@ -130,12 +130,22 @@ export default function WellbeingScreen({ navigation }) {
             <Ionicons name="arrow-back" size={24} />
           </TouchableOpacity>
           <Text style={tw`text-xl font-bold text-gray-800 mb-1 ml-2`}>
-            Wellbeing
+            Your Wellbeing Matters
           </Text>
         </View>
-        <Text style={tw`text-sm text-gray-600 mb-4`}>
-          Supporting Your Health & Wellness Journey
-        </Text>
+        <View
+          style={tw`border border-gray-300 rounded-2xl px-5 py-4 mb-4 bg-white shadow-sm`}>
+          <Text style={tw`text-sm text-gray-600 mb-2`}>
+            GBS is here to support your health journey. In this area you can
+            access trusted resources, expert partners and a community that
+            cares. Your wellbeing matters to all of us.
+          </Text>
+
+          <Text style={tw`text-sm text-gray-600 mb-2`}>
+            If you need support or just want to have a confidential chat, call
+            the GBS Team on <Text style={tw`font-bold`}>1300 071 215</Text>.
+          </Text>
+        </View>
       </View>
 
       {/* State Filter Tabs */}
