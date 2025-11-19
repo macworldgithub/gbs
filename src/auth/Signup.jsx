@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -29,30 +29,71 @@ export default function Signup() {
   const [shortBio, setShortBio] = useState("");
   const [interestedIn, setInterestedIn] = useState("");
   const [state, setState] = useState("VIC");
+  const [selectedPackageId, setSelectedPackageId] = useState("");
+  const [packages, setPackages] = useState([]);
+
+  const businessRoles = [
+    "business",
+    "business_executive",
+    "chairmans_club",
+    "top_tier_business",
+  ];
+
+  const getRoleNameById = (id) => {
+    const pkg = packages.find((p) => p._id === id);
+    return pkg ? pkg.name : "user";
+  };
+
+  useEffect(() => {
+    const fetchPackages = async () => {
+      try {
+        const response = await fetch(
+          "https://gbs.westsidecarcare.com.au/roles"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch packages");
+        }
+        const data = await response.json();
+        // API returns array of objects with _id, name, label
+        setPackages(Array.isArray(data) ? data : data.data || []);
+      } catch (error) {
+        console.error("Error fetching packages:", error);
+        Alert.alert("Failed to load packages");
+      }
+    };
+    fetchPackages();
+  }, []);
+
+  const roleName = selectedPackageId ? getRoleNameById(selectedPackageId) : "";
+  const isBusinessRole = businessRoles.includes(roleName);
 
   const handleSignup = async () => {
     try {
+      // Required fields including package
       if (
         !name ||
         !email ||
         !password ||
         !phone ||
-        !businessName ||
         !shortBio ||
         !interestedIn ||
-        !state
+        !state ||
+        !selectedPackageId
       ) {
-        Alert.alert("All fields are required!");
+        Alert.alert("All fields are required, including package selection!");
         return;
       }
-
-      // Additional validation for password (e.g., minimum length)
+      // Business name required only for specific roles
+      if (isBusinessRole && !businessName) {
+        Alert.alert("Business name is required for this package!");
+        return;
+      }
+      // Password min length
       if (password.length < 6) {
         Alert.alert("Password must be at least 6 characters long!");
         return;
       }
-
-      // Format phone for Australian numbers (add +61 if starts with 04 and 10 digits)
+      // Format phone for Australian numbers
       let formattedPhone = phone.replace(/\s/g, ""); // Remove spaces
       if (formattedPhone.startsWith("04") && formattedPhone.length === 10) {
         formattedPhone = "+61" + formattedPhone.substring(1);
@@ -62,45 +103,43 @@ export default function Signup() {
       ) {
         formattedPhone = "+61" + formattedPhone;
       }
-      // If already has +, assume it's formatted
+      // Validate phone starts with +
       if (!formattedPhone.startsWith("+")) {
         Alert.alert(
           "Please enter a valid Australian phone number (e.g., 0412345678)"
         );
         return;
       }
-
+      // Parse interests
       const interestsArray = interestedIn
         .split(",")
         .map((item) => item.trim())
         .filter((item) => item.length > 0);
-
       if (interestsArray.length === 0) {
         Alert.alert("Please enter at least one interest!");
         return;
       }
-
+      // Build payload (role name for signup, businessName only if business role)
+      const finalRoleName = getRoleNameById(selectedPackageId);
       const payload = {
         name,
         email,
         password,
-        phone: formattedPhone, // Use formatted phone
-        businessName,
+        phone: formattedPhone,
+        role: finalRoleName, // Use name for signup
         shortBio,
         interestedIn: interestsArray,
         state,
+        ...(isBusinessRole && { businessName }), // Conditional
       };
-
-      console.log("Payload Sent:", payload); // For debugging
-
+      console.log("Payload Sent:", payload); // Debug
       const response = await SignupUser(payload);
-      console.log("API Response:", response);
-      Alert.alert("Your account created successfully"); // Add logging for response
-
-      // ✅ Fixed: API returns user object directly (no nested 'user'), check for _id or success indicator
+      console.log("API Response:", response); // Debug
+      Alert.alert("Your account created successfully");
+      // Save to AsyncStorage if success (_id indicates created user)
       if (response && response._id) {
         await AsyncStorage.setItem("user", JSON.stringify(response));
-        await AsyncStorage.setItem("email", response.email || email); // Use response email (lowercased by backend)
+        await AsyncStorage.setItem("email", response.email || email);
         navigation.navigate("Signin");
       } else {
         Alert.alert("Signup incomplete", "Invalid response from server");
@@ -124,6 +163,8 @@ export default function Signup() {
   console.log("Password:", password);
   console.log("Email:", email);
   console.log("Name:", name);
+  console.log("Selected Package ID:", selectedPackageId);
+  console.log("Packages:", packages);
 
   return (
     <KeyboardAvoidingView
@@ -147,6 +188,33 @@ export default function Signup() {
             Sign In
           </Text>
         </Text>
+        {/* Package Selection Dropdown - At the top */}
+        <View style={tw`border rounded-xl px-4 py-1 mb-4`}>
+          <Text style={tw`text-gray-700 text-sm mb-1 ml-1`}>
+            Select Package *
+          </Text>
+          <Picker
+            selectedValue={selectedPackageId}
+            onValueChange={(itemValue) => {
+              setSelectedPackageId(itemValue);
+              if (itemValue) {
+                AsyncStorage.setItem("selectedPackage", itemValue); // Store ID
+              } else {
+                AsyncStorage.removeItem("selectedPackage");
+              }
+            }}
+            style={tw`text-sm text-gray-700`}
+          >
+            <Picker.Item label="Select a package" value="" />
+            {packages.map((pkg, index) => (
+              <Picker.Item
+                key={index}
+                label={pkg.label || pkg.name} // Use label if available, else name
+                value={pkg._id} // Use _id as value
+              />
+            ))}
+          </Picker>
+        </View>
         {/* Name */}
         <View
           style={tw`flex-row items-center border rounded-xl px-4 py-1 mb-2`}
@@ -209,19 +277,21 @@ export default function Signup() {
             keyboardType="phone-pad"
           />
         </View>
-        {/* Business Name */}
-        <View
-          style={tw`flex-row items-center border rounded-xl px-4 py-1 mb-2`}
-        >
-          <Ionicons name="business-outline" size={20} color="gray" />
-          <TextInput
-            placeholder="Enter your business name"
-            placeholderTextColor="black"
-            style={tw`ml-2 flex-1 text-sm text-gray-700`}
-            value={businessName}
-            onChangeText={setBusinessName}
-          />
-        </View>
+        {/* Business Name - Show only if business role selected */}
+        {isBusinessRole ? (
+          <View
+            style={tw`flex-row items-center border rounded-xl px-4 py-1 mb-2`}
+          >
+            <Ionicons name="business-outline" size={20} color="gray" />
+            <TextInput
+              placeholder="Enter your business name"
+              placeholderTextColor="black"
+              style={tw`ml-2 flex-1 text-sm text-gray-700`}
+              value={businessName}
+              onChangeText={setBusinessName}
+            />
+          </View>
+        ) : null}
         {/* Short Bio */}
         <View style={tw`border rounded-xl px-4 py-1 mb-2`}>
           <TextInput

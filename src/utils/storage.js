@@ -21,6 +21,7 @@ export const getUserData = async () => {
       } catch {}
       return sess;
     }
+    console.log("data in async",userData);
     return null;
   } catch (error) {
     console.error("Error fetching user data:", error);

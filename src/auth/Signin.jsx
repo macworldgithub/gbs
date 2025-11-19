@@ -12,7 +12,6 @@ import {
   Switch,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import * as Device from "expo-device";
 import { FontAwesome, Feather, Ionicons } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
@@ -22,17 +21,15 @@ import { API_BASE_URL } from "../utils/config";
 import Toast from "react-native-toast-message";
 import { storeUserData } from "../utils/storage";
 import {
-  
+ 
   isBiometricAvailable,
   setSession,
   setBiometricsEnabled,
   getBiometricsEnabled,
   clearSession,
 } from "../utils/secureAuth";
-
 const Signin = () => {
   const navigation = useNavigation();
-
   const [identifier, setIdentifier] = useState(""); // Combined email/phone field
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -41,7 +38,6 @@ const Signin = () => {
   const [loading, setLoading] = useState(false);
   const [useBiometrics, setUseBiometrics] = useState(false);
   const [biometricCapable, setBiometricCapable] = useState(false);
-
   const handleToggleBiometrics = async (val) => {
     try {
       setUseBiometrics(val);
@@ -54,7 +50,6 @@ const Signin = () => {
       console.log("biometrics toggle error:", e);
     }
   };
-
   React.useEffect(() => {
     (async () => {
       try {
@@ -69,7 +64,6 @@ const Signin = () => {
       } catch (e) {
         console.log("isBiometricAvailable error:", e);
       }
-
       try {
         const previouslyEnabled = await getBiometricsEnabled();
         setUseBiometrics(!!previouslyEnabled);
@@ -78,23 +72,19 @@ const Signin = () => {
       }
     })();
   }, []);
-
   const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
-
   const isValidPhone = (phone) => {
     const cleanPhone = phone.replace(/\s/g, "");
     const phoneRegex = /^(\+?61|04)\d{8,9}$/;
     return phoneRegex.test(cleanPhone);
   };
-
   const isValidIdentifier = (id) => {
     const trimmed = id.trim();
     return isValidEmail(trimmed) || isValidPhone(trimmed);
   };
-
   const formatPhoneForPayload = (phone) => {
     let cleanPhone = phone.replace(/\s/g, "");
     if (cleanPhone.startsWith("04") && cleanPhone.length === 10) {
@@ -104,7 +94,6 @@ const Signin = () => {
     }
     return cleanPhone.startsWith("+") ? cleanPhone : "+61" + cleanPhone;
   };
-
   const buildPayload = (id, pass) => {
     const trimmedId = id.trim();
     let payload = {};
@@ -127,15 +116,12 @@ const Signin = () => {
     }
     return payload;
   };
-
   const handleSignin = async () => {
     const trimmedIdentifier = identifier.trim();
-
     if (!trimmedIdentifier) {
       Alert.alert("Missing Fields", "Please enter your email or phone number.");
       return;
     }
-
     if (!isValidIdentifier(trimmedIdentifier)) {
       Alert.alert(
         "Invalid Input",
@@ -143,20 +129,16 @@ const Signin = () => {
       );
       return;
     }
-
     if (usePassword && !password) {
       Alert.alert("Missing Password", "Please enter your password.");
       return;
     }
-
     setLoading(true);
-
     try {
       const payload = buildPayload(
         trimmedIdentifier,
         usePassword ? password : undefined
       );
-
       // Enhanced debug log for payload
       console.log(
         "📦 Full Payload for /signin API:",
@@ -166,14 +148,10 @@ const Signin = () => {
         "🌐 API URL being called:",
         `${API_BASE_URL}/user/auth/signin`
       ); // Debug: Full URL
-
       const res = await axios.post(`${API_BASE_URL}/user/auth/signin`, payload);
-
       console.log("✅ Response Status:", res.status);
       console.log("✅ Full Response Data:", JSON.stringify(res.data, null, 2)); // Enhanced: Full JSON
-
       const { message, token, user } = res.data || {};
-
       if (token && user) {
         // Successful login
         console.log(
@@ -185,15 +163,40 @@ const Signin = () => {
           ...user,
         };
         await storeUserData(userData);
-
         if (useBiometrics && biometricCapable && token) {
           await setSession(userData, { requireBiometrics: true });
           await setBiometricsEnabled(true);
         }
-
         // ✅ Debug: check if stored properly
         const stored = await AsyncStorage.getItem("userData");
         console.log("🔐 Stored User Data in AsyncStorage:", stored);
+        // Check for pending package creation after successful login
+        const selectedPackage = await AsyncStorage.getItem("selectedPackage");
+        if (selectedPackage) {
+          try {
+            const now = new Date();
+            const startDate = now.toISOString();
+            const packagePayload = {
+              role: selectedPackage,
+              startDate,
+              months: 3,
+              trial: false
+            };
+            const packageRes = await axios.post(`${API_BASE_URL}/user-package`, packagePayload, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+                Accept: "application/json"
+              }
+            });
+            console.log("Package created successfully:", packageRes.data);
+            await AsyncStorage.removeItem("selectedPackage");
+          } catch (packageError) {
+            console.error("Failed to create package:", packageError);
+            const packageErrorMsg = packageError?.response?.data?.message || "Package activation failed";
+            Alert.alert("Package Activation Failed", `${packageErrorMsg}. You have been logged in successfully. Please contact support if needed.`);
+          }
+        }
         Alert.alert("Success", "Login successful!");
         navigation.replace("Tabs"); // or your main screen
       } else if (
@@ -228,13 +231,11 @@ const Signin = () => {
       );
       console.log("❌ Error Status:", err.response?.status); // Debug: Status
       console.log("❌ Error Message:", err.message || "No message"); // Debug: Message
-
       const status = err.response?.status;
       const errorMsg =
         err.response?.data?.message ||
         err.response?.data?.error || // Added: Handle possible 'error' field
         "Something went wrong. Please try again.";
-
       if (status === 401) {
         console.log(
           "🔐 401 Detected - Checking if it's invalid creds or no password case"
@@ -266,17 +267,14 @@ const Signin = () => {
       setLoading(false);
     }
   };
-
   // Guest sign-in - stores a lightweight guest record valid for 7 days
   const handleGuestSignIn = async () => {
     try {
       const now = Date.now();
       const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-
       // Check for existing guest expiry
       const existingExpiryStr = await AsyncStorage.getItem("guestExpiry");
       let expiry = now + sevenDaysMs; // Default new expiry
-
       if (existingExpiryStr) {
         const existingExpiry = parseInt(existingExpiryStr, 10);
         if (now < existingExpiry) {
@@ -291,7 +289,6 @@ const Signin = () => {
         // No existing, create new
         await AsyncStorage.setItem("guestExpiry", expiry.toString());
       }
-
       const guestData = {
         token: "guest-token", // non-sensitive placeholder
         isGuest: true,
@@ -299,7 +296,6 @@ const Signin = () => {
         name: "Guest User",
         email: null,
       };
-
       // store using existing helper (and also keep AsyncStorage for safety)
       try {
         await storeUserData(guestData);
@@ -308,21 +304,18 @@ const Signin = () => {
         console.log("storeUserData helper error:", e);
       }
       await AsyncStorage.setItem("userData", JSON.stringify(guestData));
-
       Alert.alert(
         "Guest Access",
         `You are signed in as a guest. Guest access is valid until ${new Date(
           expiry
         ).toLocaleString()}.`
       );
-
       navigation.replace("Tabs");
     } catch (e) {
       console.error("Guest sign-in error:", e);
       Alert.alert("Error", "Could not sign in as guest. Please try again.");
     }
   };
-
   return (
     <KeyboardAvoidingView
       style={tw`flex-1 bg-white`}
@@ -337,7 +330,6 @@ const Signin = () => {
         <Text style={tw`text-2xl font-bold text-gray-900 mb-4`}>
           your account
         </Text>
-
         <Text style={tw`text-sm text-gray-600 mb-6`}>
           Don’t have an account?{" "}
           <Text
@@ -347,7 +339,6 @@ const Signin = () => {
             Sign Up
           </Text>
         </Text>
-
         {/* Identifier Input (Email or Phone) */}
         <View
           style={tw`flex-row items-center border border-red-300 rounded-lg px-3 py-1 mb-4 bg-gray-100`}
@@ -363,7 +354,6 @@ const Signin = () => {
             autoCapitalize="none"
           />
         </View>
-
         {/* Password Input */}
         <View
           style={tw`flex-row items-center border border-red-300 rounded-lg px-3 py-1 mb-4 bg-gray-100`}
@@ -394,7 +384,6 @@ const Signin = () => {
             />
           </TouchableOpacity>
         </View>
-
         {/* Use Password Checkbox */}
         <View style={tw`flex-row items-center mb-2`}>
           <TouchableOpacity
@@ -411,7 +400,6 @@ const Signin = () => {
           </TouchableOpacity>
           <Text style={tw`text-sm text-gray-700`}>I have a password</Text>
         </View>
-
         {/* Remember Me & Forgot Password */}
         <View style={tw`flex-row justify-between items-center mb-6`}>
           <TouchableOpacity
@@ -427,14 +415,12 @@ const Signin = () => {
             </View>
             <Text style={tw`text-sm text-gray-700`}>Remember me</Text>
           </TouchableOpacity>
-
           <TouchableOpacity onPress={() => navigation.navigate("ForgotPass")}>
             <Text style={tw`text-sm text-red-500 font-semibold`}>
               Forgot Password
             </Text>
           </TouchableOpacity>
         </View>
-
         {biometricCapable ? (
           <View style={tw`flex-row justify-between items-center mb-6`}>
             <Text style={tw`text-sm text-gray-700`}>
@@ -446,7 +432,6 @@ const Signin = () => {
             />
           </View>
         ) : null}
-
         {/* Sign In Button */}
         <TouchableOpacity
           style={tw`bg-red-500 py-3 rounded-xl mb-6`}
@@ -457,14 +442,12 @@ const Signin = () => {
             {loading ? "Signing in..." : "Sign in"}
           </Text>
         </TouchableOpacity>
-
         {/* Divider */}
         <View style={tw`flex-row items-center mb-6`}>
           <View style={tw`flex-1 h-px bg-gray-300`} />
           <Text style={tw`px-2 text-sm text-gray-400`}>or sign in with</Text>
           <View style={tw`flex-1 h-px bg-gray-300`} />
         </View>
-
         {/* Social Buttons */}
         <View style={tw`mb-4`}>
           <TouchableOpacity
@@ -478,7 +461,6 @@ const Signin = () => {
             />
             <Text style={tw`text-sm`}>Sign in with Google</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={tw`flex-row items-center justify-center border rounded-xl py-3 bg-white mb-3`}
           >
@@ -490,7 +472,6 @@ const Signin = () => {
             />
             <Text style={tw`text-sm`}>Sign in with Facebook</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={tw`flex-row items-center justify-center border rounded-xl py-3 bg-white`}
           >
@@ -503,7 +484,6 @@ const Signin = () => {
             <Text style={tw`text-sm`}>Sign in with Apple</Text>
           </TouchableOpacity>
         </View>
-
         {/* Guest Sign-in: visually matches the primary sign-in button */}
         {/* <View style={tw`mt-2 mb-8`}>
           <TouchableOpacity
@@ -525,5 +505,4 @@ const Signin = () => {
     </KeyboardAvoidingView>
   );
 };
-
 export default Signin;
