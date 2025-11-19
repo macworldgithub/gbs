@@ -246,19 +246,25 @@ export default function OnboardingScreen({ navigation }) {
         <View style={styles.topTaglineContainer}>
           <Text style={styles.topTagline}>Business – Social – Wellbeing</Text>
         </View>
+        <Image
+          source={require("../../assets/blokes.png")}
+          // style={styles.logo}
+          style={[styles.logo, { marginTop: 24 }]}
+          resizeMode="contain"
+        />
 
         {/* ---- Middle content ---- */}
         <View style={styles.middleContent}>
-          <Text style={styles.subheading}>NATIONAL PARTNERS</Text>
+          {/* <Text style={styles.subheading}>NATIONAL PARTNERS</Text> */}
 
-          <Image
+          {/* <Image
             source={require("../../assets/direct-couriers.png")}
             style={styles.logo}
             resizeMode="contain"
-          />
+          /> */}
 
           <Text style={styles.description}>
-            Experience the Ultimate in Events and Connection
+            Bussiness Connections-Social Experiences-Wellbeing {"\n"}Support
           </Text>
         </View>
 
@@ -267,7 +273,8 @@ export default function OnboardingScreen({ navigation }) {
           {/* ✅ Member Login now opens the video screen */}
           <TouchableOpacity
             style={styles.memberButton}
-            onPress={() => navigation.replace("VideoScreen")}
+            // onPress={() => navigation.replace("VideoScreen")}
+            onPress={() => navigation.replace("Signin")}
           >
             <FontAwesome
               name="user"
@@ -285,15 +292,26 @@ export default function OnboardingScreen({ navigation }) {
             <Text style={styles.joinText}>Join Now</Text>
           </TouchableOpacity>
         </View>
+        {/* <Text style={styles.subheading} >NATIONAL PARTNERS</Text> */}
+        <Text style={[styles.subheading, { marginBottom: -2 }]}>
+          NATIONAL PARTNERS
+        </Text>
+
+        <Image
+          source={require("../../assets/direct-couriers.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
         {/* ---- Sign In Link ---- */}
         <TouchableOpacity
           style={styles.signInContainer}
-          onPress={() => navigation.navigate("Signin")}
+          // onPress={() => navigation.navigate("Signin")}
+          onPress={() => navigation.navigate("VideoScreen")}
         >
           <Text style={styles.signInText}>
             Already have an account?{" "}
-            <Text style={styles.signInBold}>Sign In</Text>
+            <Text style={styles.signInBold}>Guest login</Text>
           </Text>
         </TouchableOpacity>
       </View>
