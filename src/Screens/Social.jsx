@@ -182,6 +182,10 @@
 
 // export default Social;
 
+
+
+
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -296,6 +300,10 @@ const Social = () => {
       selectedState === "All" || getStateFromEvent(event) === selectedState
   );
 
+  const handleEventPress = (eventId) => {
+    navigation.navigate('EventDetail', { eventId });
+  };
+
   return (
     <ScrollView style={tw`flex-1 bg-white py-4`}>
       {/* Header */}
@@ -376,54 +384,58 @@ const Social = () => {
             </Text>
           ) : (
             filteredEvents.map((event) => (
-              <View
+              <TouchableOpacity
                 key={event.eventId}
-                style={tw`mb-4 p-4 border rounded-lg bg-white`}
+                onPress={() => handleEventPress(event.eventId)}
               >
-                {event.listOfImages && event.listOfImages.length > 0 ? (
-                  <Image
-                    source={{ uri: event.listOfImages[0].imageFileName }}
-                    style={tw`w-full h-40 rounded mb-2`}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <Image
-                    source={fallbackImage}
-                    style={tw`w-full h-40 rounded mb-2`}
-                  />
-                )}
-                <Text style={tw`text-lg font-bold mb-2`}>{event.name}</Text>
-                <Text style={tw`text-gray-600 mb-2`} numberOfLines={2}>
-                  {event.description}
-                </Text>
-                {event.venue && (
-                  <Text style={tw`text-sm text-gray-500 mb-1`}>
-                    Venue: {event.venue}
+                <View
+                  style={tw`mb-4 p-4 border rounded-lg bg-white`}
+                >
+                  {event.listOfImages && event.listOfImages.length > 0 ? (
+                    <Image
+                      source={{ uri: event.listOfImages[0].imageFileName }}
+                      style={tw`w-full h-40 rounded mb-2`}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Image
+                      source={fallbackImage}
+                      style={tw`w-full h-40 rounded mb-2`}
+                    />
+                  )}
+                  <Text style={tw`text-lg font-bold mb-2`}>{event.name}</Text>
+                  <Text style={tw`text-gray-600 mb-2`} numberOfLines={2}>
+                    {event.description}
                   </Text>
-                )}
-                {event.sessionList && event.sessionList.length > 0 && (
-                  <Text style={tw`text-sm text-gray-500 mb-2`}>
-                    Date:{" "}
-                    {new Date(
-                      event.sessionList[0].eventStartDate
-                    ).toLocaleDateString()}
-                  </Text>
-                )}
-                {event.bookingUrl && (
-                  <TouchableOpacity
-                    onPress={() =>
-                      Linking.openURL(event.bookingUrl).catch(() =>
-                        Alert.alert("Error", "Unable to open booking link")
-                      )
-                    }
-                    style={tw`bg-red-500 p-3 rounded-md`}
-                  >
-                    <Text style={tw`text-white text-center font-semibold`}>
-                      Buy ticket
+                  {event.venue && (
+                    <Text style={tw`text-sm text-gray-500 mb-1`}>
+                      Venue: {event.venue}
                     </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
+                  )}
+                  {event.sessionList && event.sessionList.length > 0 && (
+                    <Text style={tw`text-sm text-gray-500 mb-2`}>
+                      Date:{" "}
+                      {new Date(
+                        event.sessionList[0].eventStartDate
+                      ).toLocaleDateString()}
+                    </Text>
+                  )}
+                  {event.bookingUrl && (
+                    <TouchableOpacity
+                      onPress={() =>
+                        Linking.openURL(event.bookingUrl).catch(() =>
+                          Alert.alert("Error", "Unable to open booking link")
+                        )
+                      }
+                      style={tw`bg-red-500 p-3 rounded-md`}
+                    >
+                      <Text style={tw`text-white text-center font-semibold`}>
+                        Buy ticket
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </TouchableOpacity>
             ))
           )}
         </View>
