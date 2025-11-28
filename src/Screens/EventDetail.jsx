@@ -345,6 +345,14 @@ const EventDetail = () => {
       });
   }, [eventId]);
 
+  const isBookingOpen = (event) => {
+    if (!event.sessionList || event.sessionList.length === 0) return false;
+    const today = new Date("2025-11-28T00:00:00Z");
+    const bookingStartDate = new Date(event.sessionList[0].bookingStartDate);
+    const bookingEndDate = new Date(event.sessionList[0].bookingEndDate);
+    return bookingStartDate <= today && today < bookingEndDate;
+  };
+
   if (loading) {
     return <ActivityIndicator size="large" color="red" style={tw`mt-20`} />;
   }
@@ -359,6 +367,7 @@ const EventDetail = () => {
   const heroImage = event.listOfImages?.find(
     (img) => img.purpose === "Hero"
   )?.imageFileName;
+  const bookingAvailable = isBookingOpen(event);
 
   return (
     <ScrollView style={tw`flex-1 bg-white p-4`}>
@@ -407,9 +416,21 @@ const EventDetail = () => {
               ? new Date(session.eventStartDate).toLocaleString()
               : "N/A"}
           </Text>
-          <Text style={tw`text-sm text-gray-700`}>
+          <Text style={tw`text-sm text-gray-700 mb-1`}>
             <Text style={tw`font-semibold text-red-500`}>End:</Text>{" "}
             {session ? new Date(session.eventEndDate).toLocaleString() : "N/A"}
+          </Text>
+          <Text style={tw`text-sm text-gray-700 mb-1`}>
+            <Text style={tw`font-semibold text-red-500`}>Booking Start:</Text>{" "}
+            {session
+              ? new Date(session.bookingStartDate).toLocaleString()
+              : "N/A"}
+          </Text>
+          <Text style={tw`text-sm text-gray-700`}>
+            <Text style={tw`font-semibold text-red-500`}>Booking End:</Text>{" "}
+            {session
+              ? new Date(session.bookingEndDate).toLocaleString()
+              : "N/A"}
           </Text>
         </View>
 
@@ -450,40 +471,14 @@ const EventDetail = () => {
         </Text> */}
       </View>
 
-      
-      {event.bookingUrl && (
+      {event.bookingUrl && bookingAvailable && (
         <TouchableOpacity
           onPress={() => Linking.openURL(event.bookingUrl)}
           style={tw`bg-red-600 py-4 rounded-xl items-center mb-10`}
         >
-          <Text style={tw`text-white text-lg font-bold`}>BOOK NOW</Text>
+          <Text style={tw`text-white text-lg font-bold`}>Buy Ticket</Text>
         </TouchableOpacity>
       )}
-
-      {/* Attendees Section - Tumhara original */}
-      <View
-        style={tw`bg-white border border-red-100 rounded-2xl shadow-md p-5`}
-      >
-        <Text style={tw`font-bold text-lg text-red-600 mb-3`}>Attendees</Text>
-        {event.attendees?.length > 0 ? (
-          event.attendees.map((att) => (
-            <View key={att._id} style={tw`flex-row items-center mb-2`}>
-              <View
-                style={tw`w-8 h-8 bg-red-100 rounded-full items-center justify-center mr-2`}
-              >
-                <Text style={tw`text-red-600 font-bold`}>
-                  {att.name?.charAt(0).toUpperCase() || "?"}
-                </Text>
-              </View>
-              <Text style={tw`text-sm text-gray-700`}>
-                {att.name || "Unknown"}
-              </Text>
-            </View>
-          ))
-        ) : (
-          <Text style={tw`text-gray-500 italic`}>No attendees yet</Text>
-        )}
-      </View>
     </ScrollView>
   );
 };
