@@ -181,11 +181,6 @@
 // };
 
 // export default Social;
-
-
-
-
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -196,12 +191,9 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  TextInput,
   Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { launchImageLibrary } from "react-native-image-picker";
-import { MaterialIcons, Entypo } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
 import { getUserData } from "../utils/storage"; // ✅ import your storage.js
@@ -265,6 +257,12 @@ const Social = () => {
     return "All";
   };
 
+  const isEventIn2025OrLater = (event) => {
+    if (!event.sessionList || event.sessionList.length === 0) return false;
+    const startDate = new Date(event.sessionList[0].eventStartDate);
+    return startDate.getFullYear() >= 2025;
+  };
+
   const fetchEvents = async () => {
     try {
       setLoading(true);
@@ -297,15 +295,46 @@ const Social = () => {
 
   const filteredEvents = events.filter(
     (event) =>
-      selectedState === "All" || getStateFromEvent(event) === selectedState
+      (selectedState === "All" || getStateFromEvent(event) === selectedState) &&
+      isEventIn2025OrLater(event)
   );
 
   const handleEventPress = (eventId) => {
-    navigation.navigate('EventDetail', { eventId });
+    navigation.navigate("EventDetail", { eventId });
+  };
+
+  const formatDateTime = (dateString) => {
+    const date = new Date(dateString);
+    return (
+      date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }) +
+      " at " +
+      date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+    );
+  };
+
+  const getLocation = (event) => {
+    const state = getStateFromEvent(event);
+    return event.venue
+      ? `${event.venue}, Australia`
+      : `${state || "Australia"}`;
+  };
+
+  const getDetails = (description) => {
+    return description
+      ? description.substring(0, 20) + "..."
+      : "No details available";
   };
 
   return (
-    <ScrollView style={tw`flex-1 bg-white py-4`}>
+    <ScrollView style={tw`flex-1 bg-gra-200 py-4`}>
       {/* Header */}
       <View style={tw`flex-row items-center justify-between mt-12 mb-4`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -317,29 +346,6 @@ const Social = () => {
         </View>
         <View style={{ width: 24 }} />
       </View>
-
-      {/* Tabs */}
-      {/* <View style={tw`flex-row mb-4`}>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            style={tw.style(
-              `px-4 py-2 mr-2 rounded-md`,
-              activeTab === tab ? "bg-red-500" : "bg-gray-100"
-            )}
-          >
-            <Text
-              style={tw.style(
-                `text-sm`,
-                activeTab === tab ? "text-white" : "text-gray-700"
-              )}
-            >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View> */}
 
       {/* State Filter */}
       <ScrollView
@@ -383,60 +389,77 @@ const Social = () => {
               No events found for the selected state.
             </Text>
           ) : (
-            filteredEvents.map((event) => (
-              <TouchableOpacity
-                key={event.eventId}
-                onPress={() => handleEventPress(event.eventId)}
-              >
-                <View
-                  style={tw`mb-4 p-4 border rounded-lg bg-white`}
+            filteredEvents.map((event) => {
+              const startDate =
+                event.sessionList && event.sessionList.length > 0
+                  ? event.sessionList[0].eventStartDate
+                  : new Date().toISOString();
+              const imageUri =
+                event.listOfImages && event.listOfImages.length > 0
+                  ? { uri: event.listOfImages[0].imageFileName }
+                  : fallbackImage;
+              const seats =
+                event.sessionList && event.sessionList.length > 0
+                  ? event.sessionList[0].sessionAvailability
+                  : "N/A";
+              return (
+                <TouchableOpacity
+                  key={event.eventId}
+                  onPress={() => handleEventPress(event.eventId)}
                 >
-                  {event.listOfImages && event.listOfImages.length > 0 ? (
-                    <Image
-                      source={{ uri: event.listOfImages[0].imageFileName }}
-                      style={tw`w-full h-40 rounded mb-2`}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <Image
-                      source={fallbackImage}
-                      style={tw`w-full h-40 rounded mb-2`}
-                    />
-                  )}
-                  <Text style={tw`text-lg font-bold mb-2`}>{event.name}</Text>
-                  <Text style={tw`text-gray-600 mb-2`} numberOfLines={2}>
-                    {event.description}
-                  </Text>
-                  {event.venue && (
-                    <Text style={tw`text-sm text-gray-500 mb-1`}>
-                      Venue: {event.venue}
-                    </Text>
-                  )}
-                  {event.sessionList && event.sessionList.length > 0 && (
-                    <Text style={tw`text-sm text-gray-500 mb-2`}>
-                      Date:{" "}
-                      {new Date(
-                        event.sessionList[0].eventStartDate
-                      ).toLocaleDateString()}
-                    </Text>
-                  )}
-                  {event.bookingUrl && (
-                    <TouchableOpacity
-                      onPress={() =>
-                        Linking.openURL(event.bookingUrl).catch(() =>
-                          Alert.alert("Error", "Unable to open booking link")
-                        )
-                      }
-                      style={tw`bg-red-500 p-3 rounded-md`}
-                    >
-                      <Text style={tw`text-white text-center font-semibold`}>
-                        Buy ticket
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))
+                  <View
+                    style={tw`mx-2 mb-4 bg-white rounded-lg overflow-hidden shadow-md border border-gray-200 `}
+                  >
+                    <View style={tw`flex-row p-4`}>
+                      <View style={tw`flex-1 pr-4`}>
+                        <Text style={tw`text-lg font-bold mb-1`}>
+                          {event.name}
+                        </Text>
+                        <Text style={tw`text-sm text-gray-600 mb-2`}>
+                          {getLocation(event)}
+                        </Text>
+                        <Text style={tw`text-sm text-gray-600 mb-1`}>
+                          Date-Time: {formatDateTime(startDate)}
+                        </Text>
+                        <Text style={tw`text-sm text-gray-600 mb-1`}>
+                          Details: {getDetails(event.description)}
+                        </Text>
+                        <Text style={tw`text-sm text-gray-600`}>
+                          Seats: {seats}
+                        </Text>
+                      </View>
+                      <View style={tw`w-32 h-32`}>
+                        <Image
+                          source={imageUri}
+                          style={tw`w-full h-full rounded`}
+                          resizeMode="cover"
+                        />
+
+                        {event.bookingUrl && (
+                          <TouchableOpacity
+                            onPress={() =>
+                              Linking.openURL(event.bookingUrl).catch(() =>
+                                Alert.alert(
+                                  "Error",
+                                  "Unable to open booking link"
+                                )
+                              )
+                            }
+                            style={tw`bg-red-500 p-2 mb-2 mt-4 rounded-xl w-32`}
+                          >
+                            <Text
+                              style={tw`text-white text-center font-semibold`}
+                            >
+                              Buy Ticket
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
           )}
         </View>
       )}
