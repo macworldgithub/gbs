@@ -181,6 +181,7 @@
 // };
 
 // export default Social;
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -257,10 +258,20 @@ const Social = () => {
     return "All";
   };
 
-  const isEventIn2025OrLater = (event) => {
+  const isEventOngoing = (event) => {
     if (!event.sessionList || event.sessionList.length === 0) return false;
+    const today = new Date("2025-11-28T00:00:00Z");
     const startDate = new Date(event.sessionList[0].eventStartDate);
-    return startDate.getFullYear() >= 2025;
+    const endDate = new Date(event.sessionList[0].eventEndDate);
+    return startDate <= today && endDate > today;
+  };
+
+  const isBookingOpen = (event) => {
+    if (!event.sessionList || event.sessionList.length === 0) return false;
+    const today = new Date("2025-11-28T00:00:00Z");
+    const bookingStartDate = new Date(event.sessionList[0].bookingStartDate);
+    const bookingEndDate = new Date(event.sessionList[0].bookingEndDate);
+    return bookingStartDate <= today && today < bookingEndDate;
   };
 
   const fetchEvents = async () => {
@@ -296,7 +307,7 @@ const Social = () => {
   const filteredEvents = events.filter(
     (event) =>
       (selectedState === "All" || getStateFromEvent(event) === selectedState) &&
-      isEventIn2025OrLater(event)
+      isEventOngoing(event)
   );
 
   const handleEventPress = (eventId) => {
@@ -334,7 +345,7 @@ const Social = () => {
   };
 
   return (
-    <ScrollView style={tw`flex-1 bg-gra-200 py-4`}>
+    <ScrollView style={tw`flex-1 bg-gray-200 py-4`}>
       {/* Header */}
       <View style={tw`flex-row items-center justify-between mt-12 mb-4`}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -394,6 +405,10 @@ const Social = () => {
                 event.sessionList && event.sessionList.length > 0
                   ? event.sessionList[0].eventStartDate
                   : new Date().toISOString();
+              const endDate =
+                event.sessionList && event.sessionList.length > 0
+                  ? event.sessionList[0].eventEndDate
+                  : new Date().toISOString();
               const imageUri =
                 event.listOfImages && event.listOfImages.length > 0
                   ? { uri: event.listOfImages[0].imageFileName }
@@ -402,6 +417,7 @@ const Social = () => {
                 event.sessionList && event.sessionList.length > 0
                   ? event.sessionList[0].sessionAvailability
                   : "N/A";
+              const isBookingAvailable = isBookingOpen(event);
               return (
                 <TouchableOpacity
                   key={event.eventId}
@@ -418,13 +434,22 @@ const Social = () => {
                         <Text style={tw`text-sm text-gray-600 mb-2`}>
                           {getLocation(event)}
                         </Text>
-                        <Text style={tw`text-sm text-gray-600 mb-1`}>
+                        <Text
+                          style={tw`text-sm text-gray-600 mb-1 font-semibold`}
+                        >
                           Date-Time: {formatDateTime(startDate)}
                         </Text>
-                        <Text style={tw`text-sm text-gray-600 mb-1`}>
+                        <Text
+                          style={tw`text-sm text-gray-600 mb-1 font-semibold`}
+                        >
+                          Event-End-Date: {formatDateTime(endDate)}
+                        </Text>
+                        <Text
+                          style={tw`text-sm text-gray-600 mb-1 font-semibold`}
+                        >
                           Details: {getDetails(event.description)}
                         </Text>
-                        <Text style={tw`text-sm text-gray-600`}>
+                        <Text style={tw`text-sm text-gray-600 font-semibold`}>
                           Seats: {seats}
                         </Text>
                       </View>
@@ -435,7 +460,7 @@ const Social = () => {
                           resizeMode="cover"
                         />
 
-                        {event.bookingUrl && (
+                        {event.bookingUrl && isBookingAvailable && (
                           <TouchableOpacity
                             onPress={() =>
                               Linking.openURL(event.bookingUrl).catch(() =>
