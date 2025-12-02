@@ -58,7 +58,10 @@ export default function StripeCheckout({ route, navigation }) {
         Alert.alert("Success", "Payment completed and subscription activated!");
         navigation.replace("Tabs");
       } catch (err) {
-        console.log("Subscription activation error:", err.response?.data || err);
+        console.log(
+          "Subscription activation error:",
+          err.response?.data || err
+        );
         Alert.alert(
           "Activation Error",
           "Payment succeeded, but subscription activation failed. Please contact support."
@@ -66,10 +69,13 @@ export default function StripeCheckout({ route, navigation }) {
       }
     }
 
-    // Stripe cancel URL
     if (url.includes("/payment/cancel")) {
       Alert.alert("Payment Cancelled", "You cancelled the payment.");
-      navigation.goBack();
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.replace("Tabs");
+      }
     }
   };
 

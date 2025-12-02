@@ -383,18 +383,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const { width } = Dimensions.get("window");
 
 // Dynamic menu: Chat Groups will be loaded from API
-const staticItems = [
-  { title: "My Business" },
-  { title: "Saved offers" },
-  { title: "View and Update Profile " },
-  // { title: "Events" },
-  { title: "Upgrade Memberships" },
-  { title: "Featured Events" },
-  { title: "About Us" },
-  { title: "Contact Us" },
-  { title: "Resign Membership" },
-  { title: "Logout" },
-];
 
 export default function Drawer({ isOpen, onClose }) {
   const slideAnim = useState(new Animated.Value(-width))[0];
@@ -402,8 +390,29 @@ export default function Drawer({ isOpen, onClose }) {
   const navigation = useNavigation();
   const [roleLabel, setRoleLabel] = useState(null);
   const [userProfile, setUserProfile] = useState({ name: "", avatarUrl: null });
+  const [hasPackage, setHasPackage] = useState(false);
   console.log(userProfile, "drawer");
   const [groups, setGroups] = useState([]);
+
+  const staticItems = [
+    { title: "My Business" },
+    { title: "Saved offers" },
+    { title: "View and Update Profile " },
+    // { title: "Events" },
+    { title: "Upgrade Memberships" },
+    { title: "Featured Events" },
+    { title: "About Us" },
+    { title: "Contact Us" },
+    { title: "Resign Membership" },
+    { title: "Logout" },
+  ];
+  const payNowItems = hasPackage
+    ? staticItems
+    : [
+        ...staticItems.slice(0, staticItems.length - 1),
+        { title: "Pay Now" },
+        { title: "Logout" },
+      ];
 
   const toggleExpand = (title) => {
     setExpandedItems((prev) => ({
@@ -417,15 +426,18 @@ export default function Drawer({ isOpen, onClose }) {
     try {
       // Always fetch from userData in AsyncStorage via getUserData (as set in storage.js)
       const userData = await getUserData();
+      console.log("1111", userData);
       if (userData) {
         // Set role label from activatedPackage.role.label
         let roleLabelFromStorage = userData?.activatedPackage?.role?.label;
-
+        const hasActivated = !!userData?.activatedPackage;
+        setHasPackage(hasActivated);
         // If no role from user data (first time after signup), fallback to selectedPackage from signup
         if (!roleLabelFromStorage) {
           try {
-            const selectedPackageId =
-              await AsyncStorage.getItem("selectedPackage");
+            const selectedPackageId = await AsyncStorage.getItem(
+              "selectedPackage"
+            );
             if (selectedPackageId) {
               // Fetch roles to get label for selected package ID
               const response = await fetch(
@@ -584,6 +596,22 @@ export default function Drawer({ isOpen, onClose }) {
       Alert.alert("Error", "Something went wrong. Please try again.");
     }
   };
+  const handlePayNow = async () => {
+    const stored = await AsyncStorage.getItem("userData");
+    console.log("🔐 Stored User Data in AsyncStorage:", stored);
+    const storedStr = JSON.parse(stored);
+    const now = new Date();
+
+    console.log("hello: ", storedStr.activatedPackage.role._id);
+    if (storedStr.activatedPackage.role._id) {
+      navigation.replace("StripeCheckout", {
+        roleId: storedStr.activatedPackage.role._id,
+        startDate: now.toISOString(),
+        months: 12,
+        trial: false,
+      });
+    }
+  };
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem("userData");
@@ -629,6 +657,8 @@ export default function Drawer({ isOpen, onClose }) {
         navigation.navigate("ContactUs");
       } else if (item.title === "Resign Membership") {
         deleteUserPackage();
+      } else if (item.title === "Pay Now") {
+        handlePayNow();
       } else if (item.title === "Logout") {
         handleLogout();
       } else if (item.subItems) {
@@ -744,7 +774,7 @@ export default function Drawer({ isOpen, onClose }) {
             style={tw`flex-1 px-3 ml-4`}
             showsVerticalScrollIndicator={false}
           >
-            {[{ title: "Chat Groups" }, ...staticItems].map((menu) =>
+            {[{ title: "Chat Groups" }, ...payNowItems].map((menu) =>
               renderMenuItem(menu)
             )}
           </ScrollView>

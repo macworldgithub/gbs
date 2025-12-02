@@ -167,24 +167,8 @@ const Signin = () => {
           await setSession(userData, { requireBiometrics: true });
           await setBiometricsEnabled(true);
         }
-        // ✅ Debug: check if stored properly
-        const stored = await AsyncStorage.getItem("userData");
-        console.log("🔐 Stored User Data in AsyncStorage:", stored);
-        const storedStr = JSON.parse(stored);
-        const now = new Date();
-        // Check for pending package creation after successful login
-        console.log("hello: ", storedStr.activatedPackage.role._id);
-        if (storedStr.activatedPackage.role._id) {
-          // Navigate to StripeCheckout automatically
-          navigation.replace("StripeCheckout", {
-            roleId: storedStr.activatedPackage.role._id,
-            startDate: now.toISOString(),
-            months: 12,
-            trial: false,
-          });
-        }
         Alert.alert("Success", "Login successful!");
-        // navigation.replace("Tabs");
+        navigation.replace("Tabs");
       } else if (
         message &&
         (message.toLowerCase().includes("sent") ||
