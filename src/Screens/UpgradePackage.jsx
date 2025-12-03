@@ -22,12 +22,16 @@ const UpgradePackage = ({ navigation }) => {
   const [error, setError] = useState(null);
   const [successVisible, setSuccessVisible] = useState(false);
   const [upgradedLabel, setUpgradedLabel] = useState("");
+  const [currentRoleId, setCurrentRoleId] = useState(null);
 
   useEffect(() => {
     const loadRoles = async () => {
       try {
         setLoading(true);
-        const userData = await getUserData();
+        let userData = await getUserData();
+        const currentId = userData?.activatedPackage?.role?._id;
+        setCurrentRoleId(currentId);
+        console.log("Current Role:", currentId);
         const token = userData?.token;
         if (!token) {
           setError("No token found, please login again.");
@@ -36,6 +40,7 @@ const UpgradePackage = ({ navigation }) => {
         const res = await axios.get(`${API_BASE_URL}/roles`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log("2222", res.data?.[0]?._id);
         setRoles(res.data || []);
       } catch (e) {
         console.log(
@@ -169,14 +174,21 @@ const UpgradePackage = ({ navigation }) => {
                 </View>
                 <TouchableOpacity
                   style={[
-                    tw`bg-red-500 px-4 py-2 rounded-lg`,
+                    tw`px-4 py-2 rounded-lg`,
+                    currentRoleId === role._id
+                      ? tw`bg-gray-400`
+                      : tw`bg-red-500`,
                     { alignSelf: "flex-start" },
                   ]}
+                  disabled={submitting || currentRoleId === role._id}
                   onPress={() => upgradeToRole(role)}
-                  disabled={submitting}
                 >
                   <Text style={tw`text-white font-semibold`}>
-                    {submitting ? "Please wait" : "Select"}
+                    {currentRoleId === role._id
+                      ? "Current Plan"
+                      : submitting
+                      ? "Please wait"
+                      : "Select"}
                   </Text>
                 </TouchableOpacity>
               </View>
