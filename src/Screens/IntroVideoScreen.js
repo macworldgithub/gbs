@@ -33,7 +33,7 @@ export default function IntroVideoScreen({ navigation }) {
       <Video
         source={INTRO_VIDEO}
         style={StyleSheet.absoluteFill}
-        resizeMode="cover"
+        resizeMode="contain"
         paused={false}
         repeat={false}
         controls
