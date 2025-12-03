@@ -4,9 +4,10 @@ import { WebView } from "react-native-webview";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/config";
+import { getUserData } from "../utils/storage";
 
 export default function StripeCheckout({ route, navigation }) {
-  const { roleId, months, trial, startDate } = route.params;
+  const { roleId, startDate, months, trial } = route.params;
   const [checkoutUrl, setCheckoutUrl] = useState(null);
 
   useEffect(() => {
@@ -15,13 +16,13 @@ export default function StripeCheckout({ route, navigation }) {
 
   const initCheckout = async () => {
     try {
-      const tokenStr = await AsyncStorage.getItem("userData");
-      const token = tokenStr ? JSON.parse(tokenStr).token : "";
+      const storedUser = await getUserData();
+      const token = storedUser?.token || "";
 
       // Call backend to create Stripe Checkout session
       const res = await axios.post(
         `${API_BASE_URL}/payment/checkout`,
-        { roleId, months, trial, startDate },
+        { roleId, startDate, months, trial },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -33,8 +34,15 @@ export default function StripeCheckout({ route, navigation }) {
 
       setCheckoutUrl(url);
     } catch (err) {
-      console.log("Checkout initialization error:", err.response?.data || err);
-      Alert.alert("Error", "Failed to start payment. Try again later.");
+      console.log(
+        "Checkout initialization error:",
+        err.response?.data || err.message || err
+      );
+      Alert.alert(
+        "Error",
+        err.response?.data?.message ||
+          "Failed to start payment. Try again later."
+      );
     }
   };
 
@@ -45,17 +53,45 @@ export default function StripeCheckout({ route, navigation }) {
     if (url.includes("/payment/success")) {
       try {
         // Activate subscription internally
-        const tokenStr = await AsyncStorage.getItem("userData");
-        const token = tokenStr ? JSON.parse(tokenStr).token : "";
-        const now = new Date();
+        const userData = await getUserData();
+        const token = userData?.token || "";
+        const now = new Date().toISOString();
 
-        await axios.post(
+        const hasExistingPackage = userData?.activatedPackage?.role?._id
+          ? true
+          : false;
+
+        const apiMethod = hasExistingPackage ? "patch" : "post";
+
+        const activate = await axios[apiMethod](
           `${API_BASE_URL}/user-package`,
-          { role: roleId, startDate: now.toISOString(), months, trial },
+          { role:roleId, startDate: now, months, trial },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        Alert.alert("Success", "Payment completed and subscription activated!");
+        const newPkg = activate.data?.activatedPackage ||
+          activate.data?.userPackage || {
+            role: { _id: role },
+            startDate: now,
+            endDate: new Date(
+              new Date(now).setMonth(new Date(now).getMonth() + months)
+            ).toISOString(),
+          };
+
+        const mergedUser = {
+          ...userData,
+          activatedPackage: newPkg,
+        };
+        await AsyncStorage.setItem("userData", JSON.stringify(mergedUser));
+        await AsyncStorage.setItem("currentPackage", JSON.stringify(newPkg));
+
+        Alert.alert(
+          "Success",
+          hasExistingPackage
+            ? "Package upgraded successfully!"
+            : "Subscription activated successfully!"
+        );
+
         navigation.replace("Tabs");
       } catch (err) {
         console.log(

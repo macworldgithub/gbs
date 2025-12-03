@@ -597,20 +597,15 @@ export default function Drawer({ isOpen, onClose }) {
     }
   };
   const handlePayNow = async () => {
-    const stored = await AsyncStorage.getItem("userData");
-    console.log("🔐 Stored User Data in AsyncStorage:", stored);
-    const storedStr = JSON.parse(stored);
     const now = new Date();
-
-    console.log("hello: ", storedStr.activatedPackage.role._id);
-    if (storedStr.activatedPackage.role._id) {
-      navigation.replace("StripeCheckout", {
-        roleId: storedStr.activatedPackage.role._id,
-        startDate: now.toISOString(),
-        months: 12,
-        trial: false,
-      });
-    }
+    const selectedPackageId = await AsyncStorage.getItem("selectedPackage");
+    console.log("Selected Package", selectedPackageId);
+    navigation.replace("StripeCheckout", {
+      roleId: selectedPackageId,
+      startDate: now.toISOString(),
+      months: 12,
+      trial: false,
+    });
   };
   const handleLogout = async () => {
     try {

@@ -56,63 +56,12 @@ const UpgradePackage = ({ navigation }) => {
   }, []);
 
   const upgradeToRole = async (role) => {
-    try {
-      setSubmitting(true);
-      const userData = await getUserData();
-      const token = userData?.token;
-      if (!token) {
-        Alert.alert("Error", "No token found, please login again.");
-        return;
-      }
-
-      const body = {
-        role: role._id,
-        startDate: new Date().toISOString(),
-        months: 12,
-        trial: false,
-      };
-
-      const res = await axios.patch(`${API_BASE_URL}/user-package`, body, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("[UpgradePackage] PATCH response:", res.data);
-
-      // Persist immediately to AsyncStorage
-      const currentUser = await getUserData();
-      const constructedPkg = res?.data?.activatedPackage ||
-        res?.data?.userPackage || {
-          role: { _id: role._id, name: role.name, label: role.label },
-          startDate: body.startDate,
-          endDate: new Date(
-            new Date(body.startDate).setMonth(
-              new Date(body.startDate).getMonth() + 12
-            )
-          ).toISOString(),
-        };
-      const mergedUser = currentUser
-        ? { ...currentUser, activatedPackage: constructedPkg }
-        : { activatedPackage: constructedPkg };
-      await AsyncStorage.setItem("userData", JSON.stringify(mergedUser));
-      await AsyncStorage.setItem(
-        "currentPackage",
-        JSON.stringify(constructedPkg)
-      );
-
-      setUpgradedLabel(role.label || "");
-      setSuccessVisible(true);
-    } catch (e) {
-      console.log(
-        "[UpgradePackage] upgrade error:",
-        e.response?.data || e.message
-      );
-      Alert.alert("Error", "Failed to upgrade package. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
+    navigation.navigate("StripeCheckout", {
+      roleId: role._id,
+      startDate: new Date().toISOString(),
+      months: 12,
+      trial: false,
+    });
   };
 
   return (
