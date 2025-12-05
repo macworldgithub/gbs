@@ -165,7 +165,9 @@ export default function DirectoryDetail({ route, navigation }) {
             <View style={tw`mt-6 bg-gray-100 rounded-xl p-4`}>
               {user?.business?.name ? (
                 <View style={tw`mb-3`}>
-                  <Text style={tw`text-black font-semibold`}>Business</Text>
+                  <Text style={tw`text-black font-semibold`}>
+                    Business Name
+                  </Text>
                   <Text style={tw`text-gray-700`}>{user.business.name}</Text>
                 </View>
               ) : null}

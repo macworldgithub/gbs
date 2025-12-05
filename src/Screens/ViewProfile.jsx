@@ -205,7 +205,6 @@
 //     </View>
 //   );
 // }
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -214,6 +213,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  TextInput,
 } from "react-native";
 import tw from "twrnc";
 import { getUserData } from "../utils/storage";
@@ -230,12 +230,21 @@ export default function ViewProfile({ navigation }) {
   const [anniversary, setAnniversary] = useState(null); // optional if needed
   const [renewalDue, setRenewalDue] = useState(false); // optional if needed
 
+  // ✅ New states for editable fields
+  const [shortBio, setShortBio] = useState("");
+  const [hobbiesInput, setHobbiesInput] = useState(""); // Comma-separated input
+  const [lat, setLat] = useState("");
+  const [lng, setLng] = useState("");
+  const [updating, setUpdating] = useState(false);
+
   const fetchUser = async () => {
     try {
+      console.log("🔍 Fetching user data...");
       setLoading(true);
       setError(null);
 
       const storedUser = await getUserData();
+      console.log("📦 Stored user:", storedUser);
       if (!storedUser || !storedUser._id) {
         setError("No user found in storage");
         setLoading(false);
@@ -246,18 +255,83 @@ export default function ViewProfile({ navigation }) {
 
       const res = await fetch(`${BASE_URL}/${storedUser._id}`);
       const data = await res.json();
+      console.log("📥 Fetched profile data:", data);
 
       if (res.ok) {
         setProfile(data);
         // optionally set anniversary or renewal info
         if (data?.anniversaryDate) setAnniversary(data.anniversaryDate);
+
+        // ✅ Initialize editable fields from profile
+        setShortBio(data?.shortBio || "");
+        setHobbiesInput((data?.hobbies || []).join(", "));
+        setLat(data?.location?.lat?.toString() || "");
+        setLng(data?.location?.lng?.toString() || "");
       } else {
         setError(data?.message || "Failed to load profile");
       }
     } catch (err) {
+      console.error("❌ Fetch error:", err);
       setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateMembership = async () => {
+    try {
+      console.log("🔄 Starting update...");
+      setUpdating(true);
+      setError(null);
+
+      if (!user?._id) {
+        setError("No user ID available");
+        return;
+      }
+
+      // ✅ Prepare hobbies array from comma-separated input
+      const hobbies = hobbiesInput
+        .split(",")
+        .map((h) => h.trim())
+        .filter((h) => h.length > 0);
+
+      // ✅ Prepare location object
+      const location = {};
+      if (lat && !isNaN(lat)) location.lat = parseFloat(lat);
+      if (lng && !isNaN(lng)) location.lng = parseFloat(lng);
+
+      const updateData = {
+        shortBio: shortBio.trim(),
+        hobbies,
+        location,
+      };
+
+      console.log("📤 Update payload:", updateData);
+
+      const res = await fetch(`${BASE_URL}/${user._id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "*/*",
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      const responseData = await res.json();
+      console.log("📥 Update response:", responseData);
+
+      if (res.ok) {
+        // ✅ Refetch profile to update UI
+        await fetchUser();
+        console.log("✅ Update successful!");
+      } else {
+        setError(responseData?.message || "Failed to update");
+      }
+    } catch (err) {
+      console.error("❌ Update error:", err);
+      setError(err.message || "Something went wrong during update");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -406,6 +480,85 @@ export default function ViewProfile({ navigation }) {
               )}
           </View>
         )}
+
+        {/* ✅ New Membership Level Section */}
+        <View style={tw`mt-6 bg-gray-100 rounded-xl p-4`}>
+          <Text style={tw`text-black font-semibold mb-3 text-lg`}>
+            Membership Level
+          </Text>
+
+          {/* ShortBio */}
+          <View style={tw`mb-4`}>
+            <Text style={tw`text-black font-semibold mb-1`}>Short Bio</Text>
+            <TextInput
+              style={tw`bg-white p-3 rounded border border-gray-300`}
+              multiline
+              numberOfLines={3}
+              value={shortBio}
+              onChangeText={setShortBio}
+              placeholder="Enter your short bio..."
+            />
+          </View>
+
+          {/* Hobbies */}
+          <View style={tw`mb-4`}>
+            <Text style={tw`text-black font-semibold mb-1`}>
+              Hobbies (comma-separated)
+            </Text>
+            <TextInput
+              style={tw`bg-white p-3 rounded border border-gray-300`}
+              value={hobbiesInput}
+              onChangeText={setHobbiesInput}
+              placeholder="e.g., Surfing, Guitar, Yoga"
+            />
+          </View>
+
+          {/* Location */}
+          <View style={tw`mb-4`}>
+            <Text style={tw`text-black font-semibold mb-1`}>Location</Text>
+            <View style={tw`flex-row`}>
+              <View style={tw`flex-1 mr-2`}>
+                <Text style={tw`text-gray-600 text-xs mb-1`}>Latitude</Text>
+                <TextInput
+                  style={tw`bg-white p-3 rounded border border-gray-300`}
+                  value={lat}
+                  onChangeText={setLat}
+                  placeholder="e.g., -37.840935"
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={tw`flex-1 ml-2`}>
+                <Text style={tw`text-gray-600 text-xs mb-1`}>Longitude</Text>
+                <TextInput
+                  style={tw`bg-white p-3 rounded border border-gray-300`}
+                  value={lng}
+                  onChangeText={setLng}
+                  placeholder="e.g., 144.946457"
+                  keyboardType="numeric"
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Update Button */}
+          <TouchableOpacity
+            onPress={handleUpdateMembership}
+            disabled={updating}
+            style={tw`bg-red-500 py-3 rounded-xl items-center ${
+              updating ? "opacity-50" : ""
+            }`}
+          >
+            <Text style={tw`text-white font-semibold`}>
+              {updating ? "Updating..." : "Update Membership Level"}
+            </Text>
+          </TouchableOpacity>
+
+          {error && (
+            <Text style={tw`text-red-500 text-center mt-2 text-sm`}>
+              {error}
+            </Text>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
