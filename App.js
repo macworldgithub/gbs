@@ -80,6 +80,8 @@ import {
 } from "./src/utils/secureAuth";
 import ReactNativeBiometrics from "react-native-biometrics";
 import StripeCheckout from "./src/Screens/StripeCheckout";
+import CodeOfConduct from "./src/Screens/CodeOfConduct";
+import GBSMemberValues from "./src/Screens/GBSMemberValues";
 
 const Stack = createStackNavigator();
 export default function App() {
@@ -396,106 +398,96 @@ export default function App() {
 
   return (
     <>
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <Stack.Navigator
-              screenOptions={{ headerShown: false }}
-              initialRouteName={initialRoute}
-            >
-              <Stack.Screen name="BusinessPage" component={BusinessPage} />
-              <Stack.Screen name="BusinessDetail" component={BusinessDetail} />
-              <Stack.Screen name="Wellbeing" component={Wellbeing} />
-              <Stack.Screen name="Directory" component={MembersDirectory} />
-              <Stack.Screen name="Onboarding" component={Onboarding} />
-              <Stack.Screen name="OnboardingTwo" component={OnboardingTwo} />
-              <Stack.Screen name="IntroVideo" component={IntroVideoScreen} />
-              <Stack.Screen name="Tabs" component={AuthTabs} />
-              <Stack.Screen
-                name="StripeCheckout"
-                component={StripeCheckout}
-                options={{ title: "Payment" }}
-              />
-              <Stack.Screen name="Signup" component={Signup} />
-              <Stack.Screen name="Home" component={Home} />
-              <Stack.Screen name="Signin" component={Signin} />
-              <Stack.Screen name="SearchEvent" component={SearchEvent} />
-              <Stack.Screen name="Notification" component={Notification} />
-              <Stack.Screen name="UpcomingEvent" component={UpcomingEvent} />
-              <Stack.Screen name="PopularEvent" component={PopularEvent} />
-              <Stack.Screen name="DetailEvent" component={DetailEvent} />
-              <Stack.Screen name="MemberLocation" component={MemberLocation} />
-              <Stack.Screen name="Profile" component={Profile} />
-              <Stack.Screen name="EditProfile" component={EditProfile} />
-              <Stack.Screen
-                name="AccountSecurity"
-                component={AccountSecurity}
-              />
-              <Stack.Screen name="QRCodeScreen" component={QRCodeScreen} />
-              <Stack.Screen name="Scanner" component={Scanner} />
-              <Stack.Screen
-                name="PaymentSettings"
-                component={PaymentSettings}
-              />
-              <Stack.Screen
-                name="AddPaymentMethod"
-                component={AddPaymentMethod}
-              />
-              <Stack.Screen name="PaymentMethod" component={PaymentMethod} />
-              <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
-              <Stack.Screen name="GeneralSetting" component={GeneralSetting} />
-              <Stack.Screen name="Theme" component={Theme} />
-              <Stack.Screen
-                name="LanguageSetting"
-                component={LanguageSetting}
-              />
-              <Stack.Screen name="AllChat" component={AllChat} />
-              <Stack.Screen name="Conversations" component={Conversations} />
-              <Stack.Screen name="Chat" component={Chat} />
-              <Stack.Screen name="CreateGroup" component={CreateGroup} />
-              <Stack.Screen name="GroupChat" component={GroupChat} />
-              <Stack.Screen
-                name="GroupConversations"
-                component={GroupConversations}
-              />
-              <Stack.Screen name="GroupInfo" component={GroupInfo} />
-              <Stack.Screen name="Gallery" component={Gallery} />
-              <Stack.Screen name="MuteGroup" component={MuteGroup} />
-              <Stack.Screen name="FavoriteEmpty" component={FavoriteEmpty} />
-              <Stack.Screen name="Favorite" component={Favorite} />
-              <Stack.Screen name="ForgotPass" component={ForgotPass} />
-              <Stack.Screen name="InboxOTP" component={InboxOTP} />
-              <Stack.Screen name="CreateNewPass" component={CreateNewPass} />
-              <Stack.Screen name="ResetPass" component={ResetPass} />
-              <Stack.Screen
-                name="OTPVerification"
-                component={OTPVerification}
-              />
-              <Stack.Screen name="AuthTabs" component={AuthTabs} />
-              <Stack.Screen name="OTPSuccess" component={ResetPass} />
-              <Stack.Screen name="OfferDetails" component={OfferDetails} />
-              <Stack.Screen name="conversation" component={Conversations} />
-              <Stack.Screen name="MyBusiness" component={MyBusiness} />
-              <Stack.Screen name="AddOffer" component={AddOfferScreen} />
-              <Stack.Screen name="OfferCard" component={OfferCard} />
-              {/* <Stack.Screen name="CreateEvent" component={CreateEvent} /> */}
-              <Stack.Screen name="EventDetail" component={EventDetail} />
-              <Stack.Screen name="SavedOffers" component={SavedOffers} />
-              <Stack.Screen name="social" component={Social} />
-              <Stack.Screen name="UpgradePackage" component={UpgradePackage} />
-              <Stack.Screen
-                name="NotificationForm"
-                component={NotificationForm}
-              />
-              <Stack.Screen name="CreateEvent" component={CreateEvent} />
-              <Stack.Screen name="Featured" component={FeaturedEventsScreen} />
-              <Stack.Screen name="ContactUs" component={ContactUs} />
-              <Stack.Screen name="AboutUs" component={AboutUs} />
-              <Stack.Screen name="ViewProfile" component={ViewProfile} />
-              <Stack.Screen name="VideoScreen" component={VideoScreen} />
-            </Stack.Navigator>
-          </NavigationContainer>
-        </SafeAreaProvider>
-        <Toast />
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{ headerShown: false }}
+            initialRouteName={initialRoute}
+          >
+            <Stack.Screen name="BusinessPage" component={BusinessPage} />
+            <Stack.Screen name="BusinessDetail" component={BusinessDetail} />
+            <Stack.Screen name="Wellbeing" component={Wellbeing} />
+            <Stack.Screen name="Directory" component={MembersDirectory} />
+            <Stack.Screen name="Onboarding" component={Onboarding} />
+            <Stack.Screen name="OnboardingTwo" component={OnboardingTwo} />
+            <Stack.Screen name="IntroVideo" component={IntroVideoScreen} />
+            <Stack.Screen name="Tabs" component={AuthTabs} />
+            <Stack.Screen
+              name="StripeCheckout"
+              component={StripeCheckout}
+              options={{ title: "Payment" }}
+            />
+            <Stack.Screen name="Signup" component={Signup} />
+            <Stack.Screen name="Home" component={Home} />
+            <Stack.Screen name="Signin" component={Signin} />
+            <Stack.Screen name="SearchEvent" component={SearchEvent} />
+            <Stack.Screen name="Notification" component={Notification} />
+            <Stack.Screen name="UpcomingEvent" component={UpcomingEvent} />
+            <Stack.Screen name="PopularEvent" component={PopularEvent} />
+            <Stack.Screen name="DetailEvent" component={DetailEvent} />
+            <Stack.Screen name="MemberLocation" component={MemberLocation} />
+            <Stack.Screen name="Profile" component={Profile} />
+            <Stack.Screen name="EditProfile" component={EditProfile} />
+            <Stack.Screen name="AccountSecurity" component={AccountSecurity} />
+            <Stack.Screen name="QRCodeScreen" component={QRCodeScreen} />
+            <Stack.Screen name="Scanner" component={Scanner} />
+            <Stack.Screen name="PaymentSettings" component={PaymentSettings} />
+            <Stack.Screen
+              name="AddPaymentMethod"
+              component={AddPaymentMethod}
+            />
+            <Stack.Screen name="PaymentMethod" component={PaymentMethod} />
+            <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
+            <Stack.Screen name="GeneralSetting" component={GeneralSetting} />
+            <Stack.Screen name="Theme" component={Theme} />
+            <Stack.Screen name="LanguageSetting" component={LanguageSetting} />
+            <Stack.Screen name="AllChat" component={AllChat} />
+            <Stack.Screen name="Conversations" component={Conversations} />
+            <Stack.Screen name="Chat" component={Chat} />
+            <Stack.Screen name="CreateGroup" component={CreateGroup} />
+            <Stack.Screen name="GroupChat" component={GroupChat} />
+            <Stack.Screen
+              name="GroupConversations"
+              component={GroupConversations}
+            />
+            <Stack.Screen name="GroupInfo" component={GroupInfo} />
+            <Stack.Screen name="Gallery" component={Gallery} />
+            <Stack.Screen name="MuteGroup" component={MuteGroup} />
+            <Stack.Screen name="FavoriteEmpty" component={FavoriteEmpty} />
+            <Stack.Screen name="Favorite" component={Favorite} />
+            <Stack.Screen name="ForgotPass" component={ForgotPass} />
+            <Stack.Screen name="InboxOTP" component={InboxOTP} />
+            <Stack.Screen name="CreateNewPass" component={CreateNewPass} />
+            <Stack.Screen name="ResetPass" component={ResetPass} />
+            <Stack.Screen name="OTPVerification" component={OTPVerification} />
+            <Stack.Screen name="AuthTabs" component={AuthTabs} />
+            <Stack.Screen name="OTPSuccess" component={ResetPass} />
+            <Stack.Screen name="OfferDetails" component={OfferDetails} />
+            <Stack.Screen name="conversation" component={Conversations} />
+            <Stack.Screen name="MyBusiness" component={MyBusiness} />
+            <Stack.Screen name="AddOffer" component={AddOfferScreen} />
+            <Stack.Screen name="OfferCard" component={OfferCard} />
+            {/* <Stack.Screen name="CreateEvent" component={CreateEvent} /> */}
+            <Stack.Screen name="EventDetail" component={EventDetail} />
+            <Stack.Screen name="SavedOffers" component={SavedOffers} />
+            <Stack.Screen name="social" component={Social} />
+            <Stack.Screen name="UpgradePackage" component={UpgradePackage} />
+            <Stack.Screen
+              name="NotificationForm"
+              component={NotificationForm}
+            />
+            <Stack.Screen name="CreateEvent" component={CreateEvent} />
+            <Stack.Screen name="Featured" component={FeaturedEventsScreen} />
+            <Stack.Screen name="ContactUs" component={ContactUs} />
+            <Stack.Screen name="AboutUs" component={AboutUs} />
+            <Stack.Screen name="ViewProfile" component={ViewProfile} />
+            <Stack.Screen name="VideoScreen" component={VideoScreen} />
+            <Stack.Screen name="CodeOfConduct" component={CodeOfConduct} />
+            <Stack.Screen name="GBSMemberValues" component={GBSMemberValues} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaProvider>
+      <Toast />
     </>
   );
 }
