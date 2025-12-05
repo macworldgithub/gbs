@@ -82,6 +82,7 @@ import ReactNativeBiometrics from "react-native-biometrics";
 import StripeCheckout from "./src/Screens/StripeCheckout";
 import CodeOfConduct from "./src/Screens/CodeOfConduct";
 import GBSMemberValues from "./src/Screens/GBSMemberValues";
+import MembershipDetails from "./src/Screens/MembershipDetails";
 
 const Stack = createStackNavigator();
 export default function App() {
@@ -484,6 +485,10 @@ export default function App() {
             <Stack.Screen name="VideoScreen" component={VideoScreen} />
             <Stack.Screen name="CodeOfConduct" component={CodeOfConduct} />
             <Stack.Screen name="GBSMemberValues" component={GBSMemberValues} />
+            <Stack.Screen
+              name="MembershipDetails"
+              component={MembershipDetails}
+            />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

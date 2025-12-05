@@ -63,6 +63,9 @@ const UpgradePackage = ({ navigation }) => {
       trial: false,
     });
   };
+  const openRoleDetails = (role) => {
+    navigation.navigate("MembershipDetails", { label: role.label });
+  };
 
   return (
     <View style={tw`flex-1 bg-white`}>
@@ -120,6 +123,17 @@ const UpgradePackage = ({ navigation }) => {
                   <Text style={tw`text-xs text-gray-500 mt-1`}>
                     Months: 12 • Trial: false
                   </Text>
+
+                  {!role.label.includes("Chairman's Club") && (
+                    <TouchableOpacity
+                      style={tw`mt-3 px-3 py-2 bg-gray-100 rounded-lg self-start`}
+                      onPress={() => openRoleDetails(role)} // <-- Your function here
+                    >
+                      <Text style={tw`text-gray-700 text-sm font-semibold`}>
+                        View Details
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
                 <TouchableOpacity
                   style={[
