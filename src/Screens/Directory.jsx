@@ -511,50 +511,49 @@ export default function MembersDirectory({ navigation }) {
 
   // make sure this is already imported at the top
 
-const openChat = async (user) => {
-  try {
-    // 🧩 Step 1: Check if user is logged in
-    if (!token) {
-      Alert.alert(
-        "Login Required",
-        "Please login first to start or continue a chat.",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Login",
-            onPress: () => navigation.navigate("Signin"), // navigate to your login screen
-          },
-        ]
-      );
-      return; // stop execution here
+  const openChat = async (user) => {
+    try {
+      // 🧩 Step 1: Check if user is logged in
+      if (!token) {
+        Alert.alert(
+          "Login Required",
+          "Please login first to start or continue a chat.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Login",
+              onPress: () => navigation.navigate("Signin"), // navigate to your login screen
+            },
+          ]
+        );
+        return; // stop execution here
+      }
+
+      // 🧩 Step 2: Start conversation if logged in
+      const res = await fetch(`${API_BASE_URL}/messages/conversation`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ recipientId: user.id }),
+      });
+
+      const conv = await res.json();
+
+      navigation.navigate("Chat", {
+        user: {
+          id: user.id,
+          name: user.name,
+          avatarUrl: user?.avatarUrl,
+        },
+        conversationId: conv?._id,
+      });
+    } catch (err) {
+      console.error("❌ Error starting conversation:", err);
+      Alert.alert("Error", "Unable to start chat. Please try again later.");
     }
-
-    // 🧩 Step 2: Start conversation if logged in
-    const res = await fetch(`${API_BASE_URL}/messages/conversation`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ recipientId: user.id }),
-    });
-
-    const conv = await res.json();
-
-    navigation.navigate("Chat", {
-      user: {
-        id: user.id,
-        name: user.name,
-        avatarUrl: user?.avatarUrl,
-      },
-      conversationId: conv?._id,
-    });
-  } catch (err) {
-    console.error("❌ Error starting conversation:", err);
-    Alert.alert("Error", "Unable to start chat. Please try again later.");
-  }
-};
-
+  };
 
   // ✅ Toggle like/unlike
   const toggleLike = (id) => {
@@ -676,14 +675,6 @@ const openChat = async (user) => {
                   </Text>
                 </Text>
               </View>
-
-              <TouchableOpacity onPress={() => toggleLike(item.id)}>
-                <Ionicons
-                  name={item.liked ? "heart" : "heart-outline"}
-                  size={20}
-                  color={item.liked ? "#ed292e" : "#aaa"}
-                />
-              </TouchableOpacity>
               <TouchableOpacity
                 style={tw`ml-3 bg-red-500 px-3 py-1 rounded-lg`}
                 onPress={() => openChat(item)}

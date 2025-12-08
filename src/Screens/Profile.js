@@ -41,12 +41,12 @@ const menuItems = [
     navigateTo: "AccountSecurity",
   },
   // { id: "3", label: "Scan Member", icon: "qrcode", navigateTo: "QRCodeScreen" },
-  {
-    id: "4",
-    label: "Payment Method",
-    icon: "credit-card",
-    navigateTo: "PaymentSettings",
-  },
+  // {
+  //   id: "4",
+  //   label: "Payment Method",
+  //   icon: "credit-card",
+  //   navigateTo: "PaymentSettings",
+  // },
   {
     id: "5",
     label: "General Settings",
