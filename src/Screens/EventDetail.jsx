@@ -389,7 +389,6 @@ const EventDetail = () => {
         />
       )}
 
-     
       <View
         style={tw`bg-white border border-red-100 rounded-2xl shadow-md p-5 mb-6`}
       >
