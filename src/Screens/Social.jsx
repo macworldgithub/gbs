@@ -181,7 +181,6 @@
 // };
 
 // export default Social;
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -417,7 +416,6 @@ const Social = () => {
                 event.sessionList && event.sessionList.length > 0
                   ? event.sessionList[0].sessionAvailability
                   : "N/A";
-              const isBookingAvailable = isBookingOpen(event);
               return (
                 <TouchableOpacity
                   key={event.eventId}
@@ -460,7 +458,7 @@ const Social = () => {
                           resizeMode="cover"
                         />
 
-                        {event.bookingUrl && isBookingAvailable && (
+                        {event.bookingUrl && (
                           <TouchableOpacity
                             onPress={() =>
                               Linking.openURL(event.bookingUrl).catch(() =>

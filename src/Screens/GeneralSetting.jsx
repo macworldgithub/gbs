@@ -9,7 +9,7 @@ const GeneralSetting = () => {
 
   const settings = [
     // { title: 'Theme', value: 'Light Mode', screen: 'Theme' },
-    { title: "Language Setting", value: "English", screen: "LanguageSetting" },
+    // { title: "Language Setting", value: "English", screen: "LanguageSetting" },
     // {
     //   title: "Notification Setting",
     //   value: "",
@@ -26,7 +26,7 @@ const GeneralSetting = () => {
       <View
         style={tw`flex-row items-center px-4 py-3 border-b border-gray-200`}
       >
-        <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={20} color="#000" />
         </TouchableOpacity>
         <Text style={tw`text-lg font-semibold ml-4`}>General Settings</Text>

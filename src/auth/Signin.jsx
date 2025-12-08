@@ -21,7 +21,7 @@ import { API_BASE_URL } from "../utils/config";
 import Toast from "react-native-toast-message";
 import { storeUserData } from "../utils/storage";
 import {
- 
+
   isBiometricAvailable,
   setSession,
   setBiometricsEnabled,
@@ -167,38 +167,8 @@ const Signin = () => {
           await setSession(userData, { requireBiometrics: true });
           await setBiometricsEnabled(true);
         }
-        // ✅ Debug: check if stored properly
-        const stored = await AsyncStorage.getItem("userData");
-        console.log("🔐 Stored User Data in AsyncStorage:", stored);
-        // Check for pending package creation after successful login
-        const selectedPackage = await AsyncStorage.getItem("selectedPackage");
-        if (selectedPackage) {
-          try {
-            const now = new Date();
-            const startDate = now.toISOString();
-            const packagePayload = {
-              role: selectedPackage,
-              startDate,
-              months: 3,
-              trial: false
-            };
-            const packageRes = await axios.post(`${API_BASE_URL}/user-package`, packagePayload, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-                Accept: "application/json"
-              }
-            });
-            console.log("Package created successfully:", packageRes.data);
-            await AsyncStorage.removeItem("selectedPackage");
-          } catch (packageError) {
-            console.error("Failed to create package:", packageError);
-            const packageErrorMsg = packageError?.response?.data?.message || "Package activation failed";
-            Alert.alert("Package Activation Failed", `${packageErrorMsg}. You have been logged in successfully. Please contact support if needed.`);
-          }
-        }
         Alert.alert("Success", "Login successful!");
-        navigation.replace("Tabs"); // or your main screen
+        navigation.replace("Tabs");
       } else if (
         message &&
         (message.toLowerCase().includes("sent") ||
