@@ -184,10 +184,9 @@ export default function Signup() {
         contentContainerStyle={tw`px-6 pt-8 pb-20`}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>
-          Create new
+        <Text style={tw`text-2xl font-bold text-gray-900 mb-1 mt-12`}>
+          Create new account
         </Text>
-        <Text style={tw`text-2xl font-bold text-gray-900 mb-4`}>account</Text>
         <Text style={tw`text-sm text-gray-500 mb-6`}>
           Already have an account?{" "}
           <Text

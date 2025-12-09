@@ -471,7 +471,7 @@ export default function GroupConversations({ navigation }) {
     <View style={tw`flex-1 bg-gray-50`}>
       {/* Header */}
       <View
-        style={tw`flex-row justify-between items-center px-5 py-4 bg-white border-b border-gray-200`}
+        style={tw`flex-row justify-between items-center px-5 py-4 bg-white border-b border-gray-200 mt-12`}
       >
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color="black" />

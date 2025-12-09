@@ -34,12 +34,6 @@ const menuItems = [
     icon: "user-edit",
     navigateTo: "EditProfile",
   },
-  {
-    id: "3",
-    label: "Account Security",
-    icon: "shield-alt",
-    navigateTo: "AccountSecurity",
-  },
   // { id: "3", label: "Scan Member", icon: "qrcode", navigateTo: "QRCodeScreen" },
   // {
   //   id: "4",

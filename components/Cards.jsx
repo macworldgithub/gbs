@@ -555,17 +555,16 @@ const Cards = ({
     return "All";
   };
 
-  const isEventOngoing = (event) => {
+  const isEventUpcoming = (event) => {
     if (!event.sessionList || event.sessionList.length === 0) return false;
-    const today = new Date("2025-11-28T00:00:00Z");
-    const startDate = new Date(event.sessionList[0].eventStartDate);
+    const today = new Date("2025-12-09T00:00:00Z");
     const endDate = new Date(event.sessionList[0].eventEndDate);
-    return startDate <= today && endDate > today;
+    return endDate > today;
   };
 
   const filteredEvents = useMemo(() => {
     return events
-      .filter((event) => isEventOngoing(event))
+      .filter((event) => isEventUpcoming(event))
       .filter(
         (event) =>
           stateFilter.toLowerCase() === "all" ||
@@ -622,6 +621,8 @@ const Cards = ({
     const endDate = formatDateTime(item?.sessionList?.[0]?.eventEndDate);
     const seats = item?.sessionList?.[0]?.sessionAvailability || "N/A";
     const location = item?.venue || "No location";
+    const bookingUrl =
+      item?.sessionList?.[0]?.sessionBookingUrl || item?.bookingUrl;
 
     return (
       <Pressable
@@ -672,7 +673,7 @@ const Cards = ({
           {showBooking && (
             <TouchableOpacity
               style={tw`px-3 py-2 rounded-xl w-full bg-red-600`}
-              onPress={() => handleBuyTicket(item?.bookingUrl)}
+              onPress={() => handleBuyTicket(bookingUrl)}
             >
               <Text style={tw`text-white text-center font-semibold`}>
                 Buy Ticket

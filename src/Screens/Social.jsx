@@ -181,6 +181,7 @@
 // };
 
 // export default Social;
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -257,12 +258,11 @@ const Social = () => {
     return "All";
   };
 
-  const isEventOngoing = (event) => {
+  const isEventUpcoming = (event) => {
     if (!event.sessionList || event.sessionList.length === 0) return false;
-    const today = new Date("2025-11-28T00:00:00Z");
-    const startDate = new Date(event.sessionList[0].eventStartDate);
+    const today = new Date("2025-12-09T00:00:00Z");
     const endDate = new Date(event.sessionList[0].eventEndDate);
-    return startDate <= today && endDate > today;
+    return endDate > today;
   };
 
   const isBookingOpen = (event) => {
@@ -306,7 +306,7 @@ const Social = () => {
   const filteredEvents = events.filter(
     (event) =>
       (selectedState === "All" || getStateFromEvent(event) === selectedState) &&
-      isEventOngoing(event)
+      isEventUpcoming(event)
   );
 
   const handleEventPress = (eventId) => {

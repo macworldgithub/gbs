@@ -7,7 +7,9 @@ export default function CodeOfConduct({ navigation }) {
   return (
     <View style={tw`flex-1 bg-white`}>
       {/* Header */}
-      <View style={tw`flex-row items-center px-4 py-4 bg-white border-b border-gray-200`}>
+      <View
+        style={tw`flex-row items-center px-4 py-4 bg-white border-b border-gray-200 mt-16`}
+      >
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={26} color="black" />
         </TouchableOpacity>
@@ -64,7 +66,8 @@ export default function CodeOfConduct({ navigation }) {
         </Text>
 
         <Bullet>
-          Be treated fairly, equally and with respect by the GBS and all members.
+          Be treated fairly, equally and with respect by the GBS and all
+          members.
         </Bullet>
         <Bullet>
           Socialise in an environment free from harassment or discrimination.
@@ -97,13 +100,15 @@ export default function CodeOfConduct({ navigation }) {
           Report inappropriate behaviour to GBS Management promptly.
         </Bullet>
         <Bullet>
-          Pay all event or membership fees committed to unless otherwise arranged.
+          Pay all event or membership fees committed to unless otherwise
+          arranged.
         </Bullet>
         <Bullet>
           Keep contact details updated with the GBS Membership Officer.
         </Bullet>
         <Bullet>
-          Promote goodwill, connection and professionalism within the GBS community.
+          Promote goodwill, connection and professionalism within the GBS
+          community.
         </Bullet>
 
         {/* Breaches */}
