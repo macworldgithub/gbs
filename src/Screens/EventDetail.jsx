@@ -399,9 +399,9 @@ const EventDetail = () => {
         </Text>
 
         {/* Event Code */}
-        <Text style={tw`text-sm text-red-600 font-bold mb-3`}>
+        {/* <Text style={tw`text-sm text-red-600 font-bold mb-3`}>
           Code: {event.eventCode || "N/A"}
-        </Text>
+        </Text> */}
 
         {/* Description */}
         <Text style={tw`text-base text-gray-600 mb-4 leading-5`}>
@@ -441,12 +441,12 @@ const EventDetail = () => {
         </Text>
 
         {/* Tickets Left */}
-        {session && (
+        {/* {session && (
           <Text style={tw`text-sm text-gray-700 mb-1`}>
             <Text style={tw`font-semibold text-red-500`}>Tickets Left:</Text>{" "}
             {session.sessionAvailability} / {session.sessionCapacity}
           </Text>
-        )}
+        )} */}
 
         {/* Contact */}
         {event.contactName && (

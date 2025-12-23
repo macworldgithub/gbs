@@ -8,16 +8,24 @@ const GeneralSetting = () => {
   const navigation = useNavigation();
 
   const settings = [
-    // { title: 'Theme', value: 'Light Mode', screen: 'Theme' },
-    // { title: "Language Setting", value: "English", screen: "LanguageSetting" },
-    // {
-    //   title: "Notification Setting",
-    //   value: "",
-    //   screen: "NotificationSettingScreen",
-    // },
-    { title: "About EVNC", value: "Version 1.0.0.1", screen: "AboutEVNC" },
-    { title: "Term of Use", value: "", screen: "TermsOfUse" },
-    { title: "Privacy Policy", value: "", screen: "PrivacyPolicy" },
+    {
+      title: "About EVNC",
+      description: "Learn more about the EVNC community and our mission",
+      value: "Version 1.0.0.1",
+      screen: "AboutEVNC",
+    },
+    {
+      title: "Term of Use",
+      description: "",
+      value: "",
+      screen: "TermsOfUse",
+    },
+    {
+      title: "Privacy Policy",
+      description: "",
+      value: "",
+      screen: "PrivacyPolicy",
+    },
   ];
 
   return (
@@ -37,16 +45,30 @@ const GeneralSetting = () => {
         {settings.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={tw`bg-white p-4 mb-3 border border-gray-300 rounded-xl flex-row justify-between items-center`}
+            style={tw`bg-white p-4 mb-3 border border-gray-300 rounded-xl`}
             onPress={() => navigation.navigate(item.screen)}
           >
-            <Text style={tw`text-base text-gray-800`}>{item.title}</Text>
-            <View style={tw`flex-row items-center`}>
-              {item.value !== "" && (
-                <Text style={tw`text-sm text-red-500 mr-2`}>{item.value}</Text>
-              )}
-              <Icon name="angle-right" size={16} color="#888" />
+            <View style={tw`flex-row justify-between items-center`}>
+              <Text style={tw`text-base font-medium text-gray-800`}>
+                {item.title}
+              </Text>
+
+              <View style={tw`flex-row items-center`}>
+                {item.value !== "" && (
+                  <Text style={tw`text-sm text-red-500 mr-2`}>
+                    {item.value}
+                  </Text>
+                )}
+                <Icon name="angle-right" size={16} color="#888" />
+              </View>
             </View>
+
+            {/* Description (only if exists) */}
+            {item.description !== "" && (
+              <Text style={tw`text-sm text-gray-500 mt-1`}>
+                {item.description}
+              </Text>
+            )}
           </TouchableOpacity>
         ))}
       </ScrollView>

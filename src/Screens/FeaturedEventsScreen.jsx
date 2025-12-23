@@ -13,32 +13,20 @@ import {
 import tw from "twrnc";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { getUserData } from "../utils/storage";
 import fallbackImage from "../../assets/fallback.png";
 
 const BASE_API_URL = "https://gbs.westsidecarcare.com.au/trybooking/events";
-// const STATES = ["All", "VIC", "NSW", "QLD", "SA", "WA"];
 
 const FeaturedEventsScreen = () => {
   const [allEvents, setAllEvents] = useState([]);
   const [featuredEvents, setFeaturedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [stateFilter, setStateFilter] = useState("All");
   const [page, setPage] = useState(1);
   const [limit] = useState(50);
   const [totalPages, setTotalPages] = useState(1);
   const [bookedEvents, setBookedEvents] = useState([]);
 
   const navigation = useNavigation();
-
-  const getStateFromVenue = (venue) => {
-    if (!venue) return "";
-    const upperVenue = venue.toUpperCase();
-    for (let st of STATES.slice(1)) {
-      if (upperVenue.includes(st)) return st;
-    }
-    return "";
-  };
 
   const fetchFeaturedEvents = async () => {
     try {
@@ -47,7 +35,6 @@ const FeaturedEventsScreen = () => {
       const data = await response.json();
       const eventsArray = Array.isArray(data) ? data : data?.events || [];
 
-      // Filter events where sessionList[0].eventEndDate is after December 09, 2025
       const today = new Date("2025-12-09");
       const upcomingEvents = eventsArray.filter((event) => {
         const endDate = event.sessionList?.[0]?.eventEndDate;
@@ -70,17 +57,12 @@ const FeaturedEventsScreen = () => {
 
   useEffect(() => {
     if (allEvents.length === 0) return;
-    const filtered =
-      stateFilter === "All"
-        ? allEvents
-        : allEvents.filter((e) => getStateFromVenue(e.venue) === stateFilter);
-    const totalCount = filtered.length;
+    const totalCount = allEvents.length;
     setTotalPages(Math.ceil(totalCount / limit));
     const start = (page - 1) * limit;
     const end = start + limit;
-    const paginated = filtered.slice(start, end);
-    setFeaturedEvents(paginated);
-  }, [allEvents, stateFilter, page]);
+    setFeaturedEvents(allEvents.slice(start, end));
+  }, [allEvents, page]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "Date not available";
@@ -95,7 +77,7 @@ const FeaturedEventsScreen = () => {
     });
   };
 
-  const truncateDescription = (desc, maxLength = 20) => {
+  const truncateDescription = (desc, maxLength = 40) => {
     if (!desc) return "No details";
     return desc.length > maxLength
       ? `${desc.substring(0, maxLength)}...`
@@ -120,6 +102,7 @@ const FeaturedEventsScreen = () => {
     const session = item?.sessionList?.[0];
     const availableSeats = session?.sessionAvailability || 0;
     const bookingUrl = session?.sessionBookingUrl;
+
     return (
       <Pressable
         style={({ pressed }) => [
@@ -127,7 +110,10 @@ const FeaturedEventsScreen = () => {
           pressed && tw`bg-gray-100`,
         ]}
         onPress={() =>
-          navigation.navigate("EventDetail", { eventId: item?.eventId })
+          navigation.navigate("EventDetail", {
+            eventId: item?.eventId,
+            fullDescription: item?.description,
+          })
         }
       >
         {/* Left Content */}
@@ -155,7 +141,20 @@ const FeaturedEventsScreen = () => {
             Details:{" "}
             <Text style={tw`font-normal`}>
               {truncateDescription(item?.description)}
-            </Text>
+            </Text>{" "}
+            {item?.description?.length > 40 && (
+              <Text
+                style={tw`text-red-600 font-bold`}
+                onPress={() =>
+                  navigation.navigate("EventDetail", {
+                    eventId: item?.eventId,
+                    fullDescription: item?.description,
+                  })
+                }
+              >
+                More Details
+              </Text>
+            )}
           </Text>
 
           <Text style={tw`text-black text-sm font-semibold mt-1`}>
@@ -206,30 +205,6 @@ const FeaturedEventsScreen = () => {
           Featured Events
         </Text>
       </View>
-
-      {/* State Filter Tabs */}
-      {/* <View style={tw`flex-row justify-around bg-gray-100 p-2 mt-6`}>
-        {STATES.map((st) => (
-          <TouchableOpacity
-            key={st}
-            style={tw`px-3 py-1 rounded-full ${
-              stateFilter === st ? "bg-red-500" : "bg-white"
-            }`}
-            onPress={() => {
-              setStateFilter(st);
-              setPage(1);
-            }}
-          >
-            <Text
-              style={tw`text-sm ${
-                stateFilter === st ? "text-white" : "text-black"
-              }`}
-            >
-              {st}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View> */}
 
       {/* Event List */}
       {loading ? (

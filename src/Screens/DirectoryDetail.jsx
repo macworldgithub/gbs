@@ -134,7 +134,7 @@ export default function DirectoryDetail({ route, navigation }) {
             ) : null}
           </View>
 
-          <View style={tw`mt-6 bg-gray-100 rounded-xl p-4`}>
+          {/* <View style={tw`mt-6 bg-gray-100 rounded-xl p-4`}>
             <Text style={tw`text-black font-semibold mb-2`}>
               Activated Package
             </Text>
@@ -156,7 +156,45 @@ export default function DirectoryDetail({ route, navigation }) {
                 ))}
               </View>
             )}
-          </View>
+          </View> */}
+
+          {/* Public Profile Details */}
+          {(user?.location ||
+            user?.profession ||
+            user?.hobbies ||
+            user?.shortBio) && (
+            <View style={tw`mt-6 bg-gray-100 rounded-xl p-4`}>
+              {user?.location && (
+                <View style={tw`mb-3`}>
+                  <Text style={tw`text-black font-semibold`}>Location</Text>
+                  <Text style={tw`text-gray-700`}>{user.location}</Text>
+                </View>
+              )}
+
+              {user?.profession && (
+                <View style={tw`mb-3`}>
+                  <Text style={tw`text-black font-semibold`}>
+                    Profession / Role
+                  </Text>
+                  <Text style={tw`text-gray-700`}>{user.profession}</Text>
+                </View>
+              )}
+
+              {user?.hobbies && (
+                <View style={tw`mb-3`}>
+                  <Text style={tw`text-black font-semibold`}>Hobbies</Text>
+                  <Text style={tw`text-gray-700`}>{user.hobbies}</Text>
+                </View>
+              )}
+
+              {user?.shortBio && (
+                <View>
+                  <Text style={tw`text-black font-semibold`}>Short Bio</Text>
+                  <Text style={tw`text-gray-700`}>{user.shortBio}</Text>
+                </View>
+              )}
+            </View>
+          )}
 
           {/* Business & Interested In card (replaces Trusted Devices location) */}
           {(user?.business?.name ||

@@ -154,7 +154,7 @@ export default function WellbeingScreen({ navigation }) {
         showsHorizontalScrollIndicator={false}
         style={tw`mb-4`}
       >
-        {states.map((state) => (
+        {/* {states.map((state) => (
           <TouchableOpacity
             key={state}
             style={tw`px-4 py-2 mr-2 rounded-md ${
@@ -168,7 +168,7 @@ export default function WellbeingScreen({ navigation }) {
               {state}
             </Text>
           </TouchableOpacity>
-        ))}
+        ))} */}
       </ScrollView>
 
       {/* Events List */}
