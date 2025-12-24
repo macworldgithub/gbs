@@ -160,7 +160,6 @@ const Offers = ({ navigation }) => {
           title: "New Noticeboard Request",
           message: noticeInput.trim(),
           SendToAll: true, // ← This sends to EVERYONE
-          // Fake values to avoid 500 error (backend might require them)
           area: null,
           roles: [],
           startDate: new Date().toISOString(),
