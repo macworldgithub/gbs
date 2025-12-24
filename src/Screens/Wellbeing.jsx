@@ -162,6 +162,7 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
+import { Linking } from "react-native";
 
 export default function WellbeingScreen({ navigation }) {
   const [expandedId, setExpandedId] = useState(null);
@@ -176,6 +177,7 @@ export default function WellbeingScreen({ navigation }) {
       moreInfo:
         "Fully bulk-billed phone and video sessions mean you can get help from home, without waitlists or financial stress.\n\nyou or someone you know needs support, caring psychologists are ready to help.How MeHelp Works:\n• 100% Bulk-Billed – Absolutely no out-of-pocket costs\n• Online sessions –  Phone or video from the comfort of home\n• Hand-Matched Psychologists – Caring, experienced professionals matched to your needs\n• No waitlists – Get support when you need it\n• Personalised care – Therapy that feels personal, supportive, and genuinely helpful\n\nWho MeHelp Supports:\nWhether you're navigating stress, anxiety, depression, life transitions, relationship challenges, or simply want to feel more grounded, MeHelp makes getting the right support simple, convenient, and human.\n\nGet Started Today.",
       image: require("../../assets/wellbeing1.png"),
+      link: "https://www.mehelp.com.au",
     },
     {
       id: 2,
@@ -186,6 +188,7 @@ export default function WellbeingScreen({ navigation }) {
       moreInfo:
         "Get OTLR for Your Community  BUSINESSES Customised employee wellbeing programs with flexible delivery options.\n\nSPORTING CLUBS Two 60-minute mental health literacy education sessions delivered to your club. SCHOOLS Tailored programs for students (ages 13+, Years 7-12)\nTailored programs for students (ages 13+, Years 7-12)",
       image: require("../../assets/wellbeing2.png"),
+      link: "https://otlr.org.au",
     },
     {
       id: 3,
@@ -195,6 +198,7 @@ export default function WellbeingScreen({ navigation }) {
       moreInfo:
         "RESET MY FUTURE – PRIVATE ADDICTION RECOVERY SUPPORT \n\nYou Don't Have to Do It Alone, Reset My Future offers private, online 12-week recovery programs designed as a modern alternative to traditional residential rehab.\nIf you or someone you know is struggling with alcohol, drugs, gambling, or anger, Graeme Alford and his expert team provide the structure, tools, and confidential support needed to reclaim your life – without disrupting work or family commitments.\nNational Free Call: 1800 300 813",
       image: require("../../assets/wellbeing3.png"),
+      link: "https://www.resetmyfuture.com.au",
     },
     {
       id: 4,
@@ -204,6 +208,7 @@ export default function WellbeingScreen({ navigation }) {
       moreInfo:
         "EXPANDED CONTENT: THE FIVE FOUNDATIONS \n\n1. MOVE YOUR BODY - 30 minutes daily movement. Walk, play sport, stay active. Consistency beats intensity.\n2. SLEEP PROPERLY  - 7-9 hours most nights. Same bedtime when possible.  No screens 30 mins before bed\n 3. EAT LIKE AN ADULT - Eat breakfast. Add vegetables to meals. Drink water, not just coffee.  80/20 rule - mostly good, sometimes whatever\n 4. STAY CONNECTED - Regular contact with mates.  Genuine conversations matter.  Ask for help when you need it.\n5.CHECK YOUR MENTAL HEALTH - Notice how you're feeling. Persistent problems (2+ weeks) = see your GP. Talk to someone before it's a crisis.\n\nWHEN TO GET HELP -  See your GP if:\n\nSymptoms persisting 2+ weeks.  Not coping with daily life Sleep or mood problems ongoing.\nYou don't need perfection. Just do the basics consistently: Move. Sleep. Eat well. Stay connected. Check your mental health.",
       image: require("../../assets/wellbeing4.png"),
+      link: "https://www.resetmyfuture.com.au",
     },
   ];
 
@@ -287,6 +292,16 @@ export default function WellbeingScreen({ navigation }) {
                   {item.moreInfo}
                 </Text>
               </View>
+            )}
+            {item.link && isExpanded && (
+              <TouchableOpacity
+                onPress={() => Linking.openURL(item.link)}
+                style={tw`mt-3`}
+              >
+                <Text style={tw`text-sm text-blue-600 font-semibold`}>
+                  Visit Website
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
         );
