@@ -383,6 +383,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const { width } = Dimensions.get("window");
 
 // Dynamic menu: Chat Groups will be loaded from API
+const RESTRICTED_BUSINESS_ROLES = [
+  "Wellbeing Membership",
+  "Social Membership",
+  "Heartbeat Member",
+];
 
 export default function Drawer({ isOpen, onClose }) {
   const slideAnim = useState(new Animated.Value(-width))[0];
@@ -393,6 +398,9 @@ export default function Drawer({ isOpen, onClose }) {
   const [hasPackage, setHasPackage] = useState(false);
   console.log(userProfile, "drawer");
   const [groups, setGroups] = useState([]);
+
+  const canSeeMyBusiness =
+    roleLabel && !RESTRICTED_BUSINESS_ROLES.includes(roleLabel);
 
   const staticItems = [
     { title: "My Business" },
@@ -769,9 +777,15 @@ export default function Drawer({ isOpen, onClose }) {
             style={tw`flex-1 px-3 ml-4`}
             showsVerticalScrollIndicator={false}
           >
-            {[{ title: "Chat Groups" }, ...payNowItems].map((menu) =>
-              renderMenuItem(menu)
-            )}
+            {[
+              { title: "Chat Groups" },
+              ...payNowItems.filter((item) => {
+                if (item.title === "My Business") {
+                  return canSeeMyBusiness;
+                }
+                return true;
+              }),
+            ].map((menu) => renderMenuItem(menu))}
           </ScrollView>
         </View>
       </Animated.View>

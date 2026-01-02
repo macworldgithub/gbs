@@ -139,14 +139,48 @@ const Offers = ({ navigation }) => {
     fetchOffers(activeTab);
   }, [activeTab]);
 
-  const submitNotice = () => {
+  const submitNotice = async () => {
     if (!noticeInput.trim()) {
       Alert.alert("Error", "Please type something before submitting.");
       return;
     }
 
-    Alert.alert("Success", "Your noticeboard post has been submitted!");
-    setNoticeInput("");
+    try {
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      if (!token) {
+        Alert.alert("Error", "You must be logged in.");
+        return;
+      }
+
+      await axios.post(
+        `${API_BASE_URL}/notification`,
+        {
+          title: "New Noticeboard Request",
+          message: noticeInput.trim(),
+          SendToAll: true, // ← This sends to EVERYONE
+          area: null,
+          roles: [],
+          startDate: new Date().toISOString(),
+          endDate: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000
+          ).toISOString(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      Alert.alert("Success", "Your noticeboard post has been submitted!");
+      setNoticeInput("");
+    } catch (error) {
+      console.error("Error:", error);
+      Alert.alert("Error", "Failed to submit post. Please try again.");
+    }
   };
 
   return (

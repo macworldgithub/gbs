@@ -144,7 +144,7 @@ const AboutUs = () => {
             </Text>
           </View>
 
-          <CollapsibleSection title="Our Story" isFirst={true}>
+          <CollapsibleSection title="Our Story">
             <Text style={tw`text-gray-600 leading-6`}>
               In 2014, Shaun Wallis, Steve Heavey, and Robert Dipierdomenico
               started what began as casual Friday lunches. It grew into the Good

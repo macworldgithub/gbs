@@ -1587,12 +1587,12 @@ export default function GroupChat() {
     <View style={tw`flex-1 bg-white mt-6 mb-8`}>
       {/* Header */}
       <View
-        style={tw`flex-row items-center justify-between px-4 py-2 border-b border-gray-300`}
+        style={tw`flex-row items-center justify-between px-4 py-2 border-b border-gray-300 mt-10`}
       >
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
-        <View style={tw`flex-row items-center mr-24`}>
+        <View style={tw`flex-row items-center mr-24 `}>
           <TouchableOpacity onPress={handlePickGroupImage}>
             <Image
               source={

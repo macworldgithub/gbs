@@ -2,6 +2,8 @@ import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import tw from "tailwind-react-native-classnames";
+import { style } from "twrnc";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const membershipContent = {
   "Wellbeing Membership": {
@@ -58,7 +60,7 @@ const membershipContent = {
       "Additional memberships available for $295 pp",
     ],
   },
-  
+
   "Social Membership": {
     intro:
       "The social membership provides a premium social experience and allows you to connect with fellow GBS community members.",
@@ -107,8 +109,11 @@ export default function MembershipDetails({ route, navigation }) {
   return (
     <View style={tw`flex-1 bg-white`}>
       <View style={tw`bg-red-500 pt-14 pb-4 px-4`}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={20} color="#fff" />
+        <TouchableOpacity
+          style={tw`absolute top-14 left-4 z-10`}
+          onPress={() => navigation.goBack()}
+        >
+          <MaterialIcons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
 
         <Text style={tw`text-center text-white text-2xl font-bold`}>

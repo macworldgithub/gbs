@@ -17,7 +17,6 @@ import { API_BASE_URL } from "../utils/config";
 export default function NotificationScreen() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-  const [data, setData] = useState({ today: [], yesterday: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,12 +25,37 @@ export default function NotificationScreen() {
     }
   }, [isFocused]);
 
+  const [data, setData] = useState({
+    today: [
+      {
+        _id: "welcome-1", 
+        title: "Welcome!",
+        message:
+          "Welcome to the GBS Member App, your place to engage, collaborate and share positive conversations.",
+        createdAt: new Date().toISOString(),
+        unread: true,
+        highlight: true,
+      },
+    ],
+    yesterday: [],
+  });
+
   const fetchNotifications = () => {
     setLoading(true);
     fetch(`${API_BASE_URL}/notification`)
       .then((res) => res.json())
       .then((resData) => {
-        const today = [];
+        const today = [
+          {
+            _id: "welcome-1",
+            title: "Welcome!",
+            message:
+              "Welcome to the GBS Member App, your place to engage, collaborate and share positive conversations.",
+            createdAt: new Date().toISOString(),
+            unread: true,
+            highlight: true,
+          },
+        ];
         const yesterday = [];
         const now = new Date();
         const todayDate = now.toDateString();
@@ -50,6 +74,31 @@ export default function NotificationScreen() {
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   };
+
+  // const fetchNotifications = () => {
+  //   setLoading(true);
+  //   fetch(`${API_BASE_URL}/notification`)
+  //     .then((res) => res.json())
+  //     .then((resData) => {
+  //       const today = [];
+  //       const yesterday = [];
+  //       const now = new Date();
+  //       const todayDate = now.toDateString();
+
+  //       resData.forEach((n) => {
+  //         const createdDate = new Date(n.createdAt);
+  //         if (createdDate.toDateString() === todayDate) {
+  //           today.push(n);
+  //         } else {
+  //           yesterday.push(n);
+  //         }
+  //       });
+
+  //       setData({ today, yesterday });
+  //     })
+  //     .catch((err) => console.error(err))
+  //     .finally(() => setLoading(false));
+  // };
 
   const markAllAsRead = (section) => {
     setData((prev) => ({

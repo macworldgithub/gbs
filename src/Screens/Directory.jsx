@@ -656,7 +656,7 @@ export default function MembersDirectory({ navigation }) {
 
                 {item.businessName ? (
                   <Text style={tw`text-black text-xs mt-1`}>
-                    BusinessnName:
+                    BusinessName:
                     {item.businessName}
                   </Text>
                 ) : null}
