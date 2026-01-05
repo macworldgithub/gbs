@@ -6,9 +6,11 @@ import {
   ScrollView,
   Linking,
   TouchableOpacity,
+  SafeAreaView,
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import tw from "tailwind-react-native-classnames";
+import { Ionicons } from "@expo/vector-icons";
 
 const newsData = [
   {
@@ -34,76 +36,94 @@ const newsData = [
 
 export default function NewsDetail() {
   const route = useRoute();
+  const navigation = useNavigation();
   const { newsId } = route.params;
   const news = newsData.find((item) => item.id === newsId);
 
   if (!news) {
     return (
-      <View style={tw`flex-1 justify-center items-center`}>
+      <View style={tw`flex-1 justify-center items-center bg-white`}>
         <Text>News not found</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView
-      style={tw`flex-1 bg-white`}
-      contentContainerStyle={tw`px-4 pt-12 pb-8`}
-    >
-      <Text style={tw`text-2xl font-extrabold mb-4`}>{news.heading}</Text>
-
-      <Image
-        source={news.image}
-        style={{
-          width: "100%",
-          height: 300,
-          borderRadius: 12,
-          marginBottom: 20,
-        }}
-        resizeMode="contain"
-      />
-
-      <Text style={tw`text-xl font-bold mb-3`}>{news.title}</Text>
-
-      <Text
-        style={tw`text-base text-gray-700 leading-6 mb-6 whitespace-pre-line`}
+    <SafeAreaView style={tw`flex-1 bg-white`}>
+      {/* Custom Header: Back Arrow (Left) + News Detail (Center) */}
+      <View
+        style={tw`flex-row items-center justify-between px-4 py-4 bg-white border-b border-gray-200`}
       >
-        {news.detail}
-      </Text>
-
-      {news.link && (
-        <TouchableOpacity
-          onPress={() => Linking.openURL(news.link)}
-          style={tw`bg-red-500 py-3 px-6 rounded-lg mb-6`}
-        >
-          <Text style={tw`text-white text-center font-bold text-lg`}>
-            Order Now / Visit Link
-          </Text>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={28} color="black" />
         </TouchableOpacity>
-      )}
 
-      {/* Agar contact info ho toh extra button */}
-      {newsId === "2" && (
-        <View style={tw`bg-gray-100 p-4 rounded-lg`}>
-          <Text style={tw`font-bold text-lg mb-2`}>
-            Contact for Alliance Membership
-          </Text>
-          <Text
-            style={tw`text-blue-600`}
-            onPress={() => Linking.openURL("tel:0448931555")}
+        <Text style={tw`text-xl font-extrabold text-red-600`}>News Detail</Text>
+
+        {/* Right side empty for balance (optional logo ya text yahan daal sakte ho) */}
+        <View style={{ width: 28 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={tw`px-4 pt-6 pb-8`}>
+        <Text style={tw`text-2xl font-extrabold mb-4 text-center`}>
+          {news.heading}
+        </Text>
+
+        <Image
+          source={news.image}
+          style={{
+            width: "100%",
+            height: 300,
+            borderRadius: 12,
+            marginBottom: 20,
+          }}
+          resizeMode="contain"
+        />
+
+        {news.title && (
+          <Text style={tw`text-xl font-bold mb-3`}>{news.title}</Text>
+        )}
+
+        <Text
+          style={tw`text-base text-gray-700 leading-6 mb-6 whitespace-pre-line`}
+        >
+          {news.detail}
+        </Text>
+
+        {news.link && (
+          <TouchableOpacity
+            onPress={() => Linking.openURL(news.link)}
+            style={tw`bg-red-500 py-3 px-6 rounded-lg mb-6`}
           >
-            Phone: 0448 931 555
-          </Text>
-          <Text
-            style={tw`text-blue-600`}
-            onPress={() =>
-              Linking.openURL("mailto:leon@goodblokessociety.com.au")
-            }
-          >
-            Email: leon@goodblokessociety.com.au
-          </Text>
-        </View>
-      )}
-    </ScrollView>
+            <Text style={tw`text-white text-center font-bold text-lg`}>
+              Order Now / Visit Link
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Special contact for id "2" */}
+        {newsId === "2" && (
+          <View style={tw`bg-gray-100 p-4 rounded-lg`}>
+            <Text style={tw`font-bold text-lg mb-2`}>
+              Contact for Alliance Membership
+            </Text>
+            <Text
+              style={tw`text-blue-600`}
+              onPress={() => Linking.openURL("tel:0448931555")}
+            >
+              Phone: 0448 931 555
+            </Text>
+            <Text
+              style={tw`text-blue-600`}
+              onPress={() =>
+                Linking.openURL("mailto:leon@goodblokessociety.com.au")
+              }
+            >
+              Email: leon@goodblokessociety.com.au
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
