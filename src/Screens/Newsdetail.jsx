@@ -1,216 +1,109 @@
-// import React from "react";
-// import {
-//   View,
-//   Text,
-//   ScrollView,
-//   Image,
-//   TouchableOpacity,
-//   Linking,
-// } from "react-native";
-// import { useNavigation } from "@react-navigation/native";
-// import Ionicons from "react-native-vector-icons/Ionicons";
-// import tw from "tailwind-react-native-classnames";
-
-// import HeroImage from "../././../assets/latest1.png";
-
-// const NewsDetail = () => {
-//   const navigation = useNavigation();
-
-//   return (
-//     <ScrollView style={tw`flex-1 bg-white`}>
-//       {/* Header */}
-//       <View style={tw`flex-row items-center justify-between px-4 pt-12 pb-6`}>
-//         <TouchableOpacity onPress={() => navigation.goBack()}>
-//           <Ionicons name="arrow-back" size={24} color="black" />
-//         </TouchableOpacity>
-//         <Text style={tw`text-xl font-bold text-red-600`}>News Detail</Text>
-//         <View style={{ width: 24 }} />
-//       </View>
-
-//       {/* Hero Image - Saved in assets */}
-//       <Image source={HeroImage} style={tw`w-full h-64`} resizeMode="cover" />
-
-//       {/* Main Event Card */}
-//       <View style={tw`px-4 mt-6`}>
-//         <View
-//           style={tw`bg-white border border-red-100 rounded-2xl shadow-md p-6 mb-8`}
-//         >
-//           <Text style={tw`text-3xl font-bold text-center text-purple-900 mb-6`}>
-//             NEW GBS GIN AVAILABLE NOW The GBS Legends London Dry Gin Bold.
-//             Australian. Unapologetically Good.
-//           </Text>
-
-//           <Text style={tw`text-base text-gray-700 leading-6 mb-6`}>
-//             A collaboration between GBS and Brunswick Aces celebrating mateship,
-//             grit, and good humour. This isn't just gin—it's pure GBS spirit in a
-//             bottle. Order now:Price: $99.95 Pickup: Brunswick Aces, Brunswick
-//             East Delivery: FREE in VIC | Small charge interstate
-//           </Text>
-
-//           {/* <Text style={tw`text-base text-gray-700 leading-6 mb-8`}>
-//             10% of your investment and winnings will be directed into the Punt
-//             with Purpose community wellbeing program. We will use funds for
-//             workshops and partnerships dedicated to Men's Health.
-//           </Text> */}
-
-//           {/* Dates */}
-//           {/* <View style={tw`border-t border-gray-200 pt-4`}>
-//             <Text style={tw`text-base text-gray-800 mb-2`}>
-//               <Text style={tw`font-bold text-red-600`}>Start:</Text> 2/28/2025,
-//               7:00:00 PM
-//             </Text>
-//             <Text style={tw`text-base text-gray-800 mb-2`}>
-//               <Text style={tw`font-bold text-red-600`}>End:</Text> 12/31/2025,
-//               4:00:00 PM
-//             </Text>
-//             <Text style={tw`text-base text-gray-800 mb-2`}>
-//               <Text style={tw`font-bold text-red-600`}>Booking Start:</Text>{" "}
-//               2/10/2025, 7:00:21 AM
-//             </Text>
-//             <Text style={tw`text-base text-gray-800`}>
-//               <Text style={tw`font-bold text-red-600`}>Booking End:</Text>{" "}
-//               12/31/2025, 7:00:00 AM
-//             </Text>
-//           </View> */}
-//         </View>
-
-//         {/* GIN PROMOTION SECTION - Fixed content below event */}
-//         <View style={tw`mb-10`}>
-//           {/* <Text style={tw`text-2xl font-bold text-center text-gray-900 mb-4`}>
-//             NEW GBS GIN AVAILABLE NOW
-//           </Text>
-//           <Text
-//             style={tw`text-lg font-semibold text-center text-gray-800 mb-4`}
-//           >
-//             The GBS Legends London Dry Gin{"\n"}
-//             <Text style={tw`text-base font-normal`}>
-//               Bold. Australian. Unapologetically Good.
-//             </Text>
-//           </Text>
-
-//           <Text
-//             style={tw`text-base text-gray-700 text-center leading-6 mb-6 px-4`}
-//           >
-//             A collaboration between GBS and Brunswick Aces celebrating mateship,
-//             grit, and good humour. This isn't just gin—it's pure GBS spirit in a
-//             bottle.
-//           </Text> */}
-
-//           {/* <View style={tw`bg-gray-100 rounded-xl p-5 mx-4 mb-6`}>
-//             <Text style={tw`text-base text-gray-800 mb-2`}>
-//               <Text style={tw`font-bold`}>Order now:</Text>
-//             </Text>
-//             <Text style={tw`text-base text-gray-800 mb-1`}>Price: $99.95</Text>
-//             <Text style={tw`text-base text-gray-800 mb-1`}>
-//               Pickup: Brunswick Aces, Brunswick East
-//             </Text>
-//             <Text style={tw`text-base text-gray-800`}>
-//               Delivery: FREE in VIC | Small charge interstate
-//             </Text>
-//           </View> */}
-
-//           {/* Buy Gin Button */}
-//           <TouchableOpacity
-//             onPress={() =>
-//               Linking.openURL(
-//                 "https://brunswickaces.com/products/gbs-london-dry-gin"
-//               )
-//             }
-//             style={tw`bg-red-600 py-4 rounded-xl items-center mx-4`}
-//           >
-//             <Text style={tw`text-white text-lg font-bold`}>Order Gin Now</Text>
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-//     </ScrollView>
-//   );
-// };
-
-// export default NewsDetail;
-
 import React from "react";
 import {
   View,
   Text,
-  ScrollView,
   Image,
-  TouchableOpacity,
+  ScrollView,
   Linking,
+  TouchableOpacity,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import { useRoute } from "@react-navigation/native";
 import tw from "tailwind-react-native-classnames";
 
+const newsData = [
+  {
+    id: "1",
+    heading: "🍸 NEW GBS GIN AVAILABLE NOW",
+    title:
+      "The GBS Legends London Dry Gin Bold. Australian. Unapologetically Good.",
+    detail:
+      "A collaboration between GBS and Brunswick Aces celebrating mateship, grit, and good humour. This isn't just gin—it's pure GBS spirit in a bottle.\n\nOrder now: Price: $99.95 Pickup: Brunswick Aces, Brunswick East Delivery: FREE in VIC | Small charge interstate",
+    link: null,
+    image: require("../../assets/news1.jpeg"),
+  },
+  {
+    id: "2",
+    heading: "INTRODUCING GBS ALLIANCE MEMBERSHIP",
+    title: "A Truly Elevated GBS Business Experience",
+    detail:
+      "Accelerate your business relationships by design with the Good Blokes Society Alliance—a premium networking program for ambitious business owners, C-suite executives, general managers, and emerging leaders who are committed to growth and making a broader impact within the GBS community.\n\nThe Alliance Difference: This isn't just networking—it's a structured workshop forum where a united power group of like-minded members from diverse industries commit to 7 half-day sessions per year (Feb-Dec). Meet with the same trusted group to share ideas, resources, learning, and growth strategies while tackling challenges and unlocking opportunities together.\n\nWhat's Included:\n• 7 Half-Day Sessions (7:30 AM – 12:00 PM) at premium venues with limited members for focused collaboration\n• Guest Speakers at 4 of 7 sessions covering AI, HR, Marketing, Budgeting, Leadership, and more\n• Mid-Year & End-of-Year Signature Dinners to connect, celebrate, and support all Alliance members\n• Premium Hospitality including breakfast and barista coffee throughout each session\n• Exclusive Benefits: Access to the national GBS business network, masterclasses, HR/Marketing/Finance support, member offers, and a business promotional video\n\nInvestment: $7,500 + GST per year\n\nContact Leon Davies: 0448 931 555 | leon@goodblokessociety.com.au",
+    link: null,
+    image: require("../../assets/wellbeing4.png"),
+  },
+];
 
-import HeroImage from "../../../assets/latest1.png"; /
+export default function NewsDetail() {
+  const route = useRoute();
+  const { newsId } = route.params;
+  const news = newsData.find((item) => item.id === newsId);
 
-const NewsDetail = () => {
-  const navigation = useNavigation();
+  if (!news) {
+    return (
+      <View style={tw`flex-1 justify-center items-center`}>
+        <Text>News not found</Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView style={tw`flex-1 bg-white`}>
-      {/* Header */}
-      <View style={tw`flex-row items-center justify-between px-4 pt-12 pb-6`}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={tw`text-xl font-bold text-red-600`}>News Detail</Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <ScrollView
+      style={tw`flex-1 bg-white`}
+      contentContainerStyle={tw`px-4 pt-12 pb-8`}
+    >
+      <Text style={tw`text-2xl font-extrabold mb-4`}>{news.heading}</Text>
 
-      {/* Hero Image */}
-      <Image source={HeroImage} style={tw`w-full h-64`} resizeMode="cover" />
+      <Image
+        source={news.image}
+        style={{
+          width: "100%",
+          height: 300,
+          borderRadius: 12,
+          marginBottom: 20,
+        }}
+        resizeMode="contain"
+      />
 
-      {/* Main Content Card */}
-      <View style={tw`px-4 mt-6`}>
-        <View
-          style={tw`bg-white border border-red-100 rounded-2xl shadow-md p-6 mb-8`}
+      <Text style={tw`text-xl font-bold mb-3`}>{news.title}</Text>
+
+      <Text
+        style={tw`text-base text-gray-700 leading-6 mb-6 whitespace-pre-line`}
+      >
+        {news.detail}
+      </Text>
+
+      {news.link && (
+        <TouchableOpacity
+          onPress={() => Linking.openURL(news.link)}
+          style={tw`bg-red-500 py-3 px-6 rounded-lg mb-6`}
         >
-          {/* Title */}
-          <Text style={tw`text-3xl font-bold text-center text-purple-900 mb-6`}>
-            NEW GBS GIN AVAILABLE NOW{"\n"}
-            The GBS Legends London Dry Gin{"\n"}
-            Bold. Australian. Unapologetically Good.
+          <Text style={tw`text-white text-center font-bold text-lg`}>
+            Order Now / Visit Link
           </Text>
+        </TouchableOpacity>
+      )}
 
-          {/* Description */}
-          <Text style={tw`text-base text-gray-700 leading-7 mb-6 px-2`}>
-            A collaboration between GBS and Brunswick Aces celebrating mateship,
-            grit, and good humour. This isn't just gin—it's pure GBS spirit in a
-            bottle.
+      {/* Agar contact info ho toh extra button */}
+      {newsId === "2" && (
+        <View style={tw`bg-gray-100 p-4 rounded-lg`}>
+          <Text style={tw`font-bold text-lg mb-2`}>
+            Contact for Alliance Membership
           </Text>
-
-          {/* Order Details */}
-          <View style={tw`bg-gray-100 rounded-xl p-5 mx-2`}>
-            <Text style={tw`text-base text-gray-800 font-bold mb-3`}>
-              Order now:
-            </Text>
-            <Text style={tw`text-base text-gray-800`}>Price: $99.95</Text>
-            <Text style={tw`text-base text-gray-800`}>
-              Pickup: Brunswick Aces, Brunswick East
-            </Text>
-            <Text style={tw`text-base text-gray-800`}>
-              Delivery: FREE in VIC | Small charge interstate
-            </Text>
-          </View>
-        </View>
-
-        {/* Order Button */}
-        <View style={tw`mb-12`}>
-          <TouchableOpacity
-            onPress={() =>
-              Linking.openURL(
-                "https://brunswickaces.com/products/gbs-london-dry-gin"
-              )
-            }
-            style={tw`bg-red-600 py-4 rounded-xl items-center mx-4`}
+          <Text
+            style={tw`text-blue-600`}
+            onPress={() => Linking.openURL("tel:0448931555")}
           >
-            <Text style={tw`text-white text-lg font-bold`}>Order Gin Now</Text>
-          </TouchableOpacity>
+            Phone: 0448 931 555
+          </Text>
+          <Text
+            style={tw`text-blue-600`}
+            onPress={() =>
+              Linking.openURL("mailto:leon@goodblokessociety.com.au")
+            }
+          >
+            Email: leon@goodblokessociety.com.au
+          </Text>
         </View>
-      </View>
+      )}
     </ScrollView>
   );
-};
-
-export default NewsDetail;
+}

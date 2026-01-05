@@ -660,10 +660,10 @@ const Cards = ({
             <Text style={tw`font-semibold`}>Details: </Text>
             {item?.description || "No details available"}
           </Text>
-          <Text style={tw`text-sm text-black mb-1`}>
+          {/* <Text style={tw`text-sm text-black mb-1`}>
             <Text style={tw`font-semibold`}>Seats: </Text>
             {seats}
-          </Text>
+          </Text> */}
         </View>
 
         {/* RIGHT SIDE */}
