@@ -471,7 +471,7 @@ const EventDetail = () => {
         </Text> */}
       </View>
 
-      {event.bookingUrl && bookingAvailable && (
+      {event.bookingUrl && (
         <TouchableOpacity
           onPress={() => Linking.openURL(event.bookingUrl)}
           style={tw`bg-red-600 py-4 rounded-xl items-center mb-10`}
