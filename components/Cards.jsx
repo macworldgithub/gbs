@@ -563,14 +563,18 @@ const Cards = ({
   };
 
   const filteredEvents = useMemo(() => {
-    return events
-      .filter((event) => isEventUpcoming(event))
-      .filter(
-        (event) =>
-          stateFilter.toLowerCase() === "all" ||
-          getStateFromEvent(event) === stateFilter.toUpperCase()
-      )
-      .slice(0, limit);
+    return (
+      events
+        .filter((event) => isEventUpcoming(event))
+        // hide events explicitly marked as not public
+        .filter((event) => event.isPublic !== false)
+        .filter(
+          (event) =>
+            stateFilter.toLowerCase() === "all" ||
+            getStateFromEvent(event) === stateFilter.toUpperCase()
+        )
+        .slice(0, limit)
+    );
   }, [events, stateFilter, limit]);
 
   // ✅ Format DateTime
@@ -656,10 +660,10 @@ const Cards = ({
             <Text style={tw`font-semibold`}>Details: </Text>
             {item?.description || "No details available"}
           </Text>
-          <Text style={tw`text-sm text-black mb-1`}>
+          {/* <Text style={tw`text-sm text-black mb-1`}>
             <Text style={tw`font-semibold`}>Seats: </Text>
             {seats}
-          </Text>
+          </Text> */}
         </View>
 
         {/* RIGHT SIDE */}

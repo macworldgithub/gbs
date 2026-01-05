@@ -305,6 +305,8 @@ const Social = () => {
 
   const filteredEvents = events.filter(
     (event) =>
+      // hide events explicitly marked as not public
+      event.isPublic !== false &&
       (selectedState === "All" || getStateFromEvent(event) === selectedState) &&
       isEventUpcoming(event)
   );

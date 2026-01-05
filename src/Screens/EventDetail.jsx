@@ -385,7 +385,7 @@ const EventDetail = () => {
         <Image
           source={{ uri: heroImage }}
           style={tw`w-full h-48 rounded-xl mb-5`}
-          resizeMode="cover"
+          resizeMode="contain"
         />
       )}
 

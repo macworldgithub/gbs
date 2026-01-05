@@ -37,6 +37,8 @@ const FeaturedEventsScreen = () => {
 
       const today = new Date("2025-12-09");
       const upcomingEvents = eventsArray.filter((event) => {
+        // hide events explicitly marked as not public
+        if (event.isPublic === false) return false;
         const endDate = event.sessionList?.[0]?.eventEndDate;
         if (!endDate) return false;
         return new Date(endDate) > today;
