@@ -23,7 +23,8 @@ export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [agreeCodeOfConduct, setAgreeCodeOfConduct] = useState(false);
+  const [agreeMemberValues, setAgreeMemberValues] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [businessName, setBusinessName] = useState("");
   const [shortBio, setShortBio] = useState("");
@@ -110,6 +111,14 @@ export default function Signup() {
         );
         return;
       }
+      // Require agreement to both policies
+      if (!agreeCodeOfConduct || !agreeMemberValues) {
+        Alert.alert(
+          "Required",
+          "You must agree to the Code of Conduct and GBS Member Values to continue."
+        );
+        return;
+      }
       // Parse interests
       const interestsArray = interestedIn
         .split(",")
@@ -175,10 +184,9 @@ export default function Signup() {
         contentContainerStyle={tw`px-6 pt-8 pb-20`}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={tw`text-2xl font-bold text-gray-900 mb-1`}>
-          Create new
+        <Text style={tw`text-2xl font-bold text-gray-900 mb-1 mt-12`}>
+          Create new account
         </Text>
-        <Text style={tw`text-2xl font-bold text-gray-900 mb-4`}>account</Text>
         <Text style={tw`text-sm text-gray-500 mb-6`}>
           Already have an account?{" "}
           <Text
@@ -332,20 +340,54 @@ export default function Signup() {
             <Picker.Item label="WA" value="WA" />
           </Picker>
         </View>
-        {/* Remember Me */}
-        <View style={tw`flex-row items-center mb-6`}>
+        {/* Code of Conduct Checkbox */}
+        <View style={tw`flex-row items-center mb-3`}>
           <TouchableOpacity
-            onPress={() => setRememberMe(!rememberMe)}
+            onPress={() => setAgreeCodeOfConduct(!agreeCodeOfConduct)}
             style={tw`mr-2`}
           >
             <Ionicons
-              name={rememberMe ? "checkbox-outline" : "square-outline"}
+              name={agreeCodeOfConduct ? "checkbox-outline" : "square-outline"}
               size={24}
-              color={rememberMe ? "#EF4444" : "gray"}
+              color={agreeCodeOfConduct ? "#EF4444" : "gray"}
             />
           </TouchableOpacity>
-          <Text style={tw`text-sm text-gray-700`}>Remember me</Text>
+
+          <Text style={tw`text-sm text-gray-700`}>
+            I agree to the{" "}
+            <Text
+              style={tw`text-red-500 font-semibold`}
+              onPress={() => navigation.navigate("CodeOfConduct")}
+            >
+              Code of Conduct
+            </Text>
+          </Text>
         </View>
+
+        {/* GBS Member Values Checkbox */}
+        <View style={tw`flex-row items-center mb-6`}>
+          <TouchableOpacity
+            onPress={() => setAgreeMemberValues(!agreeMemberValues)}
+            style={tw`mr-2`}
+          >
+            <Ionicons
+              name={agreeMemberValues ? "checkbox-outline" : "square-outline"}
+              size={24}
+              color={agreeMemberValues ? "#EF4444" : "gray"}
+            />
+          </TouchableOpacity>
+
+          <Text style={tw`text-sm text-gray-700`}>
+            I agree to the{" "}
+            <Text
+              style={tw`text-red-500 font-semibold`}
+              onPress={() => navigation.navigate("GBSMemberValues")}
+            >
+              GBS Member Values
+            </Text>
+          </Text>
+        </View>
+
         {/* Signup Button */}
         <TouchableOpacity
           style={tw`bg-red-500 py-3 rounded-xl mb-6`}
@@ -354,10 +396,22 @@ export default function Signup() {
           <Text style={tw`text-white text-center font-semibold`}>Sign Up</Text>
         </TouchableOpacity>
         {/* Footer Text */}
-        <Text style={tw`text-xs text-gray-400 text-center px-6 mb-6`}>
-          By clicking “Sign Up” you agree to Recognote's{" "}
-          <Text style={tw`text-red-500`}>Term of Use</Text> and{" "}
-          <Text style={tw`text-red-500`}>Privacy Policy</Text>
+        <Text style={tw`text-xs text-gray-500 text-center px-6 mb-6`}>
+          By signing up, you confirm that you have read and agreed to the{" "}
+          <Text
+            style={tw`text-red-500 font-semibold`}
+            onPress={() => navigation.navigate("CodeOfConduct")}
+          >
+            Code of Conduct
+          </Text>{" "}
+          and{" "}
+          <Text
+            style={tw`text-red-500 font-semibold`}
+            onPress={() => navigation.navigate("GBSMemberValues")}
+          >
+            GBS Member Values
+          </Text>
+          .
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>

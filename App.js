@@ -79,6 +79,10 @@ import {
   getSession,
 } from "./src/utils/secureAuth";
 import ReactNativeBiometrics from "react-native-biometrics";
+import StripeCheckout from "./src/Screens/StripeCheckout";
+import CodeOfConduct from "./src/Screens/CodeOfConduct";
+import GBSMemberValues from "./src/Screens/GBSMemberValues";
+import MembershipDetails from "./src/Screens/MembershipDetails";
 
 const Stack = createStackNavigator();
 export default function App() {
@@ -409,6 +413,11 @@ export default function App() {
             <Stack.Screen name="OnboardingTwo" component={OnboardingTwo} />
             <Stack.Screen name="IntroVideo" component={IntroVideoScreen} />
             <Stack.Screen name="Tabs" component={AuthTabs} />
+            <Stack.Screen
+              name="StripeCheckout"
+              component={StripeCheckout}
+              options={{ title: "Payment" }}
+            />
             <Stack.Screen name="Signup" component={Signup} />
             <Stack.Screen name="Home" component={Home} />
             <Stack.Screen name="Signin" component={Signin} />
@@ -474,6 +483,12 @@ export default function App() {
             <Stack.Screen name="AboutUs" component={AboutUs} />
             <Stack.Screen name="ViewProfile" component={ViewProfile} />
             <Stack.Screen name="VideoScreen" component={VideoScreen} />
+            <Stack.Screen name="CodeOfConduct" component={CodeOfConduct} />
+            <Stack.Screen name="GBSMemberValues" component={GBSMemberValues} />
+            <Stack.Screen
+              name="MembershipDetails"
+              component={MembershipDetails}
+            />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

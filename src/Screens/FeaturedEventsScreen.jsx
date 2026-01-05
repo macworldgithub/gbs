@@ -8,20 +8,19 @@ import {
   Image,
   Pressable,
   Alert,
+  Linking,
 } from "react-native";
 import tw from "twrnc";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { getUserData } from "../utils/storage";
 import fallbackImage from "../../assets/fallback.png";
 
-const BASE_API_URL = "https://gbs.westsidecarcare.com.au/events/featured";
-const STATES = ["All", "VIC", "NSW", "QLD", "SA", "WA"];
+const BASE_API_URL = "https://gbs.westsidecarcare.com.au/trybooking/events";
 
 const FeaturedEventsScreen = () => {
+  const [allEvents, setAllEvents] = useState([]);
   const [featuredEvents, setFeaturedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [stateFilter, setStateFilter] = useState("All");
   const [page, setPage] = useState(1);
   const [limit] = useState(50);
   const [totalPages, setTotalPages] = useState(1);
@@ -32,23 +31,21 @@ const FeaturedEventsScreen = () => {
   const fetchFeaturedEvents = async () => {
     try {
       setLoading(true);
-      let url = `${BASE_API_URL}?page=${page}&limit=${limit}`;
-      if (stateFilter !== "All") {
-        url += `&state=${stateFilter}`;
-      }
-
-      const response = await fetch(url);
+      const response = await fetch(BASE_API_URL);
       const data = await response.json();
-      const eventsArray = Array.isArray(data?.events) ? data.events : data;
+      const eventsArray = Array.isArray(data) ? data : data?.events || [];
 
-      const featured = eventsArray.filter((event) => event.isFeatured);
-      setFeaturedEvents(featured);
+      const today = new Date("2025-12-09");
+      const upcomingEvents = eventsArray.filter((event) => {
+        const endDate = event.sessionList?.[0]?.eventEndDate;
+        if (!endDate) return false;
+        return new Date(endDate) > today;
+      });
 
-      const totalCount = data?.total || eventsArray.length;
-      setTotalPages(Math.ceil(totalCount / limit));
+      setAllEvents(upcomingEvents);
     } catch (error) {
       console.error("Error fetching featured events:", error);
-      setFeaturedEvents([]);
+      setAllEvents([]);
     } finally {
       setLoading(false);
     }
@@ -56,7 +53,16 @@ const FeaturedEventsScreen = () => {
 
   useEffect(() => {
     fetchFeaturedEvents();
-  }, [stateFilter, page]);
+  }, []);
+
+  useEffect(() => {
+    if (allEvents.length === 0) return;
+    const totalCount = allEvents.length;
+    setTotalPages(Math.ceil(totalCount / limit));
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    setFeaturedEvents(allEvents.slice(start, end));
+  }, [allEvents, page]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "Date not available";
@@ -71,47 +77,32 @@ const FeaturedEventsScreen = () => {
     });
   };
 
-  // ✅ Buy Ticket Handler
-  const handleBuyTicket = async (eventId) => {
-    try {
-      const userData = await getUserData();
-      const token = userData?.token;
+  const truncateDescription = (desc, maxLength = 40) => {
+    if (!desc) return "No details";
+    return desc.length > maxLength
+      ? `${desc.substring(0, maxLength)}...`
+      : desc;
+  };
 
-      if (!token) {
-        Alert.alert("Login Required", "Please log in to buy a ticket.");
-        return;
-      }
-
-      if (bookedEvents.includes(eventId)) {
-        Alert.alert("Already Booked", "You have already booked this event.");
-        return;
-      }
-
-      const url = `https://gbs.westsidecarcare.com.au/events/${eventId}/book_ticket`;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        Alert.alert("Success", "Your ticket has been booked successfully!");
-        setBookedEvents((prev) => [...prev, eventId]);
-      } else {
-        Alert.alert("Failed", result?.message || "Unable to book ticket.");
-      }
-    } catch (error) {
-      console.error("Error booking ticket:", error);
-      Alert.alert("Error", "Something went wrong while booking the ticket.");
+  const handleBuyTicket = async (bookingUrl) => {
+    if (!bookingUrl) {
+      Alert.alert("Error", "Booking URL not available.");
+      return;
+    }
+    const supported = await Linking.canOpenURL(bookingUrl);
+    if (supported) {
+      await Linking.openURL(bookingUrl);
+    } else {
+      Alert.alert("Error", "Cannot open the booking URL.");
     }
   };
 
   const renderEvent = ({ item }) => {
-    const isBooked = bookedEvents.includes(item?._id);
+    const isBooked = bookedEvents.includes(item?.eventId);
+    const session = item?.sessionList?.[0];
+    const availableSeats = session?.sessionAvailability || 0;
+    const bookingUrl = session?.sessionBookingUrl;
+
     return (
       <Pressable
         style={({ pressed }) => [
@@ -119,35 +110,55 @@ const FeaturedEventsScreen = () => {
           pressed && tw`bg-gray-100`,
         ]}
         onPress={() =>
-          navigation.navigate("EventDetail", { eventId: item?._id })
+          navigation.navigate("EventDetail", {
+            eventId: item?.eventId,
+            fullDescription: item?.description,
+          })
         }
       >
         {/* Left Content */}
         <View style={tw`flex-1 pr-3`}>
           <Text style={tw`text-lg font-bold text-black`}>
-            {item?.title || "Untitled Event"}
+            {item?.name || "Untitled Event"}
           </Text>
-          <Text style={tw`text-gray-500 mb-2`}>
-            {item?.city ? `${item.city}, ${item.state}` : item?.state || "N/A"}
-          </Text>
+          <Text style={tw`text-gray-500 mb-2`}>{item?.venue || "N/A"}</Text>
 
           <Text style={tw`text-black text-sm font-semibold`}>
-            Date–Time:{" "}
-            <Text style={tw`font-normal`}>{formatDate(item?.startDate)}</Text>
+            Date-Time:{" "}
+            <Text style={tw`font-normal`}>
+              {formatDate(session?.eventStartDate)}
+            </Text>
+          </Text>
+
+          <Text style={tw`text-black text-sm font-semibold mt-1`}>
+            Event-End-Date:{" "}
+            <Text style={tw`font-normal`}>
+              {formatDate(session?.eventEndDate)}
+            </Text>
           </Text>
 
           <Text style={tw`text-black text-sm font-semibold mt-1`}>
             Details:{" "}
             <Text style={tw`font-normal`}>
-              {item?.description || "No details"}
-            </Text>
+              {truncateDescription(item?.description)}
+            </Text>{" "}
+            {item?.description?.length > 40 && (
+              <Text
+                style={tw`text-red-600 font-bold`}
+                onPress={() =>
+                  navigation.navigate("EventDetail", {
+                    eventId: item?.eventId,
+                    fullDescription: item?.description,
+                  })
+                }
+              >
+                More Details
+              </Text>
+            )}
           </Text>
 
           <Text style={tw`text-black text-sm font-semibold mt-1`}>
-            Cost:{" "}
-            <Text style={tw`font-normal`}>
-              {item?.cost && item.cost !== "0"}
-            </Text>
+            Seats: <Text style={tw`font-normal`}>{availableSeats}</Text>
           </Text>
         </View>
 
@@ -155,10 +166,11 @@ const FeaturedEventsScreen = () => {
         <View style={tw`items-center`}>
           <Image
             source={
-              item?.imageUrl ? { uri: item.imageUrl } : fallbackImage
+              item?.listOfImages?.[0]?.imageFileName
+                ? { uri: item.listOfImages[0].imageFileName }
+                : fallbackImage
             }
-            defaultSource={fallbackImage} 
-            onError={(e) => (e.currentTarget.src = fallbackImage)} 
+            defaultSource={fallbackImage}
             style={tw`w-28 h-28 rounded-xl mb-2`}
             resizeMode="cover"
           />
@@ -166,13 +178,15 @@ const FeaturedEventsScreen = () => {
           <TouchableOpacity
             style={tw.style(
               `px-3 py-2 rounded-xl w-full`,
-              bookedEvents.includes(item?._id) ? "bg-gray-400" : "bg-red-600"
+              bookedEvents.includes(item?.eventId)
+                ? "bg-gray-400"
+                : "bg-red-600"
             )}
-            disabled={bookedEvents.includes(item?._id)}
-            onPress={() => handleBuyTicket(item?._id)}
+            disabled={bookedEvents.includes(item?.eventId)}
+            onPress={() => handleBuyTicket(bookingUrl)}
           >
             <Text style={tw`text-white text-center font-semibold`}>
-              {bookedEvents.includes(item?._id) ? "Booked" : "Buy Ticket"}
+              {bookedEvents.includes(item?.eventId) ? "Booked" : "Buy Ticket"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -192,30 +206,6 @@ const FeaturedEventsScreen = () => {
         </Text>
       </View>
 
-      {/* State Filter Tabs */}
-      <View style={tw`flex-row justify-around bg-gray-100 p-2 mt-6`}>
-        {STATES.map((st) => (
-          <TouchableOpacity
-            key={st}
-            style={tw`px-3 py-1 rounded-full ${
-              stateFilter === st ? "bg-red-500" : "bg-white"
-            }`}
-            onPress={() => {
-              setStateFilter(st);
-              setPage(1);
-            }}
-          >
-            <Text
-              style={tw`text-sm ${
-                stateFilter === st ? "text-white" : "text-black"
-              }`}
-            >
-              {st}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       {/* Event List */}
       {loading ? (
         <ActivityIndicator size="large" color="#ff4d4f" style={tw`mt-10`} />
@@ -224,7 +214,7 @@ const FeaturedEventsScreen = () => {
           <FlatList
             data={featuredEvents}
             keyExtractor={(item, index) =>
-              item?._id?.toString() || index.toString()
+              item?.eventId?.toString() || index.toString()
             }
             renderItem={renderEvent}
             contentContainerStyle={tw`p-2`}

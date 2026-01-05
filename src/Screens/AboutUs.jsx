@@ -134,26 +134,34 @@ const AboutUs = () => {
               Welcome to GBS
             </Text>
             <Text style={tw`text-gray-600 leading-6`}>
-              Your premier destination for connecting with local businesses and
-              discovering exciting events in your community. We're dedicated to
-              creating meaningful connections that benefit everyone.
+              Welcome to the Good Blokes Society - a thriving community of
+              like-minded people built on three core pillars: Business, Social &
+              Wellbeing. We believe in the power of authentic connections,
+              whether in business, friendship, or supporting each other's
+              wellbeing. Join us for exclusive social events and be part of a
+              community that celebrates camaraderie, supports ambition and
+              champions physical & mental health.
             </Text>
           </View>
 
-          <CollapsibleSection title="Our Story" isFirst={true}>
+          <CollapsibleSection title="Our Story">
             <Text style={tw`text-gray-600 leading-6`}>
-              Founded with a vision to bridge the gap between local businesses
-              and their communities, GBS has grown into a platform that empowers
-              both businesses and customers to connect in meaningful ways.
+              In 2014, Shaun Wallis, Steve Heavey, and Robert Dipierdomenico
+              started what began as casual Friday lunches. It grew into the Good
+              Blokes Society - a community rooted in authentic camaraderie and
+              meaningful connections. Today, our three pillars - Business,
+              Social, and Wellbeing - define everything we do and create a
+              sanctuary where people can network, have fun and support each
+              other.
             </Text>
           </CollapsibleSection>
 
           <CollapsibleSection title="Our Vision">
             <Text style={tw`text-gray-600 leading-6`}>
-              We envision a world where local businesses thrive and communities
-              grow stronger through meaningful interactions and shared
-              experiences. Our platform is designed to make these connections
-              seamless and rewarding for everyone involved.
+              We're building a community that enhances both personal and
+              professional life. Our three pillars - Business, Social, and
+              Wellbeing - create a balanced approach where success, friendship
+              and mental health go hand in hand.
             </Text>
           </CollapsibleSection>
 
@@ -161,23 +169,26 @@ const AboutUs = () => {
             <View style={tw`mt-2`}>
               <FeatureCard
                 icon="business"
-                title="Local Business Discovery"
-                description="Find and connect with trusted local businesses in your area."
+                title="Business"
+                description="Create professional relationships that matter. Network, collaborate and build 
+partnerships through our intimate business lunches and large-scale events."
               />
               <FeatureCard
                 icon="calendar"
-                title="Event Management"
-                description="Stay updated with upcoming events and never miss what's happening around you."
+                title="Social"
+                description="Build authentic friendships with like-minded members. Share a meal, play golf, enjoy 
+the footy or races - celebrate the camaraderie that defines Good Blokes."
               />
               <FeatureCard
                 icon="people"
-                title="Community Building"
-                description="Connect with like-minded individuals and grow your network."
+                title="Wellbeing"
+                description="We're committed to championing men's physical & mental health. Connect, learn and 
+share openly as we support each other's wellbeing journeys."
               />
               <FeatureCard
                 icon="pricetag"
-                title="Exclusive Deals"
-                description="Access special offers and discounts from local businesses."
+                title="Exclusive Offers"
+                description="Access special offers and discounts from fellow GBS Members."
               />
             </View>
           </CollapsibleSection>
