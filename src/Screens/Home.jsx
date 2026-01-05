@@ -1069,16 +1069,17 @@ export default function Home() {
       clearInterval(id);
     };
   }, [guestExpiry, navigation]);
+
   return (
     <View style={{ flex: 1 }}>
-      <Drawer isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
+      {/* Main Content — Scrollable */}
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 20 }}
         keyboardShouldPersistTaps="handled"
       >
         <View style={tw`px-4 pt-12 pb-3`}>
+          {/* Header */}
           <View style={tw`flex-row justify-between items-center mb-4`}>
             <TouchableOpacity onPress={toggleSidebar}>
               <FontAwesome name="bars" size={24} color="black" />
@@ -1090,7 +1091,9 @@ export default function Home() {
               <FontAwesome name="bell" size={20} color="#d03030ff" />
             </TouchableOpacity>
           </View>
-          {guestExpiry && guestRemainingStr ? (
+
+          {/* Guest Banner */}
+          {guestExpiry && guestRemainingStr && (
             <TouchableOpacity
               style={tw`bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3 flex-row justify-between`}
               onPress={() => navigation.navigate("Signin")}
@@ -1100,8 +1103,9 @@ export default function Home() {
               </Text>
               <Text style={tw`text-red-600 font-semibold`}>Upgrade</Text>
             </TouchableOpacity>
-          ) : null}
+          )}
 
+          {/* Search Bar */}
           <View
             style={tw`flex-row items-center bg-gray-100 rounded-lg px-2 mb-3 border`}
           >
@@ -1277,11 +1281,13 @@ export default function Home() {
                 <Text style={tw`text-red-500 font-medium`}>See all Events</Text>
               </TouchableOpacity>
             </View>
-
             <Cards stateFilter={activeTab} limit={10} />
           </View>
         </View>
       </ScrollView>
+
+      {/* Drawer Overlay — Yeh sabse upar render hoga */}
+      <Drawer isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </View>
   );
 }

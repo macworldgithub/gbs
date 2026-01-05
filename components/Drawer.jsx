@@ -443,9 +443,8 @@ export default function Drawer({ isOpen, onClose }) {
         // If no role from user data (first time after signup), fallback to selectedPackage from signup
         if (!roleLabelFromStorage) {
           try {
-            const selectedPackageId = await AsyncStorage.getItem(
-              "selectedPackage"
-            );
+            const selectedPackageId =
+              await AsyncStorage.getItem("selectedPackage");
             if (selectedPackageId) {
               // Fetch roles to get label for selected package ID
               const response = await fetch(
@@ -735,7 +734,15 @@ export default function Drawer({ isOpen, onClose }) {
           top: 0,
           bottom: 0,
           left: 0,
+          width: width * 0.75,
           transform: [{ translateX: slideAnim }],
+          backgroundColor: "#fdfdfdff",
+          shadowColor: "#000",
+          shadowOffset: { width: 10, height: 0 },
+          shadowOpacity: 0.3,
+          shadowRadius: 20,
+          elevation: 30, // ← Android ke liye important
+          zIndex: 1000, // ← iOS/Android dono ke liye
         }}
       >
         <View
