@@ -563,14 +563,18 @@ const Cards = ({
   };
 
   const filteredEvents = useMemo(() => {
-    return events
-      .filter((event) => isEventUpcoming(event))
-      .filter(
-        (event) =>
-          stateFilter.toLowerCase() === "all" ||
-          getStateFromEvent(event) === stateFilter.toUpperCase()
-      )
-      .slice(0, limit);
+    return (
+      events
+        .filter((event) => isEventUpcoming(event))
+        // hide events explicitly marked as not public
+        .filter((event) => event.isPublic !== false)
+        .filter(
+          (event) =>
+            stateFilter.toLowerCase() === "all" ||
+            getStateFromEvent(event) === stateFilter.toUpperCase()
+        )
+        .slice(0, limit)
+    );
   }, [events, stateFilter, limit]);
 
   // ✅ Format DateTime

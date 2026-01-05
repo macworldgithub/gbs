@@ -319,6 +319,7 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -648,16 +649,35 @@ export default function MembersDirectory({ navigation }) {
               />
 
               <View style={tw`ml-3 flex-1`}>
-                <Text style={tw`text-black font-semibold text-sm`}>
-                  {item.name}
-                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Text style={tw`text-black font-semibold text-sm`}>
+                    {item.name}
+                  </Text>
+                  <TouchableOpacity
+                    style={tw`bg-red-500 px-3 py-1 rounded-lg`}
+                    onPress={() => openChat(item)}
+                  >
+                    <Text style={tw`text-white text-xs`}>
+                      {chatStatus[item.id] === "continue"
+                        ? "Continue Chat"
+                        : "Start Chat"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
                 <Text style={tw`text-red-500 text-sm`}>{item.email}</Text>
+
                 <Text style={tw`text-black text-xs`}>{item.role}</Text>
 
                 {item.businessName ? (
                   <Text style={tw`text-black text-xs mt-1`}>
-                    BusinessName:
-                    {item.businessName}
+                    BusinessName: {item.businessName}
                   </Text>
                 ) : null}
 
@@ -675,16 +695,6 @@ export default function MembersDirectory({ navigation }) {
                   </Text>
                 </Text>
               </View>
-              <TouchableOpacity
-                style={tw`ml-3 bg-red-500 px-3 py-1 rounded-lg`}
-                onPress={() => openChat(item)}
-              >
-                <Text style={tw`text-white text-xs`}>
-                  {chatStatus[item.id] === "continue"
-                    ? "Continue Chat"
-                    : "Start Chat"}
-                </Text>
-              </TouchableOpacity>
             </TouchableOpacity>
           )}
         />
