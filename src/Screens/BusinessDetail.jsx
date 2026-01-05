@@ -100,13 +100,8 @@ const BusinessDetail = ({ route, navigation }) => {
     );
   }
 
-
-
   const handleDeleteGalleryImage = async (fileKey) => {
-  Alert.alert(
-    "Delete Image",
-    "Are you sure you want to delete this image?",
-    [
+    Alert.alert("Delete Image", "Are you sure you want to delete this image?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
@@ -148,9 +143,8 @@ const BusinessDetail = ({ route, navigation }) => {
           }
         },
       },
-    ]
-  );
-};
+    ]);
+  };
 
   return (
     <View style={tw`flex-1 bg-white`}>
@@ -202,12 +196,12 @@ const BusinessDetail = ({ route, navigation }) => {
                 {business.rating || "N/A"}
               </Text>
             </View>
-            <View style={tw`flex-row items-center`}>
+            {/* <View style={tw`flex-row items-center`}>
               <MaterialIcons name="location-on" size={16} color="#6B7280" />
               <Text style={tw`text-sm text-gray-700 ml-1`}>
                 {business.city}, {business.state}
               </Text>
-            </View>
+            </View> */}
           </View>
 
           {/* About */}
@@ -268,9 +262,7 @@ const BusinessDetail = ({ route, navigation }) => {
 
         {/* Members */}
         <View style={tw`mb-6`}>
-          <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>
-            Members
-          </Text>
+          <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Members</Text>
           {business.members.map((member, index) => (
             <View
               key={member._id || index}
@@ -305,7 +297,10 @@ const BusinessDetail = ({ route, navigation }) => {
                             const userData = await getUserData();
                             const token = userData?.token;
                             if (!token) {
-                              Alert.alert("Error", "No authentication token found");
+                              Alert.alert(
+                                "Error",
+                                "No authentication token found"
+                              );
                               return;
                             }
 
@@ -326,7 +321,10 @@ const BusinessDetail = ({ route, navigation }) => {
 
                             // Refresh members list
                             fetchBusinessDetail();
-                            Alert.alert("Success", "Member deleted successfully!");
+                            Alert.alert(
+                              "Success",
+                              "Member deleted successfully!"
+                            );
                           } catch (error) {
                             console.error("Delete member error:", error);
                             Alert.alert("Error", "Failed to delete member");
@@ -342,8 +340,6 @@ const BusinessDetail = ({ route, navigation }) => {
             </View>
           ))}
         </View>
-
-
 
         <View style={tw`mb-6`}>
           <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Offers</Text>
@@ -469,40 +465,41 @@ const BusinessDetail = ({ route, navigation }) => {
 
         {/* Gallery */}
         {business.gallery && business.gallery.length > 0 && (
-  <View style={tw`mb-6`}>
-    <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>Gallery</Text>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-      {business.gallery.map((img, index) => {
-        // gallery could be [{url, fileKey}] or just [string]
-        const imageUrl =
-          typeof img === "string"
-            ? img
-            : img.url
-            ? img.url
-            : `${API_BASE_URL}/uploads/${img.fileKey}`;
+          <View style={tw`mb-6`}>
+            <Text style={tw`text-lg font-bold text-gray-800 mb-3`}>
+              Gallery
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {business.gallery.map((img, index) => {
+                // gallery could be [{url, fileKey}] or just [string]
+                const imageUrl =
+                  typeof img === "string"
+                    ? img
+                    : img.url
+                      ? img.url
+                      : `${API_BASE_URL}/uploads/${img.fileKey}`;
 
-        return (
-          <View key={index} style={tw`relative mr-3`}>
-            <Image
-              source={{ uri: imageUrl }}
-              style={tw`w-64 h-40 rounded-lg`}
-              resizeMode="cover"
-            />
-            {img.fileKey && (
-              <TouchableOpacity
-                style={tw`absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1`}
-                onPress={() => handleDeleteGalleryImage(img.fileKey)}
-              >
-                <MaterialIcons name="delete" size={20} color="white" />
-              </TouchableOpacity>
-            )}
+                return (
+                  <View key={index} style={tw`relative mr-3`}>
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={tw`w-64 h-40 rounded-lg`}
+                      resizeMode="cover"
+                    />
+                    {img.fileKey && (
+                      <TouchableOpacity
+                        style={tw`absolute top-2 right-2 bg-black bg-opacity-50 rounded-full p-1`}
+                        onPress={() => handleDeleteGalleryImage(img.fileKey)}
+                      >
+                        <MaterialIcons name="delete" size={20} color="white" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })}
+            </ScrollView>
           </View>
-        );
-      })}
-    </ScrollView>
-  </View>
-)}
-
+        )}
 
         {/* Testimonials */}
         {business.testimonials && business.testimonials.length > 0 && (
