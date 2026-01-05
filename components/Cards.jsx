@@ -613,7 +613,7 @@ const Cards = ({
       <Image
         source={source}
         style={tw`w-full h-full`}
-        resizeMode="cover"
+        resizeMode="contain"
         onError={() => setImageError(true)}
       />
     );
@@ -668,9 +668,7 @@ const Cards = ({
 
         {/* RIGHT SIDE */}
         <View style={tw`w-32 items-center`}>
-          <View
-            style={tw`w-full h-32 mb-2 border border-gray-300 rounded-lg overflow-hidden bg-gray-100`}
-          >
+          <View style={tw`w-full h-32 mb-2  rounded-lg overflow-hidden `}>
             <EventImage imageUrl={item?.listOfImages?.[0]?.imageFileName} />
           </View>
 

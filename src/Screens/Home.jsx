@@ -1071,181 +1071,217 @@ export default function Home() {
   }, [guestExpiry, navigation]);
   return (
     <View style={{ flex: 1 }}>
-      <View style={tw`px-4 pt-12 pb-3 `}>
-        <View style={tw`flex-row justify-between items-center mb-4`}>
-          <TouchableOpacity onPress={toggleSidebar}>
-            <FontAwesome name="bars" size={24} color="black" />
-          </TouchableOpacity>
+      <Drawer isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-          <TouchableOpacity onPress={() => navigation.navigate("Notification")}>
-            <FontAwesome name="bell" size={20} color="black" />
-          </TouchableOpacity>
-        </View>
-
-        {guestExpiry && guestRemainingStr ? (
-          <TouchableOpacity
-            style={tw`bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3 flex-row justify-between`}
-            onPress={() => navigation.navigate("Signin")}
-          >
-            <Text style={tw`text-red-700 text-sm`}>
-              Guest access — {guestRemainingStr} left
-            </Text>
-            <Text style={tw`text-red-600 font-semibold`}>Upgrade</Text>
-          </TouchableOpacity>
-        ) : null}
-
-        <View
-          style={tw`flex-row items-center bg-gray-100 rounded-lg px-2 mb-3 border`}
-        >
-          <Ionicons name="search" size={18} color="#9CA3AF" />
-          <TextInput
-            style={tw`ml-2 flex-1 text-sm p-4`}
-            placeholder="Search businesses, offers, users"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            blurOnSubmit={false}
-          />
-        </View>
-        {searchQuery.length > 1 && (
-          <View style={tw`bg-white border rounded-lg mb-3`}>
-            {searchLoading && (
-              <Text style={tw`p-3 text-gray-500`}>Searching...</Text>
-            )}
-
-            {businessResults.length > 0 && (
-              <>
-                <Text style={tw`px-3 py-1 text-xs text-gray-500`}>
-                  Businesses
-                </Text>
-                {businessResults.map((item) => (
-                  <TouchableOpacity
-                    key={item._id}
-                    style={tw`px-3 py-2 border-b`}
-                    onPress={() =>
-                      navigation.navigate("BusinessDetail", { id: item._id })
-                    }
-                  >
-                    <Text style={tw`font-semibold`}>{item.companyName}</Text>
-                  </TouchableOpacity>
-                ))}
-              </>
-            )}
-
-            {offerResults.length > 0 && (
-              <>
-                <Text style={tw`px-3 py-1 text-xs text-gray-500`}>Offers</Text>
-                {offerResults.map((item) => (
-                  <TouchableOpacity
-                    key={item._id}
-                    style={tw`px-3 py-2 border-b`}
-                    onPress={() =>
-                      navigation.navigate("OfferDetails", { id: item._id })
-                    }
-                  >
-                    <Text>{item.title}</Text>
-                  </TouchableOpacity>
-                ))}
-              </>
-            )}
-
-            {userResults.length > 0 && (
-              <>
-                <Text style={tw`px-3 py-1 text-xs text-gray-500`}>Users</Text>
-                {userResults.map((item) => (
-                  <TouchableOpacity key={item._id} style={tw`px-3 py-2`}>
-                    <Text>{item.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </>
-            )}
-          </View>
-        )}
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={tw`mb-4`}
-        >
-          {tabs.map((item) => (
-            <TouchableOpacity
-              key={item.key}
-              onPress={() => handleTabPress(item.key)}
-              style={tw.style(
-                `px-4 py-2 mr-2 rounded-md border`,
-                activeTab === item.key
-                  ? "bg-red-100 border-red-500"
-                  : "bg-white border-gray-300"
-              )}
-            >
-              <Text
-                style={tw.style(
-                  `text-sm`,
-                  activeTab === item.key ? "text-red-600" : "text-gray-700"
-                )}
-              >
-                {item.label}
-              </Text>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={tw`px-4 pt-12 pb-3`}>
+          <View style={tw`flex-row justify-between items-center mb-4`}>
+            <TouchableOpacity onPress={toggleSidebar}>
+              <FontAwesome name="bars" size={24} color="black" />
             </TouchableOpacity>
-          ))}
-        </ScrollView>
 
-        <View style={tw`mb-2`}>
-          <View style={tw`flex-row justify-between mb-2`}>
-            <Text style={tw`font-extrabold text-lg`}>Latest News</Text>
-            {/* <Text style={tw`text-red-500 text-sm`}>See all News</Text> */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Notification")}
+            >
+              <FontAwesome name="bell" size={20} color="#d03030ff" />
+            </TouchableOpacity>
+          </View>
+          {guestExpiry && guestRemainingStr ? (
+            <TouchableOpacity
+              style={tw`bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3 flex-row justify-between`}
+              onPress={() => navigation.navigate("Signin")}
+            >
+              <Text style={tw`text-red-700 text-sm`}>
+                Guest access — {guestRemainingStr} left
+              </Text>
+              <Text style={tw`text-red-600 font-semibold`}>Upgrade</Text>
+            </TouchableOpacity>
+          ) : null}
+
+          <View
+            style={tw`flex-row items-center bg-gray-100 rounded-lg px-2 mb-3 border`}
+          >
+            <Ionicons name="search" size={18} color="#9CA3AF" />
+            <TextInput
+              style={tw`ml-2 flex-1 text-sm py-4`}
+              placeholder="Search businesses, offers, users"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              blurOnSubmit={false}
+            />
           </View>
 
-          <FlatList
-            data={newsData}
-            keyExtractor={(item) => item.id}
+          {searchQuery.length > 1 && (
+            <View
+              style={tw`bg-white border rounded-lg mb-4 shadow-md max-h-96`}
+            >
+              <ScrollView nestedScrollEnabled={true}>
+                {searchLoading ? (
+                  <View style={tw`p-4 items-center`}>
+                    <ActivityIndicator color="#EF4444" />
+                    <Text style={tw`text-gray-500 mt-2`}>Searching...</Text>
+                  </View>
+                ) : (
+                  <>
+                    {businessResults.length > 0 && (
+                      <View>
+                        <Text
+                          style={tw`px-4 pt-3 text-xs font-bold text-gray-600`}
+                        >
+                          BUSINESSES
+                        </Text>
+                        {businessResults.map((item) => (
+                          <TouchableOpacity
+                            key={item._id}
+                            style={tw`px-4 py-3 border-b border-gray-200`}
+                            onPress={() =>
+                              navigation.navigate("BusinessDetail", {
+                                id: item._id,
+                              })
+                            }
+                          >
+                            <Text style={tw`font-semibold text-base`}>
+                              {item.companyName}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+
+                    {offerResults.length > 0 && (
+                      <View>
+                        <Text
+                          style={tw`px-4 pt-3 text-xs font-bold text-gray-600`}
+                        >
+                          OFFERS
+                        </Text>
+                        {offerResults.map((item) => (
+                          <TouchableOpacity
+                            key={item._id}
+                            style={tw`px-4 py-3 border-b border-gray-200`}
+                            onPress={() =>
+                              navigation.navigate("OfferDetails", {
+                                id: item._id,
+                              })
+                            }
+                          >
+                            <Text style={tw`text-base`}>{item.title}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+
+                    {userResults.length > 0 && (
+                      <View>
+                        <Text
+                          style={tw`px-4 pt-3 pb-2 text-xs font-bold text-gray-600`}
+                        >
+                          USERS
+                        </Text>
+                        {userResults.map((item) => (
+                          <TouchableOpacity
+                            key={item._id}
+                            style={tw`px-4 py-3 border-b border-gray-200`}
+                          >
+                            <Text style={tw`text-base`}>{item.name}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+
+                    {businessResults.length === 0 &&
+                      offerResults.length === 0 &&
+                      userResults.length === 0 && (
+                        <Text style={tw`p-4 text-center text-gray-500`}>
+                          No results found
+                        </Text>
+                      )}
+                  </>
+                )}
+              </ScrollView>
+            </View>
+          )}
+
+          <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
+            style={tw`mb-4`}
+          >
+            {tabs.map((item) => (
               <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("NewsDetail", { newsId: item.id })
-                }
-                style={tw`mr-4 bg-white rounded-xl p-2 w-56`}
+                key={item.key}
+                onPress={() => handleTabPress(item.key)}
+                style={tw.style(
+                  `px-4 py-2 mr-2 rounded-md border`,
+                  activeTab === item.key
+                    ? "bg-red-100 border-red-500"
+                    : "bg-white border-gray-300"
+                )}
               >
-                <Image
-                  source={item.image}
-                  style={{ height: 120, borderRadius: 12 }}
-                  resizeMode="contain"
-                />
-                <Text style={tw`mt-2 font-bold text-sm`} numberOfLines={2}>
-                  {item.heading}
+                <Text
+                  style={tw.style(
+                    `text-sm font-medium`,
+                    activeTab === item.key ? "text-red-600" : "text-gray-700"
+                  )}
+                >
+                  {item.label}
                 </Text>
-                <Text style={tw`text-red-500 font-semibold`}>
-                  ${item.id === "1" ? "99.95" : "7,500 + GST"}
-                </Text>
-                <Text style={tw`text-gray-500 text-xs`}>{item.location}</Text>
               </TouchableOpacity>
-            )}
-          />
-        </View>
-      </View>
+            ))}
+          </ScrollView>
 
-      <FlatList
-        keyboardShouldPersistTaps="always"
-        keyboardDismissMode="none"
-        data={[{}]}
-        renderItem={() => (
-          <View style={tw`px-4`}>
-            <View style={tw`flex-row justify-between mb-2`}>
-              <Text style={tw`font-extrabold`}>
+          <View style={tw`mb-6`}>
+            <Text style={tw`font-extrabold text-lg mb-3`}>Latest News</Text>
+            <FlatList
+              data={newsData}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate("NewsDetail", { newsId: item.id })
+                  }
+                  style={tw`mr-4 bg-white rounded-xl shadow-md overflow-hidden w-56`}
+                >
+                  <Image
+                    source={item.image}
+                    style={{ height: 120, width: "100%" }}
+                    resizeMode="contain"
+                  />
+                  <View style={tw`p-3`}>
+                    <Text style={tw`font-bold text-sm`} numberOfLines={2}>
+                      {item.heading}
+                    </Text>
+                    <Text style={tw`text-red-500 font-semibold mt-1`}>
+                      ${item.id === "1" ? "99.95" : "7,500 + GST"}
+                    </Text>
+                    <Text style={tw`text-gray-500 text-xs mt-1`}>
+                      {item.location}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+          <View style={tw`mb-6`}>
+            <View style={tw`flex-row justify-between items-center mb-3`}>
+              <Text style={tw`font-extrabold text-lg`}>
                 {activeTab === "all" ? "All Events" : `${activeTab} Events`}
               </Text>
               <TouchableOpacity onPress={() => navigation.navigate("social")}>
-                <Text style={tw`text-red-500 text-sm`}>See all Events</Text>
+                <Text style={tw`text-red-500 font-medium`}>See all Events</Text>
               </TouchableOpacity>
             </View>
+
             <Cards stateFilter={activeTab} limit={10} />
           </View>
-        )}
-        keyExtractor={() => "events"}
-      />
-
-      <Drawer isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        </View>
+      </ScrollView>
     </View>
   );
 }
