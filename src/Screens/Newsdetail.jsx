@@ -21,6 +21,7 @@ const newsData = [
     detail:
       "A collaboration between GBS and Brunswick Aces celebrating mateship, grit, and good humour. This isn't just gin—it's pure GBS spirit in a bottle.\n\nOrder now: Price: $99.95 Pickup: Brunswick Aces, Brunswick East Delivery: FREE in VIC | Small charge interstate",
     link: null,
+    link: "https://brunswickaces.com/products/gbs-london-dry-gin",
     image: require("../../assets/news1.jpeg"),
   },
   {
@@ -96,7 +97,7 @@ export default function NewsDetail() {
             style={tw`bg-red-500 py-3 px-6 rounded-lg mb-6`}
           >
             <Text style={tw`text-white text-center font-bold text-lg`}>
-              Order Now / Visit Link
+              Visit Link
             </Text>
           </TouchableOpacity>
         )}
