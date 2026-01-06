@@ -563,14 +563,18 @@ const Cards = ({
   };
 
   const filteredEvents = useMemo(() => {
-    return events
-      .filter((event) => isEventUpcoming(event))
-      .filter(
-        (event) =>
-          stateFilter.toLowerCase() === "all" ||
-          getStateFromEvent(event) === stateFilter.toUpperCase()
-      )
-      .slice(0, limit);
+    return (
+      events
+        .filter((event) => isEventUpcoming(event))
+        // hide events explicitly marked as not public
+        .filter((event) => event.isPublic !== false)
+        .filter(
+          (event) =>
+            stateFilter.toLowerCase() === "all" ||
+            getStateFromEvent(event) === stateFilter.toUpperCase()
+        )
+        .slice(0, limit)
+    );
   }, [events, stateFilter, limit]);
 
   // ✅ Format DateTime
@@ -609,7 +613,7 @@ const Cards = ({
       <Image
         source={source}
         style={tw`w-full h-full`}
-        resizeMode="cover"
+        resizeMode="contain"
         onError={() => setImageError(true)}
       />
     );
@@ -656,17 +660,15 @@ const Cards = ({
             <Text style={tw`font-semibold`}>Details: </Text>
             {item?.description || "No details available"}
           </Text>
-          <Text style={tw`text-sm text-black mb-1`}>
+          {/* <Text style={tw`text-sm text-black mb-1`}>
             <Text style={tw`font-semibold`}>Seats: </Text>
             {seats}
-          </Text>
+          </Text> */}
         </View>
 
         {/* RIGHT SIDE */}
         <View style={tw`w-32 items-center`}>
-          <View
-            style={tw`w-full h-32 mb-2 border border-gray-300 rounded-lg overflow-hidden bg-gray-100`}
-          >
+          <View style={tw`w-full h-32 mb-2  rounded-lg overflow-hidden `}>
             <EventImage imageUrl={item?.listOfImages?.[0]?.imageFileName} />
           </View>
 
