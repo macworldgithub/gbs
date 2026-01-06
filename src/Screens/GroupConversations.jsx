@@ -702,6 +702,7 @@ export default function GroupConversations({ navigation }) {
     loadData();
   }, [activeTab]);
 
+ 
   const toggleJoinLeave = async (id) => {
     const token = await getAuthToken();
     const joined = joinedGroupIds.includes(id);
@@ -764,7 +765,7 @@ export default function GroupConversations({ navigation }) {
 
         {!joined && !isAnnouncements && (
           <Text style={tw`text-center text-gray-800 text-xs py-1`}>
-            You are not a contributor to this group. 
+            You are not a contributor to this group.
           </Text>
         )}
       </View>
