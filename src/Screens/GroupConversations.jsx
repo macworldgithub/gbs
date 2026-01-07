@@ -119,12 +119,23 @@ export default function GroupConversations({ navigation }) {
     }
   };
 
+  // const openChat = (group) => {
+  //   navigation.navigate("GroupChat", {
+  //     conversationId: group._id,
+  //     readOnly: group.groupName === "Announcements",
+  //   });
+  // };
   const openChat = (group) => {
     navigation.navigate("GroupChat", {
       conversationId: group._id,
+      group: {
+        // Pass the group object with name
+        name: group.groupName, // Make sure to use the correct field name
+        groupImage: group.groupImage, // Also pass group image if available
+      },
       readOnly: group.groupName === "Announcements",
     });
-  };
+  };+3
 
   // ================= RENDER ITEM =================
   const renderGroup = ({ item }) => {
