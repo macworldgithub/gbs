@@ -43,7 +43,6 @@ export default function Conversations({ navigation }) {
           ? data.conversations.filter((c) => !c.isGroup)
           : [];
 
-
         const mapped = conversations.map((c) => {
           const other =
             (c.participants || []).find((p) => p._id !== myUserId) || {};
@@ -112,6 +111,28 @@ export default function Conversations({ navigation }) {
       </View>
     </TouchableOpacity>
   );
+  const EmptyConversations = () => {
+    return (
+      <View style={tw`flex-1 justify-center items-center mt-20 px-6`}>
+        <MaterialIcons name="chat-bubble-outline" size={64} color="#9CA3AF" />
+
+        <Text style={tw`text-lg font-semibold text-gray-800 mt-4`}>
+          No conversations yet
+        </Text>
+
+        <Text style={tw`text-sm text-gray-500 text-center mt-2`}>
+          Start a conversation to connect with others.
+        </Text>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Directory")}
+          style={tw`mt-6 bg-red-600 px-6 py-3 rounded-full`}
+        >
+          <Text style={tw`text-white font-bold`}>Start Conversation</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
     <View style={tw`flex-1 bg-white mt-0`}>
@@ -130,6 +151,8 @@ export default function Conversations({ navigation }) {
           data={items}
           keyExtractor={(i) => i.id}
           renderItem={renderItem}
+          ListEmptyComponent={!loading ? <EmptyConversations /> : null}
+          contentContainerStyle={items.length === 0 ? tw`flex-1` : null}
         />
       )}
     </View>
