@@ -23,7 +23,13 @@ import EditBusinessModal from "../../components/EditBusinessModal";
 import axios from "axios";
 import { Picker } from "@react-native-picker/picker";
 
-const ActionMenuModal = ({ visible, onClose, onAddOffer, onAddMember, onAddGallery }) => {
+const ActionMenuModal = ({
+  visible,
+  onClose,
+  onAddOffer,
+  onAddMember,
+  onAddGallery,
+}) => {
   return (
     <Modal
       animationType="fade"
@@ -31,7 +37,9 @@ const ActionMenuModal = ({ visible, onClose, onAddOffer, onAddMember, onAddGalle
       visible={visible}
       onRequestClose={onClose}
     >
-      <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+      <View
+        style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}
+      >
         <View style={tw`bg-white rounded-2xl p-4 w-3/4`}>
           <TouchableOpacity
             style={tw`border border-red-500 rounded-lg py-2 mb-2 items-center`}
@@ -40,7 +48,9 @@ const ActionMenuModal = ({ visible, onClose, onAddOffer, onAddMember, onAddGalle
               onClose();
             }}
           >
-            <Text style={tw`text-white font-medium text-gray-500`}>Add Offer</Text>
+            <Text style={tw`text-white font-medium text-gray-500`}>
+              Add Offer
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={tw`border border-red-500  rounded-lg py-2 mb-2 items-center`}
@@ -49,7 +59,9 @@ const ActionMenuModal = ({ visible, onClose, onAddOffer, onAddMember, onAddGalle
               onClose();
             }}
           >
-            <Text style={tw`text-white font-medium text-gray-500`}>Add Member</Text>
+            <Text style={tw`text-white font-medium text-gray-500`}>
+              Add Member
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -70,7 +82,7 @@ const AddMemberModal = ({ visible, onClose, businessId }) => {
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
 
-   useEffect(() => {
+  useEffect(() => {
     if (visible) {
       fetchAllUsers();
     }
@@ -155,22 +167,23 @@ const AddMemberModal = ({ visible, onClose, businessId }) => {
     }
   };
 
-
   return (
-     <Modal
+    <Modal
       animationType="slide"
       transparent={true}
       visible={visible}
       onRequestClose={onClose}
     >
-      <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
+      <View
+        style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}
+      >
         <View style={tw`bg-white rounded-lg p-6 w-5/6 max-w-md`}>
           <Text style={tw`text-xl font-bold mb-4 text-center`}>Add Member</Text>
-          
+
           <Text style={tw`text-sm text-gray-600 mb-4 text-center`}>
             Select a user to add to your business
           </Text>
-          
+
           {usersLoading ? (
             <ActivityIndicator size="small" color="#0000ff" />
           ) : (
@@ -181,16 +194,16 @@ const AddMemberModal = ({ visible, onClose, businessId }) => {
               >
                 <Picker.Item label="Select a user" value="" />
                 {users.map((user) => (
-                  <Picker.Item 
-                    key={user._id} 
-                    label={`${user.name}`} 
-                    value={user._id} 
+                  <Picker.Item
+                    key={user._id}
+                    label={`${user.name}`}
+                    value={user._id}
                   />
                 ))}
               </Picker>
             </View>
           )}
-          
+
           <TouchableOpacity
             style={tw`bg-red-500 rounded-lg py-3 mb-3 items-center ${loading ? "opacity-50" : ""}`}
             onPress={handleAddMember}
@@ -202,7 +215,7 @@ const AddMemberModal = ({ visible, onClose, businessId }) => {
               <Text style={tw`text-black font-medium`}>Add Member</Text>
             )}
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={tw`border border-red-500 rounded-lg py-3 items-center`}
             onPress={onClose}
@@ -537,9 +550,16 @@ export default function MyBusiness() {
       </View>
 
       {businesses.length === 0 ? (
-        <Text style={tw`text-gray-500 text-center mt-10`}>
-          No businesses found.
-        </Text>
+        <View style={tw`flex-1 justify-center items-center px-8 -mt-16`}>
+          <MaterialIcons name="business" size={80} color="#DC2626" />
+          <Text style={tw`text-2xl font-bold text-gray-800 mt-6 text-center`}>
+            No Businesses Yet
+          </Text>
+          <Text style={tw`text-base text-gray-600 text-center mt-4 leading-6`}>
+            You haven't added any businesses to your profile yet. Start by
+            creating your first business to showcase your services!
+          </Text>
+        </View>
       ) : (
         <FlatList
           data={businesses}
