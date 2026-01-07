@@ -89,6 +89,7 @@ export default function NewsDetail() {
           style={tw`text-base text-gray-700 leading-6 mb-6 whitespace-pre-line`}
         >
           {news.detail}
+          
         </Text>
 
         {news.link && (

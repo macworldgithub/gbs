@@ -100,6 +100,9 @@ export default function DirectoryDetail({ route, navigation }) {
             <Text style={tw`text-gray-500 mt-1`}>
               State: {user.state || "N/A"}
             </Text>
+            <Text style={tw`text-gray-500`}>
+              location: {user.city || "N/A"}
+            </Text>
           </View>
 
           {/* Anniversary / Member info card: include Member since, Business and Interested In here */}
