@@ -303,7 +303,7 @@ export default function Signup() {
         {/* Short Bio */}
         <View style={tw`border rounded-xl px-4 py-1 mb-2`}>
           <TextInput
-            placeholder="Write a short bio"
+            placeholder="Write a short bio (no location or address)"
             placeholderTextColor="black"
             style={tw`text-sm text-gray-700`}
             value={shortBio}

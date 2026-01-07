@@ -83,6 +83,7 @@ import StripeCheckout from "./src/Screens/StripeCheckout";
 import CodeOfConduct from "./src/Screens/CodeOfConduct";
 import GBSMemberValues from "./src/Screens/GBSMemberValues";
 import MembershipDetails from "./src/Screens/MembershipDetails";
+// import NewsDetail from "./src/Screens/Newsdetail";
 import NewsDetail from "./src/Screens/Newsdetail";
 
 const Stack = createStackNavigator();
