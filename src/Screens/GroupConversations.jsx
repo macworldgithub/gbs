@@ -133,9 +133,11 @@ export default function GroupConversations({ navigation }) {
         name: group.groupName, // Make sure to use the correct field name
         groupImage: group.groupImage, // Also pass group image if available
       },
+      participants: group.participants || [],
       readOnly: group.groupName === "Announcements",
     });
-  };+3
+  };
+  +3;
 
   // ================= RENDER ITEM =================
   const renderGroup = ({ item }) => {

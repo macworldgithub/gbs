@@ -1058,6 +1058,7 @@ export default function GroupChat() {
       );
 
       Alert.alert("Success", "Participant added successfully");
+      await fetchMessages(1);
       setShowAddParticipant(false);
       // Refresh participants list
       loadAvailableUsers();
@@ -1105,6 +1106,7 @@ export default function GroupChat() {
                 prev.filter((p) => (p._id || p.id) !== userId)
               );
               // Refresh available users for adding
+              await fetchMessages(1);
               loadAvailableUsers();
             } catch (e) {
               Alert.alert(

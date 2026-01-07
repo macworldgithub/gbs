@@ -236,14 +236,14 @@ export default function NotificationForm({
           mode="datetime"
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={(e, date) => {
-            setShowStartPicker(Platform.OS === "ios"); 
+            setShowStartPicker(Platform.OS === "ios");
             if (date) {
               setFormData((p) => ({ ...p, startDate: date }));
             }
           }}
         />
       )}
-      {showStartPicker && (
+      {/* {showStartPicker && (
         <DateTimePicker
           value={formData.startDate || new Date()}
           mode="datetime"
@@ -261,7 +261,7 @@ export default function NotificationForm({
             setFormData((p) => ({ ...p, startDate: date }));
           }}
         />
-      )}
+      )} */}
       <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
       <TouchableOpacity
         onPress={() => setShowEndPicker(true)}
@@ -279,14 +279,14 @@ export default function NotificationForm({
           mode="datetime"
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={(e, date) => {
-            setShowEndPicker(Platform.OS === "ios"); 
+            setShowEndPicker(Platform.OS === "ios");
             if (date) {
               setFormData((p) => ({ ...p, endDate: date }));
             }
           }}
         />
       )}
-      {showEndPicker && (
+      {/* {showEndPicker && (
         <DateTimePicker
           value={formData.endDate || new Date()}
           mode="datetime"
@@ -303,7 +303,8 @@ export default function NotificationForm({
             setFormData((p) => ({ ...p, endDate: date }));
           }}
         />
-      )}
+      )} */}
+
       {/* <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text> */}
       {/* <TouchableOpacity
         onPress={() => setShowEndPicker(true)}
@@ -315,7 +316,7 @@ export default function NotificationForm({
             : "Select end date"}
         </Text>
       </TouchableOpacity> */}
-      ß
+      {/* ß
       {showEndPicker && (
         <DateTimePicker
           value={formData.endDate || new Date()}
@@ -334,7 +335,8 @@ export default function NotificationForm({
             }
           }}
         />
-      )}
+      )} */}
+
       {/* Send to All */}
       {/* <View style={tw`flex-row items-center mt-4`}>
         <Text style={tw`flex-1 text-sm text-gray-700`}>Send to World</Text>
