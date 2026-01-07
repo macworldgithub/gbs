@@ -1605,7 +1605,8 @@ export default function GroupChat() {
           </TouchableOpacity>
           <View>
             <Text style={tw`font-semibold text-base`}>
-              {group?.name || "Group"}
+              {/* {group?.name || "Group"} */}
+              {group?.name || route.params?.groupName || "Group"}
             </Text>
             <Text style={tw`text-xs text-gray-500`}>Group Conversation</Text>
           </View>
@@ -1792,7 +1793,7 @@ export default function GroupChat() {
                     source={require("../../assets/user.jpg")}
                     style={tw`w-10 h-10 rounded-full mr-3`}
                   />
-                
+
                   <View style={tw`flex-1`}>
                     <Text style={tw`text-black font-semibold`}>
                       {user.name || "Unnamed"}
