@@ -58,6 +58,9 @@ export default function GroupChat() {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [groupImage, setGroupImage] = useState(initialGroupImage);
+  // Add these two lines after your other state declarations (around line 55)
+  const [searchQuery, setSearchQuery] = useState(""); // ✅ ADD THIS
+  const [filteredUsers, setFilteredUsers] = useState([]); // ✅ ADD THIS
 
   console.log(groupImage, "group image");
 
@@ -74,6 +77,7 @@ export default function GroupChat() {
     })();
   }, []);
 
+  // Load available users for adding participants
   // Load available users for adding participants
   // Load available users for adding participants
   const loadAvailableUsers = async () => {
@@ -94,9 +98,11 @@ export default function GroupChat() {
           u?._id && u._id !== meId && !currentParticipantIds.includes(u._id)
       );
       setAvailableUsers(filtered);
+      setFilteredUsers(filtered); // ✅ ALSO SET FILTERED USERS
     } catch (e) {
       console.log("load available users error", e.response?.data || e.message);
       setAvailableUsers([]);
+      setFilteredUsers([]); // ✅ ALSO SET FILTERED USERS
     } finally {
       setLoadingUsers(false); // ✅ STOP LOADING (even if error occurs)
     }
@@ -126,6 +132,7 @@ export default function GroupChat() {
       Alert.alert("Success", "Participant added successfully");
       await fetchMessages(1);
       setShowAddParticipant(false);
+      setSearchQuery("");
       // Refresh participants list
       loadAvailableUsers();
     } catch (e) {
@@ -171,6 +178,7 @@ export default function GroupChat() {
               setParticipants((prev) =>
                 prev.filter((p) => (p._id || p.id) !== userId)
               );
+              setSearchQuery("");
               // Refresh available users for adding
               await fetchMessages(1);
               loadAvailableUsers();
@@ -434,7 +442,22 @@ export default function GroupChat() {
       Alert.alert("Error", "Failed to capture image");
     }
   };
+  // Add this function after loadAvailableUsers function
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setFilteredUsers(availableUsers); // Show all users when search is empty
+      return;
+    }
 
+    const lowercasedQuery = query.toLowerCase();
+    const filtered = availableUsers.filter(
+      (user) =>
+        (user.name && user.name.toLowerCase().includes(lowercasedQuery)) ||
+        (user.email && user.email.toLowerCase().includes(lowercasedQuery))
+    );
+    setFilteredUsers(filtered);
+  };
   const pickMedia = () => {
     if (isPickingRef.current) return;
     isPickingRef.current = true;
@@ -851,6 +874,30 @@ export default function GroupChat() {
               </TouchableOpacity>
             </View>
 
+            {/* ✅ SEARCH INPUT */}
+            <View
+              style={tw`flex-row items-center bg-gray-100 rounded-lg px-3 py-2 mb-4`}
+            >
+              <Ionicons name="search" size={20} color="gray" />
+              <TextInput
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChangeText={handleSearch}
+                style={tw`flex-1 ml-2 text-black`}
+                placeholderTextColor="gray"
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setSearchQuery("");
+                    setFilteredUsers(availableUsers);
+                  }}
+                >
+                  <Ionicons name="close-circle" size={20} color="gray" />
+                </TouchableOpacity>
+              )}
+            </View>
+
             <ScrollView>
               {/* ✅ SHOW LOADER WHILE LOADING */}
               {loadingUsers ? (
@@ -860,9 +907,9 @@ export default function GroupChat() {
                     Loading users...
                   </Text>
                 </View>
-              ) : availableUsers.length > 0 ? (
-                // ✅ SHOW USERS WHEN LOADED
-                availableUsers.map((user) => (
+              ) : filteredUsers.length > 0 ? (
+                // ✅ SHOW FILTERED USERS WHEN LOADED
+                filteredUsers.map((user) => (
                   <TouchableOpacity
                     key={user._id}
                     onPress={() => addParticipant(user._id)}
@@ -886,10 +933,28 @@ export default function GroupChat() {
                   </TouchableOpacity>
                 ))
               ) : (
-                // ✅ SHOW EMPTY STATE WHEN NO USERS (after loading)
-                <Text style={tw`text-gray-500 text-center py-10`}>
-                  No users available to add
-                </Text>
+                // ✅ SHOW EMPTY STATE WHEN NO USERS FOUND
+                <View style={tw`py-10 items-center`}>
+                  <Ionicons name="search-outline" size={48} color="#d1d5db" />
+                  <Text style={tw`text-gray-500 text-center text-sm mt-2`}>
+                    {searchQuery.trim()
+                      ? `No users found for "${searchQuery}"`
+                      : "No users available to add"}
+                  </Text>
+                  {searchQuery.trim() && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSearchQuery("");
+                        setFilteredUsers(availableUsers);
+                      }}
+                      style={tw`mt-2`}
+                    >
+                      <Text style={tw`text-blue-500 text-sm`}>
+                        Clear search
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               )}
             </ScrollView>
           </View>
