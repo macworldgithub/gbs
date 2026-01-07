@@ -98,7 +98,7 @@ export default function GroupChat() {
           u?._id && u._id !== meId && !currentParticipantIds.includes(u._id)
       );
       setAvailableUsers(filtered);
-      setFilteredUsers(filtered); // ✅ ALSO SET FILTERED USERS
+      setFilteredUsers(filtered);
     } catch (e) {
       console.log("load available users error", e.response?.data || e.message);
       setAvailableUsers([]);
@@ -174,12 +174,12 @@ export default function GroupChat() {
               );
 
               Alert.alert("Success", "Participant removed successfully");
-              // Remove from local participants list
+
               setParticipants((prev) =>
                 prev.filter((p) => (p._id || p.id) !== userId)
               );
               setSearchQuery("");
-              // Refresh available users for adding
+
               await fetchMessages(1);
               loadAvailableUsers();
             } catch (e) {
@@ -209,7 +209,7 @@ export default function GroupChat() {
       if (msg?.conversationId !== conversationId) return;
       setMessages((prev) => {
         const incoming = formatMessage(msg);
-        // if an optimistic sending bubble exists, drop the first one of same type
+
         const next = [...prev];
         if (incoming.fromMe) {
           const idx = next.findIndex(
@@ -231,7 +231,7 @@ export default function GroupChat() {
         s.emit("markAsRead", { conversationId, messageIds: [msg._id] });
       }
     });
-    // acknowledge to replace optimistic temp id
+
     s.off("messageSent");
     s.on("messageSent", (data) => {
       const realId = data?.messageId;
@@ -243,7 +243,7 @@ export default function GroupChat() {
           next[idx] = { ...next[idx], id: realId, status: "sent" };
         return next;
       });
-      // refresh to ensure signed URLs are attached
+
       setTimeout(() => {
         fetchMessages();
       }, 200);
@@ -269,11 +269,10 @@ export default function GroupChat() {
     };
   }, [token, conversationId, myUserId]);
 
-  // ✅ Fetch messages
   const fetchMessages = async (newPage = 1, append = false) => {
     if (!token || !myUserId || !conversationId) return;
     if (isLoadingOlder) return; // Prevent multiple fetches
-    setIsLoadingOlder(newPage > 1); // Show loader only for older messages
+    setIsLoadingOlder(newPage > 1);
     try {
       const res = await axios.get(
         `${API_BASE_URL}/messages/conversation/${conversationId}?page=${newPage}&limit=30`,
