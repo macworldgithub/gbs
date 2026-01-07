@@ -311,7 +311,7 @@ const Offers = ({ navigation }) => {
               No offers available for "{activeTab}" right now.
             </Text>
           )}
-
+          {/* CHAT IS WORKING */}
           {offers.map((offer) => (
             <TouchableOpacity
               key={offer._id}
