@@ -1789,9 +1789,10 @@ export default function GroupChat() {
                   style={tw`flex-row items-center p-3 border-b border-gray-200`}
                 >
                   <Image
-                    source={require("../../assets/user.png")}
+                    source={require("../../assets/user.jpg")}
                     style={tw`w-10 h-10 rounded-full mr-3`}
                   />
+                
                   <View style={tw`flex-1`}>
                     <Text style={tw`text-black font-semibold`}>
                       {user.name || "Unnamed"}
@@ -1840,7 +1841,7 @@ export default function GroupChat() {
                 >
                   <View style={tw`flex-row items-center flex-1`}>
                     <Image
-                      source={require("../../assets/user.png")}
+                      source={require("../../assets/user.jpg")}
                       style={tw`w-10 h-10 rounded-full mr-3`}
                     />
                     <View style={tw`flex-1`}>

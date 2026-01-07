@@ -7,7 +7,7 @@ import tw from 'tailwind-react-native-classnames';
 export default function QRCodeScreen({ navigation }) {
   const user = {
     name: 'Olivia Nguyen',
-    avatar: require('../../assets/user.png'),
+    avatar: require('../../assets/user.jpg'),
     qrValue: 'https://example.com/user/olivia-nguyen',
   };
 
