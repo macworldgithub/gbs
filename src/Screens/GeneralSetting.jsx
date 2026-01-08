@@ -9,12 +9,6 @@ const GeneralSetting = () => {
 
   const settings = [
     {
-      title: "About EVNC",
-      description: "Learn more about the EVNC community and our mission",
-      value: "Version 1.0.0.1",
-      screen: "AboutEVNC",
-    },
-    {
       title: "Term of Use",
       description: "",
       value: "",

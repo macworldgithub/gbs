@@ -85,6 +85,7 @@ import GBSMemberValues from "./src/Screens/GBSMemberValues";
 import MembershipDetails from "./src/Screens/MembershipDetails";
 // import NewsDetail from "./src/Screens/Newsdetail";
 import NewsDetail from "./src/Screens/Newsdetail";
+import TermsOfUse from "./src/Screens/TermOfUse";
 
 const Stack = createStackNavigator();
 export default function App() {
@@ -486,6 +487,7 @@ export default function App() {
             <Stack.Screen name="ViewProfile" component={ViewProfile} />
             <Stack.Screen name="VideoScreen" component={VideoScreen} />
             <Stack.Screen name="CodeOfConduct" component={CodeOfConduct} />
+            <Stack.Screen name="TermsOfUse" component={TermsOfUse} />
             <Stack.Screen name="GBSMemberValues" component={GBSMemberValues} />
             <Stack.Screen
               name="MembershipDetails"
