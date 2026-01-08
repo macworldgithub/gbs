@@ -57,7 +57,7 @@ export default function AllChat() {
       style={tw`flex-row items-center p-3 border-b border-gray-200`}
     >
       <Image
-        source={require('../../assets/user.png')}
+        source={require('../../assets/user.jpg')}
         style={tw`w-12 h-12 rounded-full`}
       />
       <View style={tw`flex-1 ml-3`}>

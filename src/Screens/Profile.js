@@ -47,7 +47,12 @@ const menuItems = [
     icon: "cogs",
     navigateTo: "GeneralSetting",
   },
-  { id: "6", label: "Help Centre", icon: "calendar-day", navigateTo: "Help" },
+  {
+    id: "6",
+    label: "Help Centre",
+    icon: "question-circle",
+    navigateTo: "Faqs",
+  },
 ];
 
 const requestCameraPermission = async () => {

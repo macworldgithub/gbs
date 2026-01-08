@@ -139,96 +139,17 @@ const BusinessPage = ({ navigation }) => {
   };
 
   // Handle package selection and API call
-  const handlePackageSelection = async (role) => {
-    try {
-      // Set selected package for visual feedback first
-      setSelectedPackage(role);
-      setPackageLoading(true);
+  const handlePackageSelection = (role) => {
+    setPackagesModalVisible(false);
+    setSelectedPackage(null);
 
-      const userData = await getUserData();
-      const token = userData?.token;
-
-      if (!token) {
-        setError("No token found, please login again.");
-        setPackageLoading(false);
-        return;
-      }
-
-      const requestBody = {
-        role: role._id,
-        startDate: new Date().toISOString(),
-        months: 3,
-        trial: false,
-      };
-
-      const response = await axios.post(
-        `${API_BASE_URL}/user-package`,
-        requestBody,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("Package selection response:", response.data);
-
-      // Close modal and refresh businesses
-      setPackagesModalVisible(false);
-      setSelectedPackage(null);
-
-      // Persist selected package immediately to AsyncStorage to avoid waiting on refresh
-      try {
-        const existingUser = await getUserData();
-        const serverPkg =
-          response?.data?.activatedPackage ||
-          response?.data?.userPackage ||
-          null;
-        const constructedPkg = serverPkg || {
-          role: { _id: role._id, name: role.name, label: role.label },
-          startDate: new Date().toISOString(),
-          endDate: new Date(
-            new Date().setMonth(new Date().getMonth() + 3)
-          ).toISOString(),
-        };
-
-        const mergedUser = existingUser
-          ? { ...existingUser, activatedPackage: constructedPkg }
-          : { activatedPackage: constructedPkg };
-        await AsyncStorage.setItem("userData", JSON.stringify(mergedUser));
-        await AsyncStorage.setItem(
-          "currentPackage",
-          JSON.stringify(constructedPkg)
-        );
-        console.log(
-          "[BusinessPage] Persisted currentPackage immediately:",
-          constructedPkg
-        );
-      } catch (persistErr) {
-        console.log(
-          "[BusinessPage] Failed to persist currentPackage:",
-          persistErr
-        );
-      }
-
-      // Try to refresh in background (best-effort) and then reload listings
-      refreshUserData().finally(() => {
-        fetchBusinesses();
-      });
-
-      Alert.alert("Success", "Package selected successfully!");
-    } catch (error) {
-      console.error(
-        "Error selecting package:",
-        error.response?.data || error.message
-      );
-      Alert.alert("Error", "Failed to select package. Please try again.");
-      // Reset selected package on error
-      setSelectedPackage(null);
-    } finally {
-      setPackageLoading(false);
-    }
+    navigation.navigate("StripeCheckout", {
+      roleId: role._id,
+      label: role.label,
+      months: 12,
+      trial: false,
+      startDate: new Date().toISOString(),
+    });
   };
 
   // Refresh user data from server (via /user?id=<userId>)

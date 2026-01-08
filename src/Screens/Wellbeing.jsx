@@ -159,10 +159,46 @@
 //   );
 // }
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Alert,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 import { Linking } from "react-native";
+
+// Small inline contact button that renders as pressable text
+const ContactButton = ({ text, onPress, color = "green" }) => {
+  return (
+    <Text
+      onPress={() => onPress && onPress(text)}
+      style={{ color: color, fontWeight: "700" }}
+    >
+      {text}
+    </Text>
+  );
+};
+
+const handleCallPress = async (rawNumber) => {
+  try {
+    if (!rawNumber) return;
+    const sanitized = rawNumber.replace(/[^+0-9]/g, "");
+    const tel = `tel:${sanitized}`;
+    const supported = await Linking.canOpenURL(tel);
+    if (supported) {
+      await Linking.openURL(tel);
+    } else {
+      Alert.alert("Cannot make call", "This device cannot make phone calls.");
+    }
+  } catch (e) {
+    console.error("Error opening dialer:", e);
+    Alert.alert("Error", "Unable to open phone dialer.");
+  }
+};
 
 export default function WellbeingScreen({ navigation }) {
   const [expandedId, setExpandedId] = useState(null);
@@ -240,7 +276,14 @@ export default function WellbeingScreen({ navigation }) {
 
           <Text style={tw`text-sm text-gray-600`}>
             If you need support or just want to have a confidential chat, call
-            the GBS Team on <Text style={tw`font-bold`}>1300 071 215</Text>.
+            the GBS Team on
+            {/* <Text style={tw`font-bold`}>1300 071 215</Text>. */}
+            <ContactButton
+              icon="call"
+              text="1300 07 12 15"
+              onPress={handleCallPress}
+              color="green"
+            />
           </Text>
         </View>
       </View>

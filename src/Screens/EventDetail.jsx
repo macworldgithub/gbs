@@ -385,7 +385,7 @@ const EventDetail = () => {
         <Image
           source={{ uri: heroImage }}
           style={tw`w-full h-48 rounded-xl mb-5`}
-          resizeMode="cover"
+          resizeMode="contain"
         />
       )}
 
@@ -470,7 +470,7 @@ const EventDetail = () => {
         </Text> */}
       </View>
 
-      {event.bookingUrl && bookingAvailable && (
+      {event.bookingUrl && (
         <TouchableOpacity
           onPress={() => Linking.openURL(event.bookingUrl)}
           style={tw`bg-red-600 py-4 rounded-xl items-center mb-10`}

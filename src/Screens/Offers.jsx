@@ -36,6 +36,29 @@ const Offers = ({ navigation }) => {
     loadUser();
   }, []);
 
+  const getFriendlyOfferMessage = (error) => {
+    const backendMessage = error?.response?.data?.message;
+    const statusCode = error?.response?.status;
+
+    // 404 but valid response (like "no active package")
+    if (statusCode === 404 && backendMessage) {
+      return backendMessage;
+    }
+
+    // Token / auth issues
+    if (statusCode === 401) {
+      return "Your session has expired. Please log in again.";
+    }
+
+    // Network issue
+    if (!error?.response) {
+      return "We couldn’t connect to the server. Please check your internet.";
+    }
+
+    // Fallback
+    return "No offers are available for you at the moment.";
+  };
+
   const fetchOffers = async (tab) => {
     try {
       setLoading(true);
@@ -46,25 +69,26 @@ const Offers = ({ navigation }) => {
 
       if (!token) {
         setError("No token found, please login again.");
-        setLoading(false);
         return;
       }
 
       let url = `${API_BASE_URL}/offer/search`;
+
       if (tab === "Member Offers") {
-        url += `?offerType=Member`;
-      } else if (tab === "Partner Deals") {
-        url += `?offerType=Partner`;
+        url += "?offerType=Member";
       }
 
       const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setOffers(res.data.offers || []);
+      setOffers(res.data.offers ?? []);
     } catch (err) {
-      console.error("Error fetching offers:", err);
-      setError("Failed to fetch offers");
+      console.error("Fetch offers error:", err?.response?.data || err.message);
+
+      const friendlyMessage = getFriendlyOfferMessage(err);
+      setError(friendlyMessage);
+      setOffers([]); // important to clear old data
     } finally {
       setLoading(false);
     }
@@ -135,8 +159,16 @@ const Offers = ({ navigation }) => {
     }
   };
 
+  // useEffect(() => {
+  //   fetchOffers(activeTab);
+  // }, [activeTab]);
   useEffect(() => {
-    fetchOffers(activeTab);
+    if (activeTab !== "Noticeboard") {
+      fetchOffers(activeTab);
+    } else {
+      setError(null);
+      setLoading(false);
+    }
   }, [activeTab]);
 
   const submitNotice = async () => {
@@ -222,7 +254,16 @@ const Offers = ({ navigation }) => {
 
       {/* Loading/Error */}
       {loading && <Text style={tw`text-center text-gray-500`}>Loading...</Text>}
-      {error && <Text style={tw`text-center text-red-500`}>{error}</Text>}
+      {/* {error && <Text style={tw`text-center text-red-500`}>{error}</Text>}
+       */}
+      {error && activeTab !== "Noticeboard" && !loading && (
+        <View style={tw`mt-6 items-center`}>
+          <Text style={tw`text-gray-700 text-base text-center`}>{error}</Text>
+          <Text style={tw`text-gray-400 text-sm mt-1 text-center`}>
+            You’ll see offers here once they become available.
+          </Text>
+        </View>
+      )}
 
       {/* No Offers */}
       {/* NOTICEBOARD VIEW */}
@@ -270,7 +311,7 @@ const Offers = ({ navigation }) => {
               No offers available for "{activeTab}" right now.
             </Text>
           )}
-
+          {/* CHAT IS WORKING */}
           {offers.map((offer) => (
             <TouchableOpacity
               key={offer._id}

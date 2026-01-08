@@ -319,6 +319,7 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -477,40 +478,6 @@ export default function MembersDirectory({ navigation }) {
     prefetchConversations();
   }, [token, myUserId]);
 
-  // ✅ Ensure conversation exists, then open Chat
-  // const openChat = async (user) => {
-  //   try {
-  //     if (!token) {
-  //       console.warn("Missing token; navigating anyway");
-  //       navigation.navigate("Chat", { user });
-  //       return;
-  //     }
-
-  //     const res = await fetch(`${API_BASE_URL}/messages/conversation`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify({ recipientId: user.id }),
-  //     });
-  //     const conv = await res.json();
-  //     if (!res.ok) {
-  //       console.error("❌ startConversation error:", conv);
-  //       navigation.navigate("Chat", { user });
-  //       return;
-  //     }
-
-  //     setChatStatus((prev) => ({ ...prev, [user.id]: "continue" }));
-  //     navigation.navigate("Chat", { user, conversationId: conv._id });
-  //   } catch (err) {
-  //     console.error("❌ Error starting conversation:", err);
-  //     navigation.navigate("Chat", { user });
-  //   }
-  // };
-
-  // make sure this is already imported at the top
-
   const openChat = async (user) => {
     try {
       // 🧩 Step 1: Check if user is logged in
@@ -648,16 +615,43 @@ export default function MembersDirectory({ navigation }) {
               />
 
               <View style={tw`ml-3 flex-1`}>
-                <Text style={tw`text-black font-semibold text-sm`}>
-                  {item.name}
-                </Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  {/* ✅ FIXED: Added flex: 1 to allow text to shrink */}
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text
+                      style={tw`text-black font-semibold text-sm`}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {item.name}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={tw`bg-red-500 px-3 py-1 rounded-lg`}
+                    onPress={() => openChat(item)}
+                  >
+                    <Text style={tw`text-white text-xs`}>
+                      {chatStatus[item.id] === "continue"
+                        ? "Continue Chat"
+                        : "Start Chat"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
                 <Text style={tw`text-red-500 text-sm`}>{item.email}</Text>
+
                 <Text style={tw`text-black text-xs`}>{item.role}</Text>
 
                 {item.businessName ? (
                   <Text style={tw`text-black text-xs mt-1`}>
-                    BusinessName:
-                    {item.businessName}
+                    BusinessName: {item.businessName}
                   </Text>
                 ) : null}
 
@@ -675,16 +669,6 @@ export default function MembersDirectory({ navigation }) {
                   </Text>
                 </Text>
               </View>
-              <TouchableOpacity
-                style={tw`ml-3 bg-red-500 px-3 py-1 rounded-lg`}
-                onPress={() => openChat(item)}
-              >
-                <Text style={tw`text-white text-xs`}>
-                  {chatStatus[item.id] === "continue"
-                    ? "Continue Chat"
-                    : "Start Chat"}
-                </Text>
-              </TouchableOpacity>
             </TouchableOpacity>
           )}
         />
