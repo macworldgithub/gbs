@@ -418,6 +418,7 @@ const BusinessPage = ({ navigation }) => {
       >
         <TextInput
           placeholder="Search business...."
+          placeholderTextColor="black"
           style={tw`text-gray-700`}
           value={search}
           onChangeText={setSearch}

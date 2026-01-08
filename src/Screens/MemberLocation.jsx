@@ -95,6 +95,7 @@ export default function MemberLocation() {
             placeholder="Search location..."
             value={search}
             onChangeText={setSearch}
+            placeholderTextColor="black"
           />
         </View>
       </View>

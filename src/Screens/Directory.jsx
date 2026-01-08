@@ -560,7 +560,7 @@ export default function MembersDirectory({ navigation }) {
         <Ionicons name="search" size={18} color="#999" />
         <TextInput
           placeholder="Search members by name or email..."
-          placeholderTextColor="#999"
+          placeholderTextColor="black"
           value={search}
           onChangeText={handleSearch}
           style={tw`ml-2 flex-1 text-sm text-black`}

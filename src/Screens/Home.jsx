@@ -1116,6 +1116,7 @@ export default function Home() {
               value={searchQuery}
               onChangeText={setSearchQuery}
               blurOnSubmit={false}
+              placeholderTextColor="black"
             />
           </View>
 
