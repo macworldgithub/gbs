@@ -167,7 +167,7 @@
 //   },
 // });
 
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -181,8 +181,10 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FontAwesome } from "@expo/vector-icons";
 import { storeUserData } from "../utils/storage"; // ✅ helper remains
+import GuestAccessModal from "../../components/GuestAccessModal";
 
 export default function OnboardingScreen({ navigation }) {
+  const [showGuestModal, setShowGuestModal] = useState(false);
   // 🧩 Guest Sign-in logic (kept in case you need guest flow later)
   const handleGuestSignIn = async () => {
     try {
@@ -287,7 +289,7 @@ export default function OnboardingScreen({ navigation }) {
 
           <TouchableOpacity
             style={styles.joinButton}
-            onPress={() => navigation.replace("AuthTabs")}
+            onPress={() => setShowGuestModal(true)}
           >
             <Text style={styles.joinText}>Join Now</Text>
           </TouchableOpacity>
@@ -306,7 +308,6 @@ export default function OnboardingScreen({ navigation }) {
         {/* ---- Sign In Link ---- */}
         <TouchableOpacity
           style={styles.signInContainer}
-          // onPress={() => navigation.navigate("Signin")}
           onPress={() => navigation.navigate("VideoScreen")}
         >
           <Text style={styles.signInText}>
@@ -314,6 +315,12 @@ export default function OnboardingScreen({ navigation }) {
             <Text style={styles.signInBold}>Guest login</Text>
           </Text>
         </TouchableOpacity>
+
+        <GuestAccessModal
+          visible={showGuestModal}
+          onClose={() => setShowGuestModal(false)}
+          onContinue={handleGuestSignIn}
+        />
       </View>
     </ImageBackground>
   );
