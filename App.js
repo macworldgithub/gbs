@@ -86,6 +86,7 @@ import MembershipDetails from "./src/Screens/MembershipDetails";
 // import NewsDetail from "./src/Screens/Newsdetail";
 import NewsDetail from "./src/Screens/Newsdetail";
 import TermsOfUse from "./src/Screens/TermOfUse";
+import FAQScreen from "./src/Screens/Faqs";
 
 const Stack = createStackNavigator();
 export default function App() {
@@ -482,6 +483,7 @@ export default function App() {
             />
             <Stack.Screen name="CreateEvent" component={CreateEvent} />
             <Stack.Screen name="Featured" component={FeaturedEventsScreen} />
+            <Stack.Screen name="Faqs" component={FAQScreen} />
             <Stack.Screen name="ContactUs" component={ContactUs} />
             <Stack.Screen name="AboutUs" component={AboutUs} />
             <Stack.Screen name="ViewProfile" component={ViewProfile} />
