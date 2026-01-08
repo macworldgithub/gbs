@@ -47,7 +47,7 @@ const menuItems = [
     icon: "cogs",
     navigateTo: "GeneralSetting",
   },
-  { id: "6", label: "Help Centre", navigateTo: "Help" },
+  { id: "6", label: "Help Centre", navigateTo: "Faqs" },
 ];
 
 const requestCameraPermission = async () => {
