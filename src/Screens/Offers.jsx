@@ -12,10 +12,9 @@ import axios from "axios";
 import { API_BASE_URL } from "../../src/utils/config";
 import { getUserData } from "../../src/utils/storage";
 import gift1 from "../../assets/gift1.png";
-import Icon from "react-native-vector-icons/Ionicons";
 import { Ionicons } from "@expo/vector-icons";
 
-const tabs = ["All", "Member Offers"]; // ✅ REMOVED NOTICEBOARD
+const tabs = ["All", "Member Offers"];
 
 const Offers = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState("All");
@@ -25,7 +24,6 @@ const Offers = ({ navigation }) => {
   const [saving, setSaving] = useState({});
   const [unsaving, setUnsaving] = useState({});
   const [userId, setUserId] = useState(null);
-  // ✅ REMOVED noticeInput state
 
   useEffect(() => {
     const loadUser = async () => {
@@ -39,22 +37,11 @@ const Offers = ({ navigation }) => {
     const backendMessage = error?.response?.data?.message;
     const statusCode = error?.response?.status;
 
-    // 404 but valid response (like "no active package")
-    if (statusCode === 404 && backendMessage) {
-      return backendMessage;
-    }
-
-    // Token / auth issues
-    if (statusCode === 401) {
+    if (statusCode === 404 && backendMessage) return backendMessage;
+    if (statusCode === 401)
       return "Your session has expired. Please log in again.";
-    }
-
-    // Network issue
-    if (!error?.response) {
+    if (!error?.response)
       return "We couldn't connect to the server. Please check your internet.";
-    }
-
-    // Fallback
     return "No offers are available for you at the moment.";
   };
 
@@ -72,7 +59,6 @@ const Offers = ({ navigation }) => {
       }
 
       let url = `${API_BASE_URL}/offer/search`;
-
       if (tab === "Member Offers") {
         url += "?offerType=Member";
       }
@@ -84,10 +70,9 @@ const Offers = ({ navigation }) => {
       setOffers(res.data.offers ?? []);
     } catch (err) {
       console.error("Fetch offers error:", err?.response?.data || err.message);
-
       const friendlyMessage = getFriendlyOfferMessage(err);
       setError(friendlyMessage);
-      setOffers([]); // important to clear old data
+      setOffers([]);
     } finally {
       setLoading(false);
     }
@@ -96,7 +81,7 @@ const Offers = ({ navigation }) => {
   const saveOffer = async (offerId) => {
     try {
       const isSaved = offers
-        .find((offer) => offer._id === offerId)
+        .find((o) => o._id === offerId)
         ?.savedBy?.includes(userId);
       const action = isSaved ? "unsave" : "save";
       const setAction = isSaved ? setUnsaving : setSaving;
@@ -110,48 +95,32 @@ const Offers = ({ navigation }) => {
         return;
       }
 
-      // ✅ Updated API URLs (no userId in path)
       const url = `${API_BASE_URL}/offer/${offerId}/${action}`;
-      console.log(`Performing ${action} offer:`, url);
-
       const res = await axios({
         method: action === "save" ? "post" : "delete",
-        url: url,
+        url,
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log(`${action} Offer Response:`, res.status, res.data);
-
       if (res.status === 200 || res.status === 201) {
-        setOffers((prevOffers) =>
-          prevOffers.map((offer) =>
+        setOffers((prev) =>
+          prev.map((offer) =>
             offer._id === offerId
               ? {
                   ...offer,
-                  savedBy:
-                    action === "save"
-                      ? [...(offer.savedBy || []), userId]
-                      : offer.savedBy.filter((id) => id !== userId),
+                  savedBy: isSaved
+                    ? offer.savedBy.filter((id) => id !== userId)
+                    : [...(offer.savedBy || []), userId],
                 }
               : offer
           )
         );
 
-        if (action === "save") {
-          Alert.alert("Success", "This offer is saved");
-        } else {
-          Alert.alert("Success", "This offer is unsaved");
-        }
-      } else {
-        Alert.alert("Error", `Failed to ${action} offer`);
+        Alert.alert("Success", `Offer ${isSaved ? "unsaved" : "saved"}`);
       }
     } catch (err) {
-      console.error(
-        `Error ${isSaved ? "unsaving" : "saving"} offer:`,
-        err.response?.status,
-        err.response?.data || err.message
-      );
-      Alert.alert("Error", `Could not ${isSaved ? "unsave" : "save"} offer`);
+      console.error(`Error ${isSaved ? "unsaving" : "saving"} offer:`, err);
+      Alert.alert("Error", "Could not update offer");
     } finally {
       setSaving((prev) => ({ ...prev, [offerId]: false }));
       setUnsaving((prev) => ({ ...prev, [offerId]: false }));
@@ -169,7 +138,6 @@ const Offers = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
-
         <Text style={tw`text-xl font-bold text-gray-800 mr-28`}>
           Exclusive offers
         </Text>
@@ -189,7 +157,7 @@ const Offers = ({ navigation }) => {
             }`}
           >
             <Text
-              style={tw`text-sm ${
+              style={tw`text-sm font-medium ${
                 activeTab === tab ? "text-white" : "text-gray-700"
               }`}
             >
@@ -199,21 +167,24 @@ const Offers = ({ navigation }) => {
         ))}
       </View>
 
-      {/* Loading/Error */}
-      {loading && <Text style={tw`text-center text-gray-500`}>Loading...</Text>}
+      {/* Loading / Error / Empty */}
+      {loading && (
+        <Text style={tw`text-center text-gray-500 mt-8`}>
+          Loading offers...
+        </Text>
+      )}
 
       {error && !loading && (
-        <View style={tw`mt-6 items-center`}>
-          <Text style={tw`text-gray-700 text-base text-center`}>{error}</Text>
-          <Text style={tw`text-gray-400 text-sm mt-1 text-center`}>
-            You'll see offers here once they become available.
+        <View style={tw`mt-12 items-center px-6`}>
+          <Text style={tw`text-base text-gray-700 text-center`}>{error}</Text>
+          <Text style={tw`text-sm text-gray-500 mt-2 text-center`}>
+            You'll see exclusive offers here when they become available.
           </Text>
         </View>
       )}
 
-      {/* No Offers */}
       {!loading && offers.length === 0 && !error && (
-        <Text style={tw`text-center text-gray-500 mt-6`}>
+        <Text style={tw`text-center text-gray-500 mt-12`}>
           No offers available for "{activeTab}" right now.
         </Text>
       )}
@@ -223,73 +194,105 @@ const Offers = ({ navigation }) => {
         <TouchableOpacity
           key={offer._id}
           onPress={() => navigation.navigate("OfferDetails", { id: offer._id })}
+          activeOpacity={0.95}
         >
-          <View style={tw`bg-white border border-gray-300 rounded-lg p-4 mb-4`}>
-            {/* Top Row: Title + Save Icon */}
-            <View style={tw`flex-row justify-between items-start`}>
-              <View style={tw`flex-row items-center`}>
-                <View style={tw`bg-red-500 mr-2`}>
-                  <Image source={gift1} />
+          <View
+            style={tw`bg-white border border-gray-200 rounded-2xl p-5 mb-5 shadow-sm`}
+          >
+            {/* Top Row: Gift Icon + Title + Save Button */}
+            <View style={tw`flex-row items-start justify-between mb-3`}>
+              {/* Left: Gift + Title */}
+              <View style={tw`flex-row items-start flex-1 mr-3`}>
+                {/* <View style={tw`mr-3`}>
+                  <Image
+                    source={gift1}
+                    style={tw`w-10 h-10`}
+                    resizeMode="contain"
+                  />
+                </View> */}
+
+                {/* Title - Now wraps properly */}
+                <View style={tw`flex-1`}>
+                  <Text
+                    style={tw`text-lg font-bold text-gray-900`}
+                    numberOfLines={3}
+                    ellipsizeMode="tail"
+                  >
+                    {offer.title}
+                  </Text>
+
+                  {/* Discount below title */}
+                  <Text style={tw`text-red-600 font-bold text-base mt-1`}>
+                    {offer.discount}
+                  </Text>
                 </View>
-                <Text style={tw`text-base font-bold text-gray-800`}>
-                  {offer.title}
-                </Text>
               </View>
 
-              {/* Save/Unsave Icon */}
-              <TouchableOpacity onPress={() => saveOffer(offer._id)}>
-                <Icon
+              {/* Save Button */}
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  saveOffer(offer._id);
+                }}
+                disabled={saving[offer._id] || unsaving[offer._id]}
+              >
+                <Ionicons
                   name={
                     offer.savedBy?.includes(userId)
                       ? "bookmark"
                       : "bookmark-outline"
                   }
-                  size={22}
-                  color={offer.savedBy?.includes(userId) ? "red" : "gray"}
-                  disabled={saving[offer._id] || unsaving[offer._id]}
+                  size={26}
+                  color={
+                    offer.savedBy?.includes(userId) ? "#dc2626" : "#6b7280"
+                  }
                 />
               </TouchableOpacity>
             </View>
 
-            {/* Discount under Title */}
-            <Text style={tw`text-red-600 font-bold text-sm mt-1`}>
-              {offer.discount}
+            {/* Business Name */}
+            <Text style={tw`text-base text-gray-800 mt-1`}>
+              {offer.business?.companyName || "Good Blokes Society"}
             </Text>
 
-            {/* Company Name */}
-            <Text style={tw`text-sm text-gray-800 mt-1`}>
-              {offer.business?.companyName || ""}
-            </Text>
-
-            {/* Offer Type + Category */}
-            <View style={tw`flex-row items-center mt-1`}>
+            {/* Type + Category */}
+            <View style={tw`flex-row items-center gap-3 mt-2`}>
               <Text
-                style={tw`text-xs px-2 py-1 rounded-full ${
+                style={tw`text-xs px-3 py-1.5 rounded-full font-medium ${
                   offer.offerType === "Member"
-                    ? "bg-red-100 text-red-600"
-                    : "bg-purple-100 text-purple-600"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-purple-100 text-purple-700"
                 }`}
               >
                 {offer.offerType}
               </Text>
-              <Text style={tw`text-xs text-gray-500 ml-2`}>
-                {offer.category}
-              </Text>
+              <Text style={tw`text-sm text-gray-600`}>{offer.category}</Text>
             </View>
 
             {/* Description */}
-            <Text style={tw`text-sm text-gray-600 mt-2`}>
+            <Text
+              style={tw`text-sm text-gray-700 mt-3 leading-6`}
+              numberOfLines={4}
+            >
               {offer.description}
             </Text>
 
             {/* Terms & Conditions */}
             {offer.termsAndConditions?.length > 0 && (
-              <View style={tw`bg-gray-100 p-2 rounded mt-3`}>
-                {offer.termsAndConditions.map((term, idx) => (
-                  <Text key={idx} style={tw`text-xs text-gray-500`}>
+              <View style={tw`bg-gray-50 rounded-lg p-3 mt-4`}>
+                <Text style={tw`text-xs font-medium text-gray-700 mb-1`}>
+                  Terms & Conditions:
+                </Text>
+                {offer.termsAndConditions.slice(0, 3).map((term, idx) => (
+                  <Text key={idx} style={tw`text-xs text-gray-600`}>
                     • {term}
                   </Text>
                 ))}
+                {offer.termsAndConditions.length > 3 && (
+                  <Text style={tw`text-xs text-gray-500 mt-1`}>
+                    ...and more
+                  </Text>
+                )}
               </View>
             )}
           </View>
