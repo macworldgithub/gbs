@@ -18,16 +18,16 @@ import { getSession } from "../utils/secureAuth";
 // ================= IMAGES =================
 const COMMUNITY_IMAGES = {
   Announcements: null,
-  Social: require("../../assets/Community.png"),
-  Business: require("../../assets/Community.png"),
-  Wellbeing: require("../../assets/Community.png"),
-  Victoria: require("../../assets/Community.png"),
-  NSW: require("../../assets/Community.png"),
-  Qld: require("../../assets/Community.png"),
-  SA: require("../../assets/Community.png"),
-  "Horse Racing": require("../../assets/Community.png"),
-  "Wine Community": require("../../assets/Community.png"),
-  "GBS Golf": require("../../assets/Community.png"),
+  Social: require("../../assets/social.jpeg"),
+  Business: require("../../assets/business.png"),
+  Wellbeing: require("../../assets/wellbeing3.png"),
+  Victoria: require("../../assets/victoria.jpeg"),
+  NSW: require("../../assets/nsw.png"),
+  Qld: require("../../assets/qld.png"),
+  SA: require("../../assets/SA.jpeg"),
+  "Horse Racing": require("../../assets/horse riding.png"),
+  "Wine Community": require("../../assets/wine.jpeg"),
+  "GBS Golf": require("../../assets/golf.png"),
 };
 
 const DEFAULT_COMMUNITY_IMAGE = require("../../assets/Community.png");
