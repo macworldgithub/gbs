@@ -746,7 +746,8 @@ const newsData = [
   },
   {
     id: "2",
-    heading: "INTRODUCING GBS ALLIANCE MEMBERSHIP A Truly Elevated GBS Business Experience",
+    heading:
+      "INTRODUCING GBS ALLIANCE MEMBERSHIP A Truly Elevated GBS Business Experience",
     image: require("../../assets/wellbeing4.png"),
     location: "Brunswick Aces",
   },
@@ -1265,7 +1266,7 @@ export default function Home() {
                     </Text>
 
                     <Text style={tw`text-red-500 font-semibold mt-1`}>
-                      ${item.id === "1" ? "99.95" : "7,500 + GST"}
+                      ${item.id === "1" ? "99.95" : "7,500 include GST"}
                     </Text>
                     <Text style={tw`text-gray-500 text-xs mt-1`}>
                       {item.location}
