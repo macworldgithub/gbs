@@ -236,26 +236,26 @@ const Social = () => {
   }, []);
 
   const getStateFromEvent = (event) => {
-    const venueLower = event.venue?.toLowerCase() || "";
-    const nameLower = event.name.toLowerCase();
-    if (nameLower.includes("singapore") || venueLower.includes("singapore")) {
-      return "Singapore";
-    }
     const tz = event.timeZone || "";
-    const match = tz.match(/Australia\/([A-Z][a-z]*)/);
-    if (match) {
-      const city = match[1].toUpperCase();
-      const stateMap = {
-        MELBOURNE: "VIC",
-        SYDNEY: "NSW",
-        BRISBANE: "QLD",
-        ADELAIDE: "SA",
-        PERTH: "WA",
-        DARWIN: "NT",
-      };
-      return stateMap[city] || "All";
-    }
-    return "All";
+
+    // Extract city after "/"
+    const parts = tz.split("/");
+    if (parts.length < 2) return "All";
+
+    const city = parts[1].trim().toLowerCase();
+
+    const cityToStateMap = {
+      sydney: "NSW",
+      melbourne: "VIC",
+      brisbane: "QLD",
+      adelaide: "SA",
+      perth: "WA",
+      darwin: "NT",
+      hobart: "TAS",
+      canberra: "ACT",
+    };
+
+    return cityToStateMap[city] || "All";
   };
 
   const isEventUpcoming = (event) => {
