@@ -5,6 +5,7 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Linking,
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -96,7 +97,15 @@ export default function DirectoryDetail({ route, navigation }) {
               {user.name}
             </Text>
             <Text style={tw`text-red-500 mt-1`}>{user.email}</Text>
-            <Text style={tw`text-gray-600 mt-1`}>{user.phone || "N/A"}</Text>
+
+            {/* <Text style={tw`text-gray-600 mt-1`}>{user.phone || "N/A"}</Text>
+             */}
+            <TouchableOpacity
+              onPress={() => Linking.openURL(`tel:${user.phone}`)}
+            >
+              <Text style={tw`text-red-600 mt-1`}>{user.phone || "N/A"}</Text>
+            </TouchableOpacity>
+
             <Text style={tw`text-gray-500 mt-1`}>
               State: {user.state || "N/A"}
             </Text>
