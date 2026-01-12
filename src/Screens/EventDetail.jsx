@@ -389,8 +389,19 @@ const EventDetail = () => {
         />
       )}
 
+      {event.bookingUrl && (
+        <TouchableOpacity
+          onPress={() => Linking.openURL(event.bookingUrl)}
+          style={tw`bg-red-600 py-2 px-6 rounded-lg self-center mb-10 self-start -mt-6`}
+        >
+          <Text style={tw`text-white text-base font-semibold `}>
+            Buy Ticket
+          </Text>
+        </TouchableOpacity>
+      )}
+
       <View
-        style={tw`bg-white border border-red-100 rounded-2xl shadow-md p-5 mb-6`}
+        style={tw`bg-white border border-red-100 rounded-2xl shadow-md p-5 mb-6 -mt-6`}
       >
         {/* Title */}
         <Text style={tw`text-2xl font-bold text-gray-900 mb-2`}>
@@ -470,14 +481,14 @@ const EventDetail = () => {
         </Text> */}
       </View>
 
-      {event.bookingUrl && (
+      {/* {event.bookingUrl && (
         <TouchableOpacity
           onPress={() => Linking.openURL(event.bookingUrl)}
           style={tw`bg-red-600 py-4 rounded-xl items-center mb-10`}
         >
           <Text style={tw`text-white text-lg font-bold`}>Buy Ticket</Text>
         </TouchableOpacity>
-      )}
+      )} */}
     </ScrollView>
   );
 };
