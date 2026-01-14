@@ -397,7 +397,7 @@ export default function ViewProfile() {
               style={tw`bg-red-500 py-3 rounded-xl items-center ${updating ? "opacity-50" : ""}`}
             >
               <Text style={tw`text-white font-semibold`}>
-                {updating ? "Updating..." : "Update Membership Level"}
+                {updating ? "Updating..." : "Update Profile"}
               </Text>
             </TouchableOpacity>
 

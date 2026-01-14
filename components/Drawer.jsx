@@ -408,7 +408,7 @@ export default function Drawer({ isOpen, onClose }) {
     { title: "View and Update Profile " },
     // { title: "Events" },
     { title: "Upgrade Memberships" },
-    { title: "Featured Events" },
+    { title: "Events" },
     { title: "About Us" },
     { title: "Contact Us" },
     { title: "Resign Membership" },
@@ -642,7 +642,7 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "View and Update Profile ") {
         onClose();
         navigation.navigate("Profile");
-      } else if (item.title === "Featured Events") {
+      } else if (item.title === "Events") {
         onClose();
         navigation.navigate("Featured");
       } else if (item.title === "Chat Groups") {
