@@ -306,7 +306,7 @@ const Offers = ({ navigation }) => {
                     Email: {contactInfo[index].email}
                   </Text>
                 )}
-                {contactInfo[index].visitLink && (
+                {/* {contactInfo[index].visitLink && (
                   <Text
                     style={tw`text-sm text-blue-600 `}
                     onPress={() =>
@@ -315,6 +315,16 @@ const Offers = ({ navigation }) => {
                   >
                     Visit link
                   </Text>
+                )} */}
+                {contactInfo[index].visitLink && (
+                  <TouchableOpacity
+                    style={tw`bg-red-500 px-4 py-2 mt-2 rounded-full items-center`}
+                    onPress={() =>
+                      Linking.openURL(contactInfo[index].visitLink)
+                    }
+                  >
+                    <Text style={tw`text-white font-semibold`}>Redeem</Text>
+                  </TouchableOpacity>
                 )}
               </View>
             )}
