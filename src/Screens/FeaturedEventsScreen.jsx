@@ -204,7 +204,7 @@ const FeaturedEventsScreen = () => {
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
         <Text style={tw`text-xl font-bold text-gray-800 mb-1 ml-2`}>
-          Featured Events
+          Events
         </Text>
       </View>
 
