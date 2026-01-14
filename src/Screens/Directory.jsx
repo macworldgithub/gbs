@@ -30,10 +30,17 @@ export default function MembersDirectory({ navigation }) {
 
   const [selectedState, setSelectedState] = useState("All");
   const [searchTimeout, setSearchTimeout] = useState(null);
+  const [paginationLoading, setPaginationLoading] = useState(false);
 
   /* ---------------- SEARCH USERS ---------------- */
-  const searchUsers = async (query = "", state = "All", pageNumber = 1) => {
+  const searchUsers = async (
+    query = "",
+    state = "All",
+    pageNumber = 1,
+    isPagination = false
+  ) => {
     try {
+      isPagination ? setPaginationLoading(true) : setLoading(true);
       setLoading(true);
 
       const params = new URLSearchParams();
@@ -74,6 +81,7 @@ export default function MembersDirectory({ navigation }) {
       console.error("❌ Search error:", e);
     } finally {
       setLoading(false);
+      setPaginationLoading(false);
     }
   };
 
@@ -82,6 +90,11 @@ export default function MembersDirectory({ navigation }) {
     setSearch(text);
     if (searchTimeout) clearTimeout(searchTimeout);
 
+    setMembers([]);
+    setLoading(true);
+    setPage(1);
+    setHasNext(false);
+
     const timeout = setTimeout(() => {
       searchUsers(text, selectedState, 1);
     }, 500);
@@ -89,9 +102,13 @@ export default function MembersDirectory({ navigation }) {
     setSearchTimeout(timeout);
   };
 
-  /* ---------------- STATE FILTER ---------------- */
   const handleStateFilter = (state) => {
     setSelectedState(state);
+    setMembers([]);
+    setLoading(true);
+    setPage(1);
+    setHasNext(false);
+
     searchUsers(search, state, 1);
   };
 
@@ -222,6 +239,16 @@ export default function MembersDirectory({ navigation }) {
             </TouchableOpacity>
           ))}
         </View>
+        {loading && (
+          <Text style={tw`text-center text-gray-400 mt-6`}>
+            Loading members...
+          </Text>
+        )}
+        {!loading && members.length === 0 && (
+          <Text style={tw`text-center text-gray-400 mt-6`}>
+            No members found for selected state
+          </Text>
+        )}
 
         {/* LIST */}
         <FlatList
@@ -278,38 +305,69 @@ export default function MembersDirectory({ navigation }) {
             </TouchableOpacity>
           )}
         />
-
-        {/* PAGINATION */}
-        <View style={tw`flex-row justify-between items-center py-3`}>
+      </ScrollView>
+      <View
+        style={[
+          tw`absolute bottom-0 left-0 right-0 bg-white px-6 py-3 border-t border-gray-200`,
+          {
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 4,
+            elevation: 10,
+          },
+        ]}
+      >
+        <View style={tw`flex-row items-center justify-between`}>
+          {/* PREVIOUS */}
           <TouchableOpacity
-            disabled={page === 1}
+            disabled={page === 1 || paginationLoading}
             onPress={() =>
-              page > 1 && searchUsers(search, selectedState, page - 1)
+              page > 1 && searchUsers(search, selectedState, page - 1, true)
             }
+            style={tw`px-3 py-2 rounded-lg ${
+              page === 1 ? "bg-gray-100" : "bg-red-100"
+            }`}
           >
             <Text
-              style={tw`text-sm ${page === 1 ? "text-gray-300" : "text-red-500"}`}
+              style={tw`text-sm font-semibold ${
+                page === 1 ? "text-gray-400" : "text-red-500"
+              }`}
             >
               ◀ Previous
             </Text>
           </TouchableOpacity>
 
-          <Text style={tw`text-sm font-semibold`}>Page {page}</Text>
+          {/* PAGE */}
+          <View style={tw`px-4 py-2 rounded-full bg-gray-100`}>
+            <Text style={tw`text-sm font-bold text-gray-700`}>Page {page}</Text>
+          </View>
 
           <TouchableOpacity
-            disabled={!hasNext}
+            disabled={!hasNext || paginationLoading}
             onPress={() =>
-              hasNext && searchUsers(search, selectedState, page + 1)
+              hasNext && searchUsers(search, selectedState, page + 1, true)
             }
+            style={tw`px-3 py-2 rounded-lg ${
+              hasNext ? "bg-red-100" : "bg-gray-100"
+            }`}
           >
             <Text
-              style={tw`text-sm ${hasNext ? "text-red-500" : "text-gray-300"}`}
+              style={tw`text-sm font-semibold ${
+                hasNext ? "text-red-500" : "text-gray-400"
+              }`}
             >
               Next ▶
             </Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+
+        {paginationLoading && (
+          <Text style={tw`text-center text-gray-400 text-xs mt-1`}>
+            Loading page...
+          </Text>
+        )}
+      </View>
     </View>
   );
 }
