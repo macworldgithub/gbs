@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
 import tw from "tailwind-react-native-classnames";
@@ -192,9 +193,14 @@ export default function NotificationForm({
 
   return (
     <ScrollView style={tw`flex-1 bg-white p-4 mt-14 mb-20`}>
-      <Text style={tw`text-lg font-semibold mb-4`}>
-        {notification ? "Edit Notification" : "Create Notification"}
-      </Text>
+      <View style={tw`flex-row items-center px-4 py-3`}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={tw`mr-3`}>
+          <MaterialIcons name="arrow-back" size={24} />
+        </TouchableOpacity>
+        <Text style={tw`text-lg font-semibold text-center`}>
+          {notification ? "Edit Notification" : "Create Notification"}
+        </Text>
+      </View>
       {/* Title */}
       <Text style={tw`text-sm text-gray-700 mb-1`}>Title</Text>
       <TextInput

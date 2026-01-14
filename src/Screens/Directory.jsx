@@ -219,7 +219,8 @@ export default function MembersDirectory({ navigation }) {
 
         {/* STATE FILTER */}
         <View style={tw`flex-row justify-between mb-4`}>
-          {["All", "VIC", "NSW", "QLD", "SA"].map((filter) => (
+          {["All", "VIC", "NSW", "QLD", "SA", "WA"].map((filter) => (
+
             <TouchableOpacity
               key={filter}
               onPress={() => handleStateFilter(filter)}
