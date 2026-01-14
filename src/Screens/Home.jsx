@@ -1189,10 +1189,17 @@ export default function Home() {
                         >
                           USERS
                         </Text>
+
                         {userResults.map((item) => (
                           <TouchableOpacity
                             key={item._id}
                             style={tw`px-4 py-3 border-b border-gray-200`}
+                            onPress={() =>
+                              navigation.navigate("Directory", {
+                                screen: "DirectoryDetail",
+                                params: { id: item._id },
+                              })
+                            }
                           >
                             <Text style={tw`text-base`}>{item.name}</Text>
                           </TouchableOpacity>
