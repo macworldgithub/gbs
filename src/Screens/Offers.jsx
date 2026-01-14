@@ -25,9 +25,11 @@ const contactInfo = [
   },
   {
     phone: "0498 800 900",
+    email: "angek@aussietel.com.au",
     visitLink: "https://www.aussietel.com.au/",
   },
   {
+    email: "info@menzclub.com.au",
     visitLink: "https://menzclub.com.au/",
   },
 ];
