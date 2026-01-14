@@ -4,17 +4,33 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Image,
   Alert,
+  Linking,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import { API_BASE_URL } from "../../src/utils/config";
 import { getUserData } from "../../src/utils/storage";
-import gift1 from "../../assets/gift1.png";
 import { Ionicons } from "@expo/vector-icons";
 
+// Tabs
 const tabs = ["All", "Member Offers"];
+
+// Hardcoded contact info
+const contactInfo = [
+  {
+    phone: "0416 050 212",
+    email: "scott@bossmanmedia.com.au",
+    visitLink: "https://linkedin.com/company/bossmanmelb?originalSubdomain=au",
+  },
+  {
+    phone: "0498 800 900",
+    visitLink: "https://www.aussietel.com.au/",
+  },
+  {
+    visitLink: "https://menzclub.com.au/",
+  },
+];
 
 const Offers = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState("All");
@@ -190,7 +206,7 @@ const Offers = ({ navigation }) => {
       )}
 
       {/* Offers List */}
-      {offers.map((offer) => (
+      {offers.map((offer, index) => (
         <TouchableOpacity
           key={offer._id}
           onPress={() => navigation.navigate("OfferDetails", { id: offer._id })}
@@ -199,33 +215,21 @@ const Offers = ({ navigation }) => {
           <View
             style={tw`bg-white border border-gray-200 rounded-2xl p-5 mb-5 shadow-sm`}
           >
-            {/* Top Row: Gift Icon + Title + Save Button */}
+            {/* Top Row: Title + Save Button */}
             <View style={tw`flex-row items-start justify-between mb-3`}>
-              {/* Left: Gift + Title */}
-              <View style={tw`flex-row items-start flex-1 mr-3`}>
-                {/* <View style={tw`mr-3`}>
-                  <Image
-                    source={gift1}
-                    style={tw`w-10 h-10`}
-                    resizeMode="contain"
-                  />
-                </View> */}
-
-                {/* Title - Now wraps properly */}
-                <View style={tw`flex-1`}>
-                  <Text
-                    style={tw`text-lg font-bold text-gray-900`}
-                    numberOfLines={3}
-                    ellipsizeMode="tail"
-                  >
-                    {offer.title}
-                  </Text>
-
-                  {/* Discount below title */}
+              <View style={tw`flex-1 mr-3`}>
+                <Text
+                  style={tw`text-lg font-bold text-gray-900`}
+                  numberOfLines={3}
+                  ellipsizeMode="tail"
+                >
+                  {offer.title}
+                </Text>
+                {offer.discount && (
                   <Text style={tw`text-red-600 font-bold text-base mt-1`}>
                     {offer.discount}
                   </Text>
-                </View>
+                )}
               </View>
 
               {/* Save Button */}
@@ -277,20 +281,37 @@ const Offers = ({ navigation }) => {
               {offer.description}
             </Text>
 
-            {/* Terms & Conditions */}
-            {offer.termsAndConditions?.length > 0 && (
-              <View style={tw`bg-gray-50 rounded-lg p-3 mt-4`}>
-                <Text style={tw`text-xs font-medium text-gray-700 mb-1`}>
-                  Terms & Conditions:
-                </Text>
-                {offer.termsAndConditions.slice(0, 3).map((term, idx) => (
-                  <Text key={idx} style={tw`text-xs text-gray-600`}>
-                    • {term}
+            {/* Contact Info */}
+            {contactInfo[index] && (
+              <View style={tw`mt-3`}>
+                {contactInfo[index].phone && (
+                  <Text
+                    style={tw`text-sm text-blue-600 `}
+                    onPress={() =>
+                      Linking.openURL(`tel:${contactInfo[index].phone}`)
+                    }
+                  >
+                    Phone: {contactInfo[index].phone}
                   </Text>
-                ))}
-                {offer.termsAndConditions.length > 3 && (
-                  <Text style={tw`text-xs text-gray-500 mt-1`}>
-                    ...and more
+                )}
+                {contactInfo[index].email && (
+                  <Text
+                    style={tw`text-sm text-blue-600 `}
+                    onPress={() =>
+                      Linking.openURL(`mailto:${contactInfo[index].email}`)
+                    }
+                  >
+                    Email: {contactInfo[index].email}
+                  </Text>
+                )}
+                {contactInfo[index].visitLink && (
+                  <Text
+                    style={tw`text-sm text-blue-600 `}
+                    onPress={() =>
+                      Linking.openURL(contactInfo[index].visitLink)
+                    }
+                  >
+                    Visit link
                   </Text>
                 )}
               </View>
