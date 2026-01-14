@@ -4,16 +4,20 @@ import { MaterialIcons } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 
 const membershipContent = {
-  "Wellbeing Membership": {
+  "Social & Wellbeing Membership": {
     intro:
-      "The wellbeing membership will provide you with content to educate and inspire you to take care of your physical, mental, and emotional wellbeing.",
+      "This membership is designed to support your overall wellbeing while connecting you with the Good Blokes Society community through premium experiences",
+    details:
+      "You'll receive valuable content to educate and inspire you to take care of your physical, mental, and emotional health, alongside opportunities to engage with fellow members through exclusive events and online competitions",
     benefits: [
-      "Membership pin and hat (1st year only)",
-      "Membership prices at all Good Blokes Society events",
-      "Invitation to join the wellbeing community via the GBS App",
-      "Communication, content and podcasts dedicated to your health and wellbeing",
-      "Invitations to wellbeing and charity events",
-      "Special offers and discounts promoted by business partners",
+      "Membership Gift Box (1st year only)",
+      "Membership prices at all GBS events",
+      "Access to free sports competitions",
+      "Events to connect with fellow social members",
+      "Members communication and newsletter",
+      "The Drinks Edit VIP membership (Value $59.00)",
+      "Communication, content and podcasts dedicated to creating social relationships",
+      "Special offers and discounts will be promoted to social & wellbeing members from our business partners",
     ],
   },
 
@@ -98,6 +102,30 @@ const membershipContent = {
       "Additional memberships available for $295 pp",
     ],
   },
+  "GBS Alliance": {
+    intro:
+      "We’re excited to announcethe GBS Alliance—a premium business networking program for ambitious leaders ready to elevate their business and amplify their impact.",
+    details:
+      "Through seven structured half-day sessionsannually, join a team-oriented group of likeminded business owners and executives. Access expert speakers, peer accountability, signature dinners and exclusive member benefits—all designed to drive measurable business growth.",
+    benefits: [
+      "7 Half-Day Sessions (Mar - Dec)",
+      "Hosted at premium venues each month",
+      "Set day of the week for consistency",
+      "7:30 AM – 12:00 PM",
+      "Limited members per session for deep, focused collaboration",
+      "Same group meets to build trust and continuity",
+      "Peer-to-peer accountability and support",
+      "4 of 7 sessions hosted by guest speakers providing expertise in AI, HR, Marketing, Budgeting, Leadership, and more",
+      "Signature dinners to connect, celebrate, recognise and support all Alliance members",
+      "Breakfast available for attendees",
+      "Professional networking environment",
+      "Access to the national network of GBS business community",
+      "Business masterclasses and workshops by design",
+      "HR, Marketing, Finance & Compliance support services",
+      "Member-to-member product and service offers",
+      "Business promotional video",
+    ],
+  },
 };
 
 export default function MembershipDetails({ route, navigation }) {
@@ -126,6 +154,9 @@ export default function MembershipDetails({ route, navigation }) {
           <>
             <Text style={tw`text-base text-gray-700 leading-7 mb-6`}>
               {data.intro}
+            </Text>
+            <Text style={tw`text-base text-gray-700 leading-7 mb-6`}>
+              {data.details}
             </Text>
 
             <Text style={tw`text-xl font-bold text-gray-900 mb-4`}>
