@@ -6,6 +6,7 @@ import {
   ScrollView,
   Alert,
   Linking,
+  TextInput,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
@@ -13,10 +14,9 @@ import { API_BASE_URL } from "../../src/utils/config";
 import { getUserData } from "../../src/utils/storage";
 import { Ionicons } from "@expo/vector-icons";
 
-// Tabs
-const tabs = ["All", "Member Offers"];
 
-// Hardcoded contact info
+const tabs = ["All", "Member Offers", "Noticeboard"];
+
 const contactInfo = [
   {
     phone: "0416 050 212",
@@ -42,6 +42,8 @@ const Offers = ({ navigation }) => {
   const [saving, setSaving] = useState({});
   const [unsaving, setUnsaving] = useState({});
   const [userId, setUserId] = useState(null);
+
+  const [noticeInput, setNoticeInput] = useState("");
 
   useEffect(() => {
     const loadUser = async () => {
@@ -87,7 +89,6 @@ const Offers = ({ navigation }) => {
 
       setOffers(res.data.offers ?? []);
     } catch (err) {
-      console.error("Fetch offers error:", err?.response?.data || err.message);
       const friendlyMessage = getFriendlyOfferMessage(err);
       setError(friendlyMessage);
       setOffers([]);
@@ -96,11 +97,21 @@ const Offers = ({ navigation }) => {
     }
   };
 
+  useEffect(() => {
+    if (activeTab !== "Noticeboard") {
+      fetchOffers(activeTab);
+    } else {
+      setLoading(false);
+      setError(null);
+    }
+  }, [activeTab]);
+
   const saveOffer = async (offerId) => {
     try {
       const isSaved = offers
         .find((o) => o._id === offerId)
         ?.savedBy?.includes(userId);
+
       const action = isSaved ? "unsave" : "save";
       const setAction = isSaved ? setUnsaving : setSaving;
       setAction((prev) => ({ ...prev, [offerId]: true }));
@@ -108,36 +119,26 @@ const Offers = ({ navigation }) => {
       const userData = await getUserData();
       const token = userData?.token;
 
-      if (!token || !userId) {
-        Alert.alert("Error", "User not logged in");
-        return;
-      }
-
       const url = `${API_BASE_URL}/offer/${offerId}/${action}`;
-      const res = await axios({
+      await axios({
         method: action === "save" ? "post" : "delete",
         url,
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (res.status === 200 || res.status === 201) {
-        setOffers((prev) =>
-          prev.map((offer) =>
-            offer._id === offerId
-              ? {
-                  ...offer,
-                  savedBy: isSaved
-                    ? offer.savedBy.filter((id) => id !== userId)
-                    : [...(offer.savedBy || []), userId],
-                }
-              : offer
-          )
-        );
-
-        Alert.alert("Success", `Offer ${isSaved ? "unsaved" : "saved"}`);
-      }
-    } catch (err) {
-      console.error(`Error ${isSaved ? "unsaving" : "saving"} offer:`, err);
+      setOffers((prev) =>
+        prev.map((offer) =>
+          offer._id === offerId
+            ? {
+                ...offer,
+                savedBy: isSaved
+                  ? offer.savedBy.filter((id) => id !== userId)
+                  : [...(offer.savedBy || []), userId],
+              }
+            : offer
+        )
+      );
+    } catch {
       Alert.alert("Error", "Could not update offer");
     } finally {
       setSaving((prev) => ({ ...prev, [offerId]: false }));
@@ -145,9 +146,43 @@ const Offers = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    fetchOffers(activeTab);
-  }, [activeTab]);
+  const submitNotice = async () => {
+    if (!noticeInput.trim()) {
+      Alert.alert("Error", "Please type something before submitting.");
+      return;
+    }
+
+    try {
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      await axios.post(
+        `${API_BASE_URL}/notification`,
+        {
+          title: "New Noticeboard Request",
+          message: noticeInput.trim(),
+          SendToAll: true,
+          area: null,
+          roles: [],
+          startDate: new Date().toISOString(),
+          endDate: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000
+          ).toISOString(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      Alert.alert("Success", "Your noticeboard post has been submitted!");
+      setNoticeInput("");
+    } catch {
+      Alert.alert("Error", "Failed to submit post. Please try again.");
+    }
+  };
 
   return (
     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
@@ -160,6 +195,7 @@ const Offers = ({ navigation }) => {
           Exclusive offers
         </Text>
       </View>
+
       <Text style={tw`text-sm text-gray-600 mb-4`}>
         Member Benefits & Business Collaboration
       </Text>
@@ -185,128 +221,155 @@ const Offers = ({ navigation }) => {
         ))}
       </View>
 
-      {/* Loading / Error / Empty */}
-      {loading && (
-        <Text style={tw`text-center text-gray-500 mt-8`}>
-          Loading offers...
-        </Text>
-      )}
-
-      {error && !loading && (
-        <View style={tw`mt-12 items-center px-6`}>
-          <Text style={tw`text-base text-gray-700 text-center`}>{error}</Text>
-          <Text style={tw`text-sm text-gray-500 mt-2 text-center`}>
-            You'll see exclusive offers here when they become available.
+      {activeTab === "Noticeboard" ? (
+        <View style={tw`mt-4`}>
+          <Text style={tw`text-xl font-bold text-gray-800 mb-2`}>
+            Welcome to the GBS Noticeboard
           </Text>
-        </View>
-      )}
 
-      {!loading && offers.length === 0 && !error && (
-        <Text style={tw`text-center text-gray-500 mt-12`}>
-          No offers available for "{activeTab}" right now.
-        </Text>
-      )}
+          <Text style={tw`text-sm text-gray-600 mb-4`}>
+            Looking for a trusted service, product, or business collaboration?
+            Post your request here and tap into the expertise and connections of
+            the GBS community.
+          </Text>
 
-      {/* Offers List */}
-      {offers.map((offer, index) => (
-        <TouchableOpacity
-          key={offer._id}
-          onPress={() => navigation.navigate("OfferDetails", { id: offer._id })}
-          activeOpacity={0.95}
-        >
-          <View
-            style={tw`bg-white border border-gray-200 rounded-2xl p-5 mb-5 shadow-sm`}
+          <View style={tw`border border-gray-300 rounded-lg p-3 mb-4`}>
+            <TextInput
+              multiline
+              numberOfLines={5}
+              style={tw`text-base text-gray-800`}
+              placeholder="Type your request here..."
+              value={noticeInput}
+              onChangeText={setNoticeInput}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={tw`bg-red-500 py-3 rounded-lg`}
+            onPress={submitNotice}
           >
-            {/* Top Row: Title + Save Button */}
-            <View style={tw`flex-row items-start justify-between mb-3`}>
-              <View style={tw`flex-1 mr-3`}>
-                <Text
-                  style={tw`text-lg font-bold text-gray-900`}
-                  numberOfLines={3}
-                  ellipsizeMode="tail"
-                >
-                  {offer.title}
-                </Text>
-                {offer.discount && (
-                  <Text style={tw`text-red-600 font-bold text-base mt-1`}>
-                    {offer.discount}
-                  </Text>
-                )}
-              </View>
-
-              {/* Save Button */}
-              <TouchableOpacity
-                onPress={(e) => {
-                  e.stopPropagation();
-                  saveOffer(offer._id);
-                }}
-                disabled={saving[offer._id] || unsaving[offer._id]}
-              >
-                <Ionicons
-                  name={
-                    offer.savedBy?.includes(userId)
-                      ? "bookmark"
-                      : "bookmark-outline"
-                  }
-                  size={26}
-                  color={
-                    offer.savedBy?.includes(userId) ? "#dc2626" : "#6b7280"
-                  }
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Business Name */}
-            <Text style={tw`text-base text-gray-800 mt-1`}>
-              {offer.business?.companyName || "Good Blokes Society"}
+            <Text style={tw`text-center text-white font-bold`}>Submit</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          {loading && (
+            <Text style={tw`text-center text-gray-500 mt-8`}>
+              Loading offers...
             </Text>
+          )}
 
-            {/* Type + Category */}
-            <View style={tw`flex-row items-center gap-3 mt-2`}>
-              <Text
-                style={tw`text-xs px-3 py-1.5 rounded-full font-medium ${
-                  offer.offerType === "Member"
-                    ? "bg-red-100 text-red-700"
-                    : "bg-purple-100 text-purple-700"
-                }`}
-              >
-                {offer.offerType}
+          {error && !loading && (
+            <View style={tw`mt-12 items-center px-6`}>
+              <Text style={tw`text-base text-gray-700 text-center`}>
+                {error}
               </Text>
-              <Text style={tw`text-sm text-gray-600`}>{offer.category}</Text>
             </View>
+          )}
 
-            {/* Description */}
-            <Text
-              style={tw`text-sm text-gray-700 mt-3 leading-6`}
-              numberOfLines={4}
+          {offers.map((offer, index) => (
+            <TouchableOpacity
+              key={offer._id}
+              onPress={() =>
+                navigation.navigate("OfferDetails", { id: offer._id })
+              }
+              activeOpacity={0.95}
             >
-              {offer.description}
-            </Text>
+              <View
+                style={tw`bg-white border border-gray-200 rounded-2xl p-5 mb-5 shadow-sm`}
+              >
+                {/* Top Row: Title + Save Button */}
+                <View style={tw`flex-row items-start justify-between mb-3`}>
+                  <View style={tw`flex-1 mr-3`}>
+                    <Text
+                      style={tw`text-lg font-bold text-gray-900`}
+                      numberOfLines={3}
+                      ellipsizeMode="tail"
+                    >
+                      {offer.title}
+                    </Text>
+                    {offer.discount && (
+                      <Text style={tw`text-red-600 font-bold text-base mt-1`}>
+                        {offer.discount}
+                      </Text>
+                    )}
+                  </View>
 
-            {/* Contact Info */}
-            {contactInfo[index] && (
-              <View style={tw`mt-3`}>
-                {contactInfo[index].phone && (
-                  <Text
-                    style={tw`text-sm text-blue-600 `}
-                    onPress={() =>
-                      Linking.openURL(`tel:${contactInfo[index].phone}`)
-                    }
+                  {/* Save Button */}
+                  <TouchableOpacity
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      saveOffer(offer._id);
+                    }}
+                    disabled={saving[offer._id] || unsaving[offer._id]}
                   >
-                    Phone: {contactInfo[index].phone}
-                  </Text>
-                )}
-                {contactInfo[index].email && (
+                    <Ionicons
+                      name={
+                        offer.savedBy?.includes(userId)
+                          ? "bookmark"
+                          : "bookmark-outline"
+                      }
+                      size={26}
+                      color={
+                        offer.savedBy?.includes(userId) ? "#dc2626" : "#6b7280"
+                      }
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Business Name */}
+                <Text style={tw`text-base text-gray-800 mt-1`}>
+                  {offer.business?.companyName || "Good Blokes Society"}
+                </Text>
+
+                {/* Type + Category */}
+                <View style={tw`flex-row items-center gap-3 mt-2`}>
                   <Text
-                    style={tw`text-sm text-blue-600 `}
-                    onPress={() =>
-                      Linking.openURL(`mailto:${contactInfo[index].email}`)
-                    }
+                    style={tw`text-xs px-3 py-1.5 rounded-full font-medium ${
+                      offer.offerType === "Member"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-purple-100 text-purple-700"
+                    }`}
                   >
-                    Email: {contactInfo[index].email}
+                    {offer.offerType}
                   </Text>
-                )}
-                {/* {contactInfo[index].visitLink && (
+                  <Text style={tw`text-sm text-gray-600`}>
+                    {offer.category}
+                  </Text>
+                </View>
+
+                {/* Description */}
+                <Text
+                  style={tw`text-sm text-gray-700 mt-3 leading-6`}
+                  numberOfLines={4}
+                >
+                  {offer.description}
+                </Text>
+
+                {/* Contact Info */}
+                {contactInfo[index] && (
+                  <View style={tw`mt-3`}>
+                    {contactInfo[index].phone && (
+                      <Text
+                        style={tw`text-sm text-blue-600 `}
+                        onPress={() =>
+                          Linking.openURL(`tel:${contactInfo[index].phone}`)
+                        }
+                      >
+                        Phone: {contactInfo[index].phone}
+                      </Text>
+                    )}
+                    {contactInfo[index].email && (
+                      <Text
+                        style={tw`text-sm text-blue-600 `}
+                        onPress={() =>
+                          Linking.openURL(`mailto:${contactInfo[index].email}`)
+                        }
+                      >
+                        Email: {contactInfo[index].email}
+                      </Text>
+                    )}
+                    {/* {contactInfo[index].visitLink && (
                   <Text
                     style={tw`text-sm text-blue-600 `}
                     onPress={() =>
@@ -316,21 +379,23 @@ const Offers = ({ navigation }) => {
                     Visit link
                   </Text>
                 )} */}
-                {contactInfo[index].visitLink && (
-                  <TouchableOpacity
-                    style={tw`bg-red-500 px-4 py-2 mt-2 rounded-full items-center`}
-                    onPress={() =>
-                      Linking.openURL(contactInfo[index].visitLink)
-                    }
-                  >
-                    <Text style={tw`text-white font-semibold`}>Redeem</Text>
-                  </TouchableOpacity>
+                    {contactInfo[index].visitLink && (
+                      <TouchableOpacity
+                        style={tw`bg-red-500 px-4 py-2 mt-2 rounded-full items-center`}
+                        onPress={() =>
+                          Linking.openURL(contactInfo[index].visitLink)
+                        }
+                      >
+                        <Text style={tw`text-white font-semibold`}>Redeem</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 )}
               </View>
-            )}
-          </View>
-        </TouchableOpacity>
-      ))}
+            </TouchableOpacity>
+          ))}
+        </>
+      )}
     </ScrollView>
   );
 };

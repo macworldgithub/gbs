@@ -209,6 +209,35 @@ export default function GroupConversations({ navigation }) {
           </TouchableOpacity>
         ))}
       </View>
+      {/* 🔔 Public Groups Info Dialog */}
+      {activeTab === "public" && !loading && (
+        <View
+          style={tw`mx-4 mt-4 mb-2 bg-white border border-red-200 rounded-xl p-4`}
+        >
+          <View style={tw`flex-row items-start`}>
+            <Ionicons
+              name="information-circle-outline"
+              size={22}
+              color="#dc2626"
+              style={tw`mr-2 mt-0.5`}
+            />
+            <View style={tw`flex-1`}>
+              <Text style={tw`text-base font-bold text-red-600 mb-1`}>
+                Public Groups
+              </Text>
+              <Text style={tw`text-sm text-gray-700 leading-5`}>
+                Public groups are open communities created to encourage
+                discussion, collaboration, and knowledge sharing among members.
+              </Text>
+              <Text style={tw`text-sm text-gray-700 leading-5 mt-1`}>
+                You may join any group that aligns with your interests. Once
+                joined, you can actively participate, share ideas, and engage
+                with other members.
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
 
       {loading ? (
         <ActivityIndicator style={tw`mt-14`} color="red" size="large" />
