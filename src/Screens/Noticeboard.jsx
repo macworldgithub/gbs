@@ -6,7 +6,6 @@ import {
   TextInput,
   Alert,
   Platform,
-  Modal,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
@@ -132,39 +131,21 @@ const NoticeboardTab = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* Date Picker Modal */}
-      <Modal transparent animationType="slide" visible={showPicker}>
-        <View style={tw`flex-1 justify-end bg-black bg-opacity-40`}>
-          <View style={tw`bg-white rounded-t-2xl p-4`}>
-            <DateTimePicker
-              value={tempDate}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "calendar"}
-              minimumDate={new Date()}
-              onChange={(e, date) => date && setTempDate(date)}
-            />
-
-            <View style={tw`flex-row justify-end mt-4`}>
-              <TouchableOpacity
-                onPress={() => setShowPicker(false)}
-                style={tw`px-4 py-2 mr-2`}
-              >
-                <Text style={tw`text-gray-600 font-medium`}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => {
-                  setExpiryDate(tempDate);
-                  setShowPicker(false);
-                }}
-                style={tw`px-4 py-2`}
-              >
-                <Text style={tw`text-red-500 font-bold`}>Done</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {/* Date Picker */}
+      {showPicker && (
+        <DateTimePicker
+          value={tempDate}
+          mode="date"
+          display="default"
+          minimumDate={new Date()}
+          onChange={(event, date) => {
+            setShowPicker(false);
+            if (date) {
+              setExpiryDate(date);
+            }
+          }}
+        />
+      )}
 
       {/* Submit Button */}
       <TouchableOpacity
