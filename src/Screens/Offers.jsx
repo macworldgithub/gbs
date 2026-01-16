@@ -147,7 +147,7 @@ const Offers = ({ navigation }) => {
   return (
     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
       {/* Header */}
-      <View style={tw`flex-row justify-between items-center mt-14 mb-1`}>
+      <View style={tw`flex-row justify-between items-center mt-14 mb-1 `}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
