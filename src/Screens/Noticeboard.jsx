@@ -69,6 +69,15 @@ const NoticeboardTab = () => {
 
   return (
     <View style={tw`mt-4`}>
+      <View style={tw`bg-red-50 border border-red-200 rounded-lg p-4 mb-5`}>
+        <Text style={tw` font-bold mb-1`}>📢 Noticeboard Purpose</Text>
+        <Text style={tw`text-sm leading-5`}>
+          This noticeboard is used to share important announcements, updates,
+          and official information with members. Please post only relevant and
+          clear messages such as event updates, policy changes, reminders, or
+          urgent notices. Avoid personal or informal content.
+        </Text>
+      </View>
       <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>
         Create Noticeboard Announcement
       </Text>
