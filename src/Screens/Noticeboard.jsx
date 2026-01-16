@@ -1,0 +1,173 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  Platform,
+  Modal,
+} from "react-native";
+import tw from "tailwind-react-native-classnames";
+import axios from "axios";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { getUserData } from "../../src/utils/storage";
+
+const NOTICEBOARD_API = "https://gbs.westsidecarcare.com.au/noticeboard";
+
+const NoticeboardTab = () => {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [isPinned, setIsPinned] = useState(false);
+
+  const [expiryDate, setExpiryDate] = useState(null);
+  const [tempDate, setTempDate] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
+
+  const submitNotice = async () => {
+    if (!title.trim() || !content.trim()) {
+      Alert.alert("Error", "Please fill all required fields.");
+      return;
+    }
+
+    try {
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      await axios.post(
+        NOTICEBOARD_API,
+        {
+          title,
+          content,
+          isPinned,
+          expiresAt: expiryDate ? expiryDate.toISOString() : null,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      Alert.alert("Success", "Noticeboard post created successfully!");
+
+      setTitle("");
+      setContent("");
+      setIsPinned(false);
+      setExpiryDate(null);
+      setTempDate(new Date());
+      setShowPicker(false);
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        error?.response?.data?.message || "Failed to create noticeboard post."
+      );
+    }
+  };
+
+  return (
+    <View style={tw`mt-4`}>
+      <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>
+        Create Noticeboard Announcement
+      </Text>
+
+      {/* Title */}
+      <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Title</Text>
+      <TextInput
+        style={tw`border border-gray-300 rounded-lg p-3 mb-3`}
+        placeholder="Enter title"
+        value={title}
+        onChangeText={setTitle}
+      />
+
+      {/* Content */}
+      <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Content</Text>
+      <TextInput
+        multiline
+        numberOfLines={5}
+        style={tw`border border-gray-300 rounded-lg p-3 mb-3`}
+        placeholder="Write announcement content..."
+        value={content}
+        onChangeText={setContent}
+      />
+
+      {/* Pin Toggle */}
+      <TouchableOpacity
+        onPress={() => setIsPinned(!isPinned)}
+        style={tw`flex-row items-center mb-4`}
+      >
+        <View
+          style={tw`w-5 h-5 mr-2 rounded border ${
+            isPinned ? "bg-red-500 border-red-500" : "border-gray-400"
+          }`}
+        />
+        <Text style={tw`text-gray-700`}>Pin this announcement</Text>
+      </TouchableOpacity>
+
+      {/* Expiry Date */}
+      <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>
+        Expiry Date
+      </Text>
+
+      <TouchableOpacity
+        onPress={() => {
+          setTempDate(expiryDate || new Date());
+          setShowPicker(true);
+        }}
+        style={tw`border border-gray-300 rounded-lg p-3 mb-4`}
+      >
+        <Text style={tw`text-gray-700`}>
+          {expiryDate ? expiryDate.toDateString() : "Select expiry date"}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Date Picker Modal */}
+      <Modal transparent animationType="slide" visible={showPicker}>
+        <View style={tw`flex-1 justify-end bg-black bg-opacity-40`}>
+          <View style={tw`bg-white rounded-t-2xl p-4`}>
+            <DateTimePicker
+              value={tempDate}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "calendar"}
+              minimumDate={new Date()}
+              onChange={(e, date) => date && setTempDate(date)}
+            />
+
+            <View style={tw`flex-row justify-end mt-4`}>
+              <TouchableOpacity
+                onPress={() => setShowPicker(false)}
+                style={tw`px-4 py-2 mr-2`}
+              >
+                <Text style={tw`text-gray-600 font-medium`}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setExpiryDate(tempDate);
+                  setShowPicker(false);
+                }}
+                style={tw`px-4 py-2`}
+              >
+                <Text style={tw`text-red-500 font-bold`}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Submit Button */}
+      <TouchableOpacity
+        style={tw`bg-red-500 py-3 rounded-lg`}
+        onPress={submitNotice}
+      >
+        <Text style={tw`text-center text-white font-bold`}>
+          Submit Announcement
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+export default NoticeboardTab;

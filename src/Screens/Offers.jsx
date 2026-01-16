@@ -13,7 +13,7 @@ import axios from "axios";
 import { API_BASE_URL } from "../../src/utils/config";
 import { getUserData } from "../../src/utils/storage";
 import { Ionicons } from "@expo/vector-icons";
-
+import NoticeboardTab from "./Noticeboard";
 
 const tabs = ["All", "Member Offers", "Noticeboard"];
 
@@ -42,8 +42,6 @@ const Offers = ({ navigation }) => {
   const [saving, setSaving] = useState({});
   const [unsaving, setUnsaving] = useState({});
   const [userId, setUserId] = useState(null);
-
-  const [noticeInput, setNoticeInput] = useState("");
 
   useEffect(() => {
     const loadUser = async () => {
@@ -146,44 +144,6 @@ const Offers = ({ navigation }) => {
     }
   };
 
-  const submitNotice = async () => {
-    if (!noticeInput.trim()) {
-      Alert.alert("Error", "Please type something before submitting.");
-      return;
-    }
-
-    try {
-      const userData = await getUserData();
-      const token = userData?.token;
-
-      await axios.post(
-        `${API_BASE_URL}/notification`,
-        {
-          title: "New Noticeboard Request",
-          message: noticeInput.trim(),
-          SendToAll: true,
-          area: null,
-          roles: [],
-          startDate: new Date().toISOString(),
-          endDate: new Date(
-            Date.now() + 30 * 24 * 60 * 60 * 1000
-          ).toISOString(),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      Alert.alert("Success", "Your noticeboard post has been submitted!");
-      setNoticeInput("");
-    } catch {
-      Alert.alert("Error", "Failed to submit post. Please try again.");
-    }
-  };
-
   return (
     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
       {/* Header */}
@@ -222,35 +182,7 @@ const Offers = ({ navigation }) => {
       </View>
 
       {activeTab === "Noticeboard" ? (
-        <View style={tw`mt-4`}>
-          <Text style={tw`text-xl font-bold text-gray-800 mb-2`}>
-            Welcome to the GBS Noticeboard
-          </Text>
-
-          <Text style={tw`text-sm text-gray-600 mb-4`}>
-            Looking for a trusted service, product, or business collaboration?
-            Post your request here and tap into the expertise and connections of
-            the GBS community.
-          </Text>
-
-          <View style={tw`border border-gray-300 rounded-lg p-3 mb-4`}>
-            <TextInput
-              multiline
-              numberOfLines={5}
-              style={tw`text-base text-gray-800`}
-              placeholder="Type your request here..."
-              value={noticeInput}
-              onChangeText={setNoticeInput}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={tw`bg-red-500 py-3 rounded-lg`}
-            onPress={submitNotice}
-          >
-            <Text style={tw`text-center text-white font-bold`}>Submit</Text>
-          </TouchableOpacity>
-        </View>
+        <NoticeboardTab />
       ) : (
         <>
           {loading && (
