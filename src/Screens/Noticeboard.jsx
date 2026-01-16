@@ -6,11 +6,13 @@ import {
   TextInput,
   Alert,
   Platform,
+  Modal,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { getUserData } from "../../src/utils/storage";
+import NoticeboardList from "./NoticeboardList";
 
 const NOTICEBOARD_API = "https://gbs.westsidecarcare.com.au/noticeboard";
 
@@ -22,6 +24,7 @@ const NoticeboardTab = () => {
   const [expiryDate, setExpiryDate] = useState(null);
   const [tempDate, setTempDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const submitNotice = async () => {
     if (!title.trim() || !content.trim()) {
@@ -51,6 +54,7 @@ const NoticeboardTab = () => {
       );
 
       Alert.alert("Success", "Noticeboard post created successfully!");
+      setRefreshKey((prev) => prev + 1);
 
       setTitle("");
       setContent("");
@@ -131,21 +135,53 @@ const NoticeboardTab = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* Date Picker */}
-      {showPicker && (
-        <DateTimePicker
-          value={tempDate}
-          mode="date"
-          display="default"
-          minimumDate={new Date()}
-          onChange={(event, date) => {
-            setShowPicker(false);
-            if (date) {
-              setExpiryDate(date);
-            }
-          }}
-        />
-      )}
+      {/* Date Picker Modal */}
+      <Modal transparent animationType="slide" visible={showPicker}>
+        <View style={tw`flex-1 justify-end bg-black bg-opacity-40`}>
+          <View style={tw`bg-white rounded-t-2xl p-4`}>
+            <DateTimePicker
+              value={tempDate}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "calendar"}
+              minimumDate={new Date()}
+              onChange={(event, selectedDate) => {
+                if (Platform.OS === "android") {
+                  if (event.type === "set") {
+                    const currentDate = selectedDate || tempDate;
+                    setTempDate(currentDate);
+                    setExpiryDate(currentDate);
+                  }
+                  setShowPicker(false);
+                } else {
+                  // iOS behavior (keep picker open)
+                  if (selectedDate) setTempDate(selectedDate);
+                }
+              }}
+            />
+
+            <View style={tw`flex-row justify-end mt-4`}>
+              <TouchableOpacity
+                onPress={() => setShowPicker(false)}
+                style={tw`px-4 py-2 mr-2`}
+              >
+                <Text style={tw`text-gray-600 font-medium`}>Cancel</Text>
+              </TouchableOpacity>
+
+              {Platform.OS === "ios" && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setExpiryDate(tempDate);
+                    setShowPicker(false);
+                  }}
+                  style={tw`px-4 py-2`}
+                >
+                  <Text style={tw`text-red-500 font-bold`}>Done</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Submit Button */}
       <TouchableOpacity
@@ -156,6 +192,8 @@ const NoticeboardTab = () => {
           Submit Announcement
         </Text>
       </TouchableOpacity>
+
+      <NoticeboardList key={refreshKey} pinned={true} />
     </View>
   );
 };
