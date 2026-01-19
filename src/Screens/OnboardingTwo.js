@@ -311,7 +311,7 @@ export default function OnboardingScreen({ navigation }) {
           onPress={() => navigation.navigate("VideoScreen")}
         >
           <Text style={styles.signInText}>
-            Already have an account?{" "}
+            Continue as{" "}
             <Text style={styles.signInBold}>Guest login</Text>
           </Text>
         </TouchableOpacity>
