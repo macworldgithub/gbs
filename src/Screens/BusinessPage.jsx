@@ -29,7 +29,7 @@ const BusinessPage = ({ navigation }) => {
   const [search, setSearch] = useState("");
   const [selectedState, setSelectedState] = useState("All");
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(500);
   const [modalVisible, setModalVisible] = useState(false);
   const isFocused = useIsFocused();
   const [noPackage, setNoPackage] = useState(false);
