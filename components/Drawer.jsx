@@ -408,7 +408,7 @@ export default function Drawer({ isOpen, onClose }) {
     { title: "Saved offers" },
     { title: "View and Update Profile " },
     // { title: "Upgrade Memberships" },
-    // { title: "Events" },
+    { title: "Events" },
     { title: "About Us" },
     { title: "Contact Us" },
     { title: "Resign Membership" },
@@ -420,7 +420,7 @@ export default function Drawer({ isOpen, onClose }) {
     ? staticItems
     : [
         ...staticItems.slice(0, staticItems.length - 1),
-        // { title: "Pay Now" },
+        { title: "Pay Now" },
         { title: "Logout" },
       ];
 
@@ -430,7 +430,7 @@ export default function Drawer({ isOpen, onClose }) {
 
     // Guest should NOT see these
     if (item.title === "View and Update Profile ") return false;
-    // if (item.title === "Events") return false;
+    if (item.title === "Events") return false;
     if (item.title === "Pay Now") return false;
 
     return true;
@@ -455,7 +455,8 @@ export default function Drawer({ isOpen, onClose }) {
         // - placeholder guest token
         const rawToken = userData?.token;
         const guest =
-          userData?.isGuest === true || (rawToken && rawToken === "guest-token");
+          userData?.isGuest === true ||
+          (rawToken && rawToken === "guest-token");
         setIsGuestSession(!!guest);
 
         // Set role label from activatedPackage.role.label
@@ -470,7 +471,7 @@ export default function Drawer({ isOpen, onClose }) {
             if (selectedPackageId) {
               // Fetch roles to get label for selected package ID
               const response = await fetch(
-                "https://gbs.westsidecarcare.com.au/roles"
+                "https://gbs.westsidecarcare.com.au/roles",
               );
               if (response.ok) {
                 const data = await response.json();
@@ -498,7 +499,7 @@ export default function Drawer({ isOpen, onClose }) {
         if (fileKey && userId) {
           try {
             const res = await axios.get(
-              `${API_BASE_URL}/user/${userId}/profile-picture`
+              `${API_BASE_URL}/user/${userId}/profile-picture`,
             );
             if (res.data && res.data.url) {
               profilePicUri = res.data.url;
@@ -506,7 +507,7 @@ export default function Drawer({ isOpen, onClose }) {
           } catch (err) {
             console.error(
               "Error fetching signed profile picture in drawer:",
-              err
+              err,
             );
             // Fallback to direct avatarUrl if API fails
             profilePicUri = userData.avatarUrl;
@@ -574,7 +575,7 @@ export default function Drawer({ isOpen, onClose }) {
                       Authorization: `Bearer ${token}`,
                       "Content-Type": "application/json",
                     },
-                  }
+                  },
                 );
 
                 console.log("Package deletion response:", response.data);
@@ -586,14 +587,14 @@ export default function Drawer({ isOpen, onClose }) {
                   delete updatedUserData.activatedPackage;
                   await AsyncStorage.setItem(
                     "userData",
-                    JSON.stringify(updatedUserData)
+                    JSON.stringify(updatedUserData),
                   );
                 }
 
                 // Also clear persisted current package key (if it exists elsewhere in the app)
                 await AsyncStorage.removeItem("currentPackage");
                 console.log(
-                  "[Drawer] Cleared currentPackage from storage after deletion"
+                  "[Drawer] Cleared currentPackage from storage after deletion",
                 );
 
                 // Clear selectedPackage as well since package is deleted
@@ -601,7 +602,7 @@ export default function Drawer({ isOpen, onClose }) {
 
                 Alert.alert(
                   "Success",
-                  "Your package has been deleted successfully!"
+                  "Your package has been deleted successfully!",
                 );
 
                 // Close drawer after successful deletion
@@ -609,16 +610,16 @@ export default function Drawer({ isOpen, onClose }) {
               } catch (error) {
                 console.error(
                   "Error deleting package:",
-                  error.response?.data || error.message
+                  error.response?.data || error.message,
                 );
                 Alert.alert(
                   "Error",
-                  "Failed to delete package. Please try again."
+                  "Failed to delete package. Please try again.",
                 );
               }
             },
           },
-        ]
+        ],
       );
     } catch (error) {
       console.error("Error in deleteUserPackage:", error);
@@ -664,12 +665,10 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "View and Update Profile ") {
         onClose();
         navigation.navigate("Profile");
-      } 
-      // else if (item.title === "Events") {
-      //   onClose();
-      //   navigation.navigate("Featured");
-      // } 
-      else if (item.title === "Chat Groups") {
+      } else if (item.title === "Events") {
+        onClose();
+        navigation.navigate("Featured");
+      } else if (item.title === "Chat Groups") {
         onClose();
         navigation.navigate("GroupConversations");
       } else if (item.title === "Upgrade Memberships") {
@@ -683,11 +682,9 @@ export default function Drawer({ isOpen, onClose }) {
         navigation.navigate("ContactUs");
       } else if (item.title === "Resign Membership") {
         deleteUserPackage();
-      } 
-      // else if (item.title === "Pay Now") {
-      //   handlePayNow();
-      // } 
-      else if (item.title === "Logout") {
+      } else if (item.title === "Pay Now") {
+        handlePayNow();
+      } else if (item.title === "Logout") {
         handleLogout();
       } else if (item.subItems) {
         toggleExpand(item.title);

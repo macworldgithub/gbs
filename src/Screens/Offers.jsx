@@ -250,7 +250,7 @@ const Offers = ({ navigation }) => {
                 </View>
 
                 {/* Business Name */}
-                <Text style={tw`text-base text-gray-800 mt-1`}>
+                <Text style={tw`text-base text-gray-800 mt-1 font-bold`}>
                   {offer.business?.companyName || "Good Blokes Society"}
                 </Text>
 
