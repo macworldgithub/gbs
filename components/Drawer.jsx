@@ -407,34 +407,42 @@ export default function Drawer({ isOpen, onClose }) {
     { title: "My Business" },
     { title: "Saved offers" },
     { title: "View and Update Profile " },
-    // { title: "Upgrade Memberships" },
     // { title: "Events" },
+    { title: "Upgrade Memberships" },
+    { title: "Events" },
     { title: "About Us" },
     { title: "Contact Us" },
     { title: "Resign Membership" },
     { title: "Logout" },
   ];
 
-  // For non‑package users we append Pay Now before Logout
-  const basePayNowItems = hasPackage
-    ? staticItems
-    : [
-        ...staticItems.slice(0, staticItems.length - 1),
-        // { title: "Pay Now" },
-        { title: "Logout" },
-      ];
+  // Build full menu list
+  let menuItems = [...staticItems];
 
-  // If this is a guest session, hide profile, events, and pay‑related items
-  const payNowItems = basePayNowItems.filter((item) => {
-    if (!isGuestSession) return true;
+  // Add "Pay Now" for users who need to upgrade
+  if (!hasPackage) {
+    // Insert before Logout
+    const logoutIndex = menuItems.findIndex((i) => i.title === "Logout");
+    if (logoutIndex !== -1) {
+      menuItems.splice(logoutIndex, 0, { title: "Pay Now" });
+    } else {
+      menuItems.push({ title: "Pay Now" });
+    }
+  }
 
-    // Guest should NOT see these
-    if (item.title === "View and Update Profile ") return false;
-    // if (item.title === "Events") return false;
-    if (item.title === "Pay Now") return false;
-
-    return true;
-  });
+  // Now apply guest restrictions
+  const finalMenuItems = isGuestSession
+    ? menuItems.filter((item) => {
+        const hiddenTitles = [
+          "View and Update Profile ",
+          "Events",
+          "Resign Membership",
+          // Keep Pay Now visible for guests → they need to upgrade
+          // "Pay Now" ← do NOT hide for guests
+        ];
+        return !hiddenTitles.includes(item.title);
+      })
+    : menuItems;
 
   const toggleExpand = (title) => {
     setExpandedItems((prev) => ({
@@ -450,18 +458,36 @@ export default function Drawer({ isOpen, onClose }) {
       const userData = await getUserData();
       console.log("1111", userData);
       if (userData) {
-        // Detect guest session:
+        // Guest detection:
         // - explicit isGuest flag OR
+        // - missing token OR
         // - placeholder guest token
         const rawToken = userData?.token;
         const guest =
-          userData?.isGuest === true || (rawToken && rawToken === "guest-token");
+          userData?.isGuest === true || !rawToken || rawToken === "guest-token";
         setIsGuestSession(!!guest);
 
         // Set role label from activatedPackage.role.label
         let roleLabelFromStorage = userData?.activatedPackage?.role?.label;
-        const hasActivated = !!userData?.activatedPackage;
-        setHasPackage(hasActivated);
+        // const hasActivated = !!userData?.activatedPackage;
+        // setHasPackage(hasActivated);
+        let isPackageActive = false;
+
+        if (userData?.activatedPackage) {
+          const pkg = userData.activatedPackage;
+
+          // Basic existence check
+          isPackageActive = !!pkg.role && !!pkg.endDate;
+
+          // Optional: check if not expired (if endDate exists in your data)
+          if (pkg.endDate) {
+            const endDate = new Date(pkg.endDate);
+            const now = new Date();
+            isPackageActive = endDate > now;
+          }
+        }
+
+        setHasPackage(isPackageActive);
         // If no role from user data (first time after signup), fallback to selectedPackage from signup
         if (!roleLabelFromStorage) {
           try {
@@ -470,7 +496,7 @@ export default function Drawer({ isOpen, onClose }) {
             if (selectedPackageId) {
               // Fetch roles to get label for selected package ID
               const response = await fetch(
-                "https://gbs.westsidecarcare.com.au/roles"
+                "https://gbs.westsidecarcare.com.au/roles",
               );
               if (response.ok) {
                 const data = await response.json();
@@ -498,7 +524,7 @@ export default function Drawer({ isOpen, onClose }) {
         if (fileKey && userId) {
           try {
             const res = await axios.get(
-              `${API_BASE_URL}/user/${userId}/profile-picture`
+              `${API_BASE_URL}/user/${userId}/profile-picture`,
             );
             if (res.data && res.data.url) {
               profilePicUri = res.data.url;
@@ -506,7 +532,7 @@ export default function Drawer({ isOpen, onClose }) {
           } catch (err) {
             console.error(
               "Error fetching signed profile picture in drawer:",
-              err
+              err,
             );
             // Fallback to direct avatarUrl if API fails
             profilePicUri = userData.avatarUrl;
@@ -519,11 +545,13 @@ export default function Drawer({ isOpen, onClose }) {
         });
       } else {
         // No user data found
+        setIsGuestSession(false);
         setRoleLabel(null);
         setUserProfile({ name: "", avatarUrl: null });
       }
     } catch (e) {
       console.error("Error loading user data in drawer:", e);
+      setIsGuestSession(false);
       setRoleLabel(null);
       setUserProfile({ name: "", avatarUrl: null });
     }
@@ -574,7 +602,7 @@ export default function Drawer({ isOpen, onClose }) {
                       Authorization: `Bearer ${token}`,
                       "Content-Type": "application/json",
                     },
-                  }
+                  },
                 );
 
                 console.log("Package deletion response:", response.data);
@@ -586,14 +614,14 @@ export default function Drawer({ isOpen, onClose }) {
                   delete updatedUserData.activatedPackage;
                   await AsyncStorage.setItem(
                     "userData",
-                    JSON.stringify(updatedUserData)
+                    JSON.stringify(updatedUserData),
                   );
                 }
 
                 // Also clear persisted current package key (if it exists elsewhere in the app)
                 await AsyncStorage.removeItem("currentPackage");
                 console.log(
-                  "[Drawer] Cleared currentPackage from storage after deletion"
+                  "[Drawer] Cleared currentPackage from storage after deletion",
                 );
 
                 // Clear selectedPackage as well since package is deleted
@@ -601,7 +629,7 @@ export default function Drawer({ isOpen, onClose }) {
 
                 Alert.alert(
                   "Success",
-                  "Your package has been deleted successfully!"
+                  "Your package has been deleted successfully!",
                 );
 
                 // Close drawer after successful deletion
@@ -609,16 +637,16 @@ export default function Drawer({ isOpen, onClose }) {
               } catch (error) {
                 console.error(
                   "Error deleting package:",
-                  error.response?.data || error.message
+                  error.response?.data || error.message,
                 );
                 Alert.alert(
                   "Error",
-                  "Failed to delete package. Please try again."
+                  "Failed to delete package. Please try again.",
                 );
               }
             },
           },
-        ]
+        ],
       );
     } catch (error) {
       console.error("Error in deleteUserPackage:", error);
@@ -664,12 +692,10 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "View and Update Profile ") {
         onClose();
         navigation.navigate("Profile");
-      } 
-      // else if (item.title === "Events") {
-      //   onClose();
-      //   navigation.navigate("Featured");
-      // } 
-      else if (item.title === "Chat Groups") {
+      } else if (item.title === "Events") {
+        onClose();
+        navigation.navigate("Featured");
+      } else if (item.title === "Chat Groups") {
         onClose();
         navigation.navigate("GroupConversations");
       } else if (item.title === "Upgrade Memberships") {
@@ -683,11 +709,9 @@ export default function Drawer({ isOpen, onClose }) {
         navigation.navigate("ContactUs");
       } else if (item.title === "Resign Membership") {
         deleteUserPackage();
-      } 
-      // else if (item.title === "Pay Now") {
-      //   handlePayNow();
-      // } 
-      else if (item.title === "Logout") {
+      } else if (item.title === "Pay Now") {
+        handlePayNow();
+      } else if (item.title === "Logout") {
         handleLogout();
       } else if (item.subItems) {
         toggleExpand(item.title);
@@ -810,15 +834,19 @@ export default function Drawer({ isOpen, onClose }) {
             style={tw`flex-1 px-3 ml-4`}
             showsVerticalScrollIndicator={false}
           >
-            {[
-              { title: "Chat Groups" },
-              ...payNowItems.filter((item) => {
+            {/* Always show Chat Groups first */}
+            {renderMenuItem({ title: "Chat Groups" })}
+
+            {/* Then the filtered menu items */}
+            {finalMenuItems
+              .filter((item) => {
+                // Only show "My Business" if user has appropriate role
                 if (item.title === "My Business") {
                   return canSeeMyBusiness;
                 }
                 return true;
-              }),
-            ].map((menu) => renderMenuItem(menu))}
+              })
+              .map((menu) => renderMenuItem(menu))}
           </ScrollView>
         </View>
       </Animated.View>

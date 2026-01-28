@@ -29,7 +29,7 @@ const BusinessPage = ({ navigation }) => {
   const [search, setSearch] = useState("");
   const [selectedState, setSelectedState] = useState("All");
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(500);
+  const [limit, setLimit] = useState(10);
   const [modalVisible, setModalVisible] = useState(false);
   const isFocused = useIsFocused();
   const [noPackage, setNoPackage] = useState(false);
@@ -43,6 +43,7 @@ const BusinessPage = ({ navigation }) => {
   const [showFeatured, setShowFeatured] = useState(false);
   const [noResults, setNoResults] = useState(false);
   const [featuredLoading, setFeaturedLoading] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
 
   // useEffect(() => {
   //     if (isFocused) {
@@ -95,14 +96,14 @@ const BusinessPage = ({ navigation }) => {
 
       // Filter only Business and Top Tier Business roles
       const businessRoles = response.data.filter(
-        (role) => role.name === "business" || role.name === "top_tier_business"
+        (role) => role.name === "business" || role.name === "top_tier_business",
       );
 
       setRoles(businessRoles);
     } catch (error) {
       console.error(
         "Error fetching roles:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
       setError("Failed to fetch package options");
     } finally {
@@ -211,7 +212,7 @@ const BusinessPage = ({ navigation }) => {
       ) {
         console.log(
           "Package missing required fields:",
-          userData.activatedPackage
+          userData.activatedPackage,
         );
         setNoPackage(true);
         setBusinessListings([]);
@@ -228,7 +229,7 @@ const BusinessPage = ({ navigation }) => {
           "Package has expired. Current date:",
           currentDate,
           "Package end date:",
-          packageEndDate
+          packageEndDate,
         );
         setNoPackage(true);
         setBusinessListings([]);
@@ -238,7 +239,7 @@ const BusinessPage = ({ navigation }) => {
 
       console.log(
         "User has active package:",
-        userData.activatedPackage.role.label
+        userData.activatedPackage.role.label,
       );
       return true;
     } catch (error) {
@@ -307,7 +308,7 @@ const BusinessPage = ({ navigation }) => {
     } catch (error) {
       console.error(
         "Error fetching businesses:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
 
       if (
@@ -324,12 +325,31 @@ const BusinessPage = ({ navigation }) => {
     }
   };
 
+  // useEffect(() => {
+  //   setBusinessListings([]);
+  //   setFeaturedBusinesses([]);
+  //   setNoResults(false);
+  //   fetchBusinesses();
+  // }, [search, selectedState, page, limit]);
+
   useEffect(() => {
-    setBusinessListings([]); // 👈 clear previous data
-    setFeaturedBusinesses([]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500); // 500–800 ms is good balance
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    // Reset pagination when search or state changes
+    setPage(1);
+    setBusinessListings([]);
     setNoResults(false);
+    // Do NOT reset featured here — only when explicitly requested
+  }, [debouncedSearch, selectedState]);
+
+  useEffect(() => {
     fetchBusinesses();
-  }, [search, selectedState, page, limit]);
+  }, [debouncedSearch, selectedState, page, limit]);
 
   // Action Menu Modal Component
   const ActionMenuModal = ({
@@ -524,7 +544,8 @@ const BusinessPage = ({ navigation }) => {
                       ? { uri: business.logo }
                       : require("../../assets/profile.png")
                   }
-                  style={tw`w-12 h-12 rounded-full mr-3`}
+                  style={tw`w-12 h-12 rounded-full mr-3 `}
+                  resizeMode="contain"
                 />
                 <View>
                   <Text style={tw`text-lg font-bold text-gray-800`}>
@@ -689,7 +710,7 @@ const BusinessPage = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
-          )
+          ),
         )}
 
       {packagesModalVisible && (
