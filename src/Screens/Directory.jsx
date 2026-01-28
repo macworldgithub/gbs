@@ -28,6 +28,9 @@ export default function MembersDirectory({ navigation }) {
   const [token, setToken] = useState(null);
   const [myUserId, setMyUserId] = useState(null);
 
+  // Track if access is blocked for guests / unauthenticated users
+  const [guestRestricted, setGuestRestricted] = useState(false);
+
   const [selectedState, setSelectedState] = useState("All");
   const [searchTimeout, setSearchTimeout] = useState(null);
   const [paginationLoading, setPaginationLoading] = useState(false);
@@ -116,10 +119,38 @@ export default function MembersDirectory({ navigation }) {
   useEffect(() => {
     const init = async () => {
       const user = await getUserData();
-      if (user) {
-        setToken(user.token);
-        setMyUserId(user._id || user?.user?._id);
+
+      const rawToken = user?.token;
+      const isGuest = user?.isGuest || rawToken === "guest-token";
+
+      // If there is no real auth token OR this is a guest session,
+      // do NOT show directory members – require full login instead.
+      if (!rawToken || isGuest) {
+        setGuestRestricted(true);
+        setLoading(false);
+
+        Alert.alert(
+          "Login Required",
+          "Please log in with your GBS account to view the Member Directory.",
+          [
+            {
+              text: "Cancel",
+              style: "cancel",
+              onPress: () => navigation.goBack && navigation.goBack(),
+            },
+            {
+              text: "Login",
+              onPress: () => navigation.navigate("Signin"),
+            },
+          ]
+        );
+        return;
       }
+
+      setToken(rawToken);
+      setMyUserId(user._id || user?.user?._id);
+
+      // Only fetch members when user is fully authenticated
       searchUsers("", "All", 1);
     };
     init();
@@ -247,7 +278,9 @@ export default function MembersDirectory({ navigation }) {
         )}
         {!loading && members.length === 0 && (
           <Text style={tw`text-center text-gray-400 mt-6`}>
-            No members found for selected state
+            {guestRestricted || !token
+              ? "Please log in to view the Member Directory."
+              : "No members found for selected state"}
           </Text>
         )}
 

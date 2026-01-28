@@ -395,6 +395,7 @@ export default function Drawer({ isOpen, onClose }) {
   const navigation = useNavigation();
   const [roleLabel, setRoleLabel] = useState(null);
   const [userProfile, setUserProfile] = useState({ name: "", avatarUrl: null });
+  const [isGuestSession, setIsGuestSession] = useState(false);
   const [hasPackage, setHasPackage] = useState(false);
   console.log(userProfile, "drawer");
   const [groups, setGroups] = useState([]);
@@ -406,21 +407,34 @@ export default function Drawer({ isOpen, onClose }) {
     { title: "My Business" },
     { title: "Saved offers" },
     { title: "View and Update Profile " },
+    // { title: "Upgrade Memberships" },
     // { title: "Events" },
-    { title: "Upgrade Memberships" },
-    { title: "Events" },
     { title: "About Us" },
     { title: "Contact Us" },
     { title: "Resign Membership" },
     { title: "Logout" },
   ];
-  const payNowItems = hasPackage
+
+  // For non‑package users we append Pay Now before Logout
+  const basePayNowItems = hasPackage
     ? staticItems
     : [
         ...staticItems.slice(0, staticItems.length - 1),
-        { title: "Pay Now" },
+        // { title: "Pay Now" },
         { title: "Logout" },
       ];
+
+  // If this is a guest session, hide profile, events, and pay‑related items
+  const payNowItems = basePayNowItems.filter((item) => {
+    if (!isGuestSession) return true;
+
+    // Guest should NOT see these
+    if (item.title === "View and Update Profile ") return false;
+    // if (item.title === "Events") return false;
+    if (item.title === "Pay Now") return false;
+
+    return true;
+  });
 
   const toggleExpand = (title) => {
     setExpandedItems((prev) => ({
@@ -436,6 +450,14 @@ export default function Drawer({ isOpen, onClose }) {
       const userData = await getUserData();
       console.log("1111", userData);
       if (userData) {
+        // Detect guest session:
+        // - explicit isGuest flag OR
+        // - placeholder guest token
+        const rawToken = userData?.token;
+        const guest =
+          userData?.isGuest === true || (rawToken && rawToken === "guest-token");
+        setIsGuestSession(!!guest);
+
         // Set role label from activatedPackage.role.label
         let roleLabelFromStorage = userData?.activatedPackage?.role?.label;
         const hasActivated = !!userData?.activatedPackage;
@@ -642,10 +664,12 @@ export default function Drawer({ isOpen, onClose }) {
       } else if (item.title === "View and Update Profile ") {
         onClose();
         navigation.navigate("Profile");
-      } else if (item.title === "Events") {
-        onClose();
-        navigation.navigate("Featured");
-      } else if (item.title === "Chat Groups") {
+      } 
+      // else if (item.title === "Events") {
+      //   onClose();
+      //   navigation.navigate("Featured");
+      // } 
+      else if (item.title === "Chat Groups") {
         onClose();
         navigation.navigate("GroupConversations");
       } else if (item.title === "Upgrade Memberships") {
@@ -659,9 +683,11 @@ export default function Drawer({ isOpen, onClose }) {
         navigation.navigate("ContactUs");
       } else if (item.title === "Resign Membership") {
         deleteUserPackage();
-      } else if (item.title === "Pay Now") {
-        handlePayNow();
-      } else if (item.title === "Logout") {
+      } 
+      // else if (item.title === "Pay Now") {
+      //   handlePayNow();
+      // } 
+      else if (item.title === "Logout") {
         handleLogout();
       } else if (item.subItems) {
         toggleExpand(item.title);

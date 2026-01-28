@@ -21,12 +21,12 @@ const contactInfo = [
   {
     phone: "0416 050 212",
     email: "scott@bossmanmedia.com.au",
-    visitLink: "https://linkedin.com/company/bossmanmelb?originalSubdomain=au",
+    visitLink: "https://bossmanmedia.com.au/contact-us/",
   },
   {
     phone: "0498 800 900",
     email: "angek@aussietel.com.au",
-    visitLink: "https://www.aussietel.com.au/",
+    visitLink: "https://www.aussietel.com.au/contact/",
   },
   {
     email: "info@menzclub.com.au",
@@ -133,8 +133,8 @@ const Offers = ({ navigation }) => {
                   ? offer.savedBy.filter((id) => id !== userId)
                   : [...(offer.savedBy || []), userId],
               }
-            : offer
-        )
+            : offer,
+        ),
       );
     } catch {
       Alert.alert("Error", "Could not update offer");

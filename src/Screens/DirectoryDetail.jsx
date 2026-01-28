@@ -7,11 +7,13 @@ import {
   ActivityIndicator,
   Linking,
   ScrollView,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
 import moment from "moment";
+import { getUserData } from "../utils/storage";
 
 export default function DirectoryDetail({ route, navigation }) {
   const { id } = route.params || {};
@@ -53,8 +55,38 @@ export default function DirectoryDetail({ route, navigation }) {
   };
 
   useEffect(() => {
-    if (id) fetchUser();
-  }, [id]);
+    const init = async () => {
+      const storedUser = await getUserData();
+      const rawToken = storedUser?.token;
+      const isGuest = storedUser?.isGuest || rawToken === "guest-token";
+
+      // Block guests / unauthenticated users from viewing directory detail
+      if (!rawToken || isGuest) {
+        Alert.alert(
+          "Login Required",
+          "Please log in with your GBS account to view member details.",
+          [
+            {
+              text: "Cancel",
+              style: "cancel",
+              onPress: () => navigation.goBack && navigation.goBack(),
+            },
+            {
+              text: "Login",
+              onPress: () => navigation.navigate("Signin"),
+            },
+          ]
+        );
+        return;
+      }
+
+      if (id) {
+        await fetchUser();
+      }
+    };
+
+    init();
+  }, [id, navigation]);
 
   return (
     <View style={tw`flex-1 bg-white pt-12`}>
