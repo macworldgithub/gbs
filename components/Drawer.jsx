@@ -407,7 +407,8 @@ export default function Drawer({ isOpen, onClose }) {
     { title: "My Business" },
     { title: "Saved offers" },
     { title: "View and Update Profile " },
-    // { title: "Upgrade Memberships" },
+    // { title: "Events" },
+    { title: "Upgrade Memberships" },
     { title: "Events" },
     { title: "About Us" },
     { title: "Contact Us" },
@@ -415,26 +416,33 @@ export default function Drawer({ isOpen, onClose }) {
     { title: "Logout" },
   ];
 
-  // For non‑package users we append Pay Now before Logout
-  const basePayNowItems = hasPackage
-    ? staticItems
-    : [
-        ...staticItems.slice(0, staticItems.length - 1),
-        { title: "Pay Now" },
-        { title: "Logout" },
-      ];
+  // Build full menu list
+  let menuItems = [...staticItems];
 
-  // If this is a guest session, hide profile, events, and pay‑related items
-  const payNowItems = basePayNowItems.filter((item) => {
-    if (!isGuestSession) return true;
+  // Add "Pay Now" for users who need to upgrade
+  if (!hasPackage) {
+    // Insert before Logout
+    const logoutIndex = menuItems.findIndex((i) => i.title === "Logout");
+    if (logoutIndex !== -1) {
+      menuItems.splice(logoutIndex, 0, { title: "Pay Now" });
+    } else {
+      menuItems.push({ title: "Pay Now" });
+    }
+  }
 
-    // Guest should NOT see these
-    if (item.title === "View and Update Profile ") return false;
-    if (item.title === "Events") return false;
-    if (item.title === "Pay Now") return false;
-
-    return true;
-  });
+  // Now apply guest restrictions
+  const finalMenuItems = isGuestSession
+    ? menuItems.filter((item) => {
+        const hiddenTitles = [
+          "View and Update Profile ",
+          "Events",
+          "Resign Membership",
+          // Keep Pay Now visible for guests → they need to upgrade
+          // "Pay Now" ← do NOT hide for guests
+        ];
+        return !hiddenTitles.includes(item.title);
+      })
+    : menuItems;
 
   const toggleExpand = (title) => {
     setExpandedItems((prev) => ({
@@ -450,19 +458,36 @@ export default function Drawer({ isOpen, onClose }) {
       const userData = await getUserData();
       console.log("1111", userData);
       if (userData) {
-        // Detect guest session:
+        // Guest detection:
         // - explicit isGuest flag OR
+        // - missing token OR
         // - placeholder guest token
         const rawToken = userData?.token;
         const guest =
-          userData?.isGuest === true ||
-          (rawToken && rawToken === "guest-token");
+          userData?.isGuest === true || !rawToken || rawToken === "guest-token";
         setIsGuestSession(!!guest);
 
         // Set role label from activatedPackage.role.label
         let roleLabelFromStorage = userData?.activatedPackage?.role?.label;
-        const hasActivated = !!userData?.activatedPackage;
-        setHasPackage(hasActivated);
+        // const hasActivated = !!userData?.activatedPackage;
+        // setHasPackage(hasActivated);
+        let isPackageActive = false;
+
+        if (userData?.activatedPackage) {
+          const pkg = userData.activatedPackage;
+
+          // Basic existence check
+          isPackageActive = !!pkg.role && !!pkg.endDate;
+
+          // Optional: check if not expired (if endDate exists in your data)
+          if (pkg.endDate) {
+            const endDate = new Date(pkg.endDate);
+            const now = new Date();
+            isPackageActive = endDate > now;
+          }
+        }
+
+        setHasPackage(isPackageActive);
         // If no role from user data (first time after signup), fallback to selectedPackage from signup
         if (!roleLabelFromStorage) {
           try {
@@ -520,11 +545,13 @@ export default function Drawer({ isOpen, onClose }) {
         });
       } else {
         // No user data found
+        setIsGuestSession(false);
         setRoleLabel(null);
         setUserProfile({ name: "", avatarUrl: null });
       }
     } catch (e) {
       console.error("Error loading user data in drawer:", e);
+      setIsGuestSession(false);
       setRoleLabel(null);
       setUserProfile({ name: "", avatarUrl: null });
     }
@@ -807,15 +834,19 @@ export default function Drawer({ isOpen, onClose }) {
             style={tw`flex-1 px-3 ml-4`}
             showsVerticalScrollIndicator={false}
           >
-            {[
-              { title: "Chat Groups" },
-              ...payNowItems.filter((item) => {
+            {/* Always show Chat Groups first */}
+            {renderMenuItem({ title: "Chat Groups" })}
+
+            {/* Then the filtered menu items */}
+            {finalMenuItems
+              .filter((item) => {
+                // Only show "My Business" if user has appropriate role
                 if (item.title === "My Business") {
                   return canSeeMyBusiness;
                 }
                 return true;
-              }),
-            ].map((menu) => renderMenuItem(menu))}
+              })
+              .map((menu) => renderMenuItem(menu))}
           </ScrollView>
         </View>
       </Animated.View>

@@ -40,7 +40,7 @@ export default function MembersDirectory({ navigation }) {
     query = "",
     state = "All",
     pageNumber = 1,
-    isPagination = false
+    isPagination = false,
   ) => {
     try {
       isPagination ? setPaginationLoading(true) : setLoading(true);
@@ -142,7 +142,7 @@ export default function MembersDirectory({ navigation }) {
               text: "Login",
               onPress: () => navigation.navigate("Signin"),
             },
-          ]
+          ],
         );
         return;
       }
@@ -164,7 +164,7 @@ export default function MembersDirectory({ navigation }) {
       try {
         const res = await fetch(
           `${API_BASE_URL}/messages/conversations?page=1&limit=100`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         const data = await res.json();
 
@@ -251,7 +251,6 @@ export default function MembersDirectory({ navigation }) {
         {/* STATE FILTER */}
         <View style={tw`flex-row justify-between mb-4`}>
           {["All", "VIC", "NSW", "QLD", "SA", "WA"].map((filter) => (
-
             <TouchableOpacity
               key={filter}
               onPress={() => handleStateFilter(filter)}
@@ -321,7 +320,7 @@ export default function MembersDirectory({ navigation }) {
 
                 {item.businessName && (
                   <Text style={tw`text-black text-xs mt-1`}>
-                    BusinessName: {item.businessName}
+                    Business Name: {item.businessName}
                   </Text>
                 )}
 
