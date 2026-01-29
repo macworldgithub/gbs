@@ -60,14 +60,14 @@ export default function ViewProfile() {
         setShortBio(
           data?.shortBio && data.shortBio !== "string"
             ? data.shortBio
-            : user?.shortBio || ""
+            : user?.shortBio || "",
         );
         const hobbies = data?.hobbies || user?.hobbies || [];
         setHobbiesInput(Array.isArray(hobbies) ? hobbies.join(", ") : hobbies);
         setLocation(
           data?.location && data.location !== "string"
             ? data.location
-            : user?.location || ""
+            : user?.location || "",
         );
         // ✅ Set anniversary if available and valid
         if (data?.anniversaryDate && data.anniversaryDate !== "string") {
@@ -78,7 +78,7 @@ export default function ViewProfile() {
         console.log(" Display Phone (original):", storedUser?.phone || "N/A");
         console.log(
           " Display InterestedIn (original):",
-          storedUser?.interestedIn || "N/A"
+          storedUser?.interestedIn || "N/A",
         );
       } else {
         console.error("Error fetching profile:", data);
@@ -123,7 +123,7 @@ export default function ViewProfile() {
 
       // ✅ Remove undefined fields
       Object.keys(updateData).forEach(
-        (key) => updateData[key] === undefined && delete updateData[key]
+        (key) => updateData[key] === undefined && delete updateData[key],
       );
 
       if (Object.keys(updateData).length === 0) {
@@ -194,7 +194,7 @@ export default function ViewProfile() {
         (it) =>
           it &&
           (typeof it === "string" ? it !== "string" : true) &&
-          (it.label || it.name || it) !== "string"
+          (it.label || it.name || it) !== "string",
       );
     }
 
@@ -350,7 +350,7 @@ export default function ViewProfile() {
           {/* ✅ New Membership Level Section - Editable with Update API */}
           <View style={tw`mt-6 bg-gray-100 rounded-xl p-4`}>
             <Text style={tw`text-black font-semibold mb-3 text-lg`}>
-              Membership Level
+              Member information
             </Text>
 
             {/* ShortBio */}
@@ -397,7 +397,7 @@ export default function ViewProfile() {
               style={tw`bg-red-500 py-3 rounded-xl items-center ${updating ? "opacity-50" : ""}`}
             >
               <Text style={tw`text-white font-semibold`}>
-                {updating ? "Updating..." : "Update Membership Level"}
+                {updating ? "Updating..." : "Update Profile"}
               </Text>
             </TouchableOpacity>
 

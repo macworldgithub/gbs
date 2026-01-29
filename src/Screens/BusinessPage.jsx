@@ -41,40 +41,42 @@ const BusinessPage = ({ navigation }) => {
   const [actionMenuVisible, setActionMenuVisible] = useState(false);
   const [featuredBusinesses, setFeaturedBusinesses] = useState([]);
   const [showFeatured, setShowFeatured] = useState(false);
+  const [noResults, setNoResults] = useState(false);
+  const [featuredLoading, setFeaturedLoading] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
 
-  useEffect(() => {
-    if (isFocused) {
-      // Log current package from storage when page gains focus
-      (async () => {
-        try {
-          const stored = await AsyncStorage.getItem("currentPackage");
-          if (stored) {
-            console.log(
-              "[BusinessPage] currentPackage (focus):",
-              JSON.parse(stored)
-            );
-          } else {
-            console.log("[BusinessPage] currentPackage (focus): none");
-          }
-        } catch (e) {
-          console.log("[BusinessPage] Error reading currentPackage:", e);
-        }
-      })();
-      fetchBusinesses();
-    }
-  }, [isFocused]);
+  // useEffect(() => {
+  //     if (isFocused) {
+  //       (async () => {
+  //         try {
+  //           const stored = await AsyncStorage.getItem("currentPackage");
+  //           if (stored) {
+  //             console.log(
+  //               "[BusinessPage] currentPackage (focus):",
+  //               JSON.parse(stored)
+  //             );
+  //           } else {
+  //             console.log("[BusinessPage] currentPackage (focus): none");
+  //           }
+  //         } catch (e) {
+  //           console.log("[BusinessPage] Error reading currentPackage:", e);
+  //         }
+  //       })();
+  //       fetchBusinesses();
+  //     }
+  //   }, [isFocused]);
 
   // Listen for focus events to refresh when coming back from other screens
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      // Force refresh user data and check package status when screen comes into focus
-      refreshUserData().then(() => {
-        fetchBusinesses();
-      });
-    });
+  // useEffect(() => {
+  //   const unsubscribe = navigation.addListener("focus", () => {
 
-    return unsubscribe;
-  }, [navigation]);
+  //     refreshUserData().then(() => {
+  //       fetchBusinesses();
+  //     });
+  //   });
+
+  //   return unsubscribe;
+  // }, [navigation]);
 
   // Fetch roles from API
   const fetchRoles = async () => {
@@ -94,14 +96,14 @@ const BusinessPage = ({ navigation }) => {
 
       // Filter only Business and Top Tier Business roles
       const businessRoles = response.data.filter(
-        (role) => role.name === "business" || role.name === "top_tier_business"
+        (role) => role.name === "business" || role.name === "top_tier_business",
       );
 
       setRoles(businessRoles);
     } catch (error) {
       console.error(
         "Error fetching roles:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
       setError("Failed to fetch package options");
     } finally {
@@ -112,14 +114,13 @@ const BusinessPage = ({ navigation }) => {
   // Fetch featured businesses
   const fetchFeaturedBusinesses = async () => {
     try {
-      setLoading(true);
+      setFeaturedLoading(true);
+      setShowFeatured(false);
+
       const userData = await getUserData();
       const token = userData?.token;
 
-      if (!token) {
-        setError("No token found, please login again.");
-        return;
-      }
+      if (!token) return;
 
       const response = await axios.get(`${API_BASE_URL}/business/featured`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -128,13 +129,9 @@ const BusinessPage = ({ navigation }) => {
       setFeaturedBusinesses(response.data || []);
       setShowFeatured(true);
     } catch (error) {
-      console.error(
-        "Error fetching featured businesses:",
-        error.response?.data || error.message
-      );
       Alert.alert("Error", "Failed to fetch featured businesses");
     } finally {
-      setLoading(false);
+      setFeaturedLoading(false);
     }
   };
 
@@ -215,7 +212,7 @@ const BusinessPage = ({ navigation }) => {
       ) {
         console.log(
           "Package missing required fields:",
-          userData.activatedPackage
+          userData.activatedPackage,
         );
         setNoPackage(true);
         setBusinessListings([]);
@@ -232,7 +229,7 @@ const BusinessPage = ({ navigation }) => {
           "Package has expired. Current date:",
           currentDate,
           "Package end date:",
-          packageEndDate
+          packageEndDate,
         );
         setNoPackage(true);
         setBusinessListings([]);
@@ -242,7 +239,7 @@ const BusinessPage = ({ navigation }) => {
 
       console.log(
         "User has active package:",
-        userData.activatedPackage.role.label
+        userData.activatedPackage.role.label,
       );
       return true;
     } catch (error) {
@@ -256,6 +253,7 @@ const BusinessPage = ({ navigation }) => {
   const fetchBusinesses = async () => {
     try {
       setLoading(true);
+      setNoResults(false);
       setError(null);
       setNoPackage(false);
       setShowFeatured(false);
@@ -298,11 +296,19 @@ const BusinessPage = ({ navigation }) => {
       }
 
       // reference API returns `{ businesses: [...] }`
-      setBusinessListings(response.data.businesses || []);
+      const businesses = response.data.businesses || [];
+
+      if (businesses.length === 0) {
+        setNoResults(true);
+        setBusinessListings([]);
+      } else {
+        setNoResults(false);
+        setBusinessListings(businesses);
+      }
     } catch (error) {
       console.error(
         "Error fetching businesses:",
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
 
       if (
@@ -319,9 +325,31 @@ const BusinessPage = ({ navigation }) => {
     }
   };
 
+  // useEffect(() => {
+  //   setBusinessListings([]);
+  //   setFeaturedBusinesses([]);
+  //   setNoResults(false);
+  //   fetchBusinesses();
+  // }, [search, selectedState, page, limit]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500); // 500–800 ms is good balance
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    // Reset pagination when search or state changes
+    setPage(1);
+    setBusinessListings([]);
+    setNoResults(false);
+    // Do NOT reset featured here — only when explicitly requested
+  }, [debouncedSearch, selectedState]);
+
   useEffect(() => {
     fetchBusinesses();
-  }, [search, selectedState, page, limit]);
+  }, [debouncedSearch, selectedState, page, limit]);
 
   // Action Menu Modal Component
   const ActionMenuModal = ({
@@ -418,6 +446,7 @@ const BusinessPage = ({ navigation }) => {
       >
         <TextInput
           placeholder="Search business...."
+          placeholderTextColor="black"
           style={tw`text-gray-700`}
           value={search}
           onChangeText={setSearch}
@@ -453,7 +482,11 @@ const BusinessPage = ({ navigation }) => {
       )}
 
       {/* Loading/Error State */}
-      {loading && <Text style={tw`text-center text-gray-500`}>Loading...</Text>}
+      {loading && (
+        <Text style={tw`text-center text-gray-500 mt-6`}>
+          Loading business...
+        </Text>
+      )}
 
       {!loading && noPackage && (
         <View style={tw`mt-20 items-center`}>
@@ -477,192 +510,208 @@ const BusinessPage = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       )}
+      {!loading && noResults && (
+        <View style={tw`mt-20 items-center`}>
+          <MaterialIcons name="search-off" size={48} color="#9CA3AF" />
+          <Text style={tw`text-lg font-bold text-gray-700 mt-3`}>
+            No Businesses Found
+          </Text>
+          <Text style={tw`text-sm text-gray-500 mt-1 text-center px-6`}>
+            No businesses available for the selected state.
+          </Text>
+        </View>
+      )}
 
       {error && <Text style={tw`text-center text-red-500`}>{error}</Text>}
 
       {/* Business Listings - Show either featured or regular businesses */}
-      {(showFeatured ? featuredBusinesses : businessListings).map(
-        (business) => (
-          <TouchableOpacity
-            key={business._id}
-            style={tw`bg-white rounded-lg p-4 mb-4`}
-            onPress={() =>
-              navigation.navigate("BusinessDetail", { id: business._id })
-            }
-          >
-            {/* Company Info */}
-            <View style={tw`flex-row items-center mb-2`}>
-              <Image
-                source={
-                  business.logo
-                    ? { uri: business.logo }
-                    : require("../../assets/profile.png")
-                }
-                style={tw`w-12 h-12 rounded-full mr-3`}
-              />
-              <View>
-                <Text style={tw`text-lg font-bold text-gray-800`}>
-                  {business.companyName}
+      {!loading &&
+        !noResults &&
+        (showFeatured ? featuredBusinesses : businessListings).map(
+          (business) => (
+            <TouchableOpacity
+              key={business._id}
+              style={tw`bg-white rounded-lg p-4 mb-4`}
+              onPress={() =>
+                navigation.navigate("BusinessDetail", { id: business._id })
+              }
+            >
+              {/* Company Info */}
+              <View style={tw`flex-row items-center mb-2`}>
+                <Image
+                  source={
+                    business.logo
+                      ? { uri: business.logo }
+                      : require("../../assets/profile.png")
+                  }
+                  style={tw`w-12 h-12 rounded-full mr-3 `}
+                  resizeMode="contain"
+                />
+                <View>
+                  <Text style={tw`text-lg font-bold text-gray-800`}>
+                    {business.companyName}
+                  </Text>
+                  <Text style={tw`text-xs text-gray-500`}>
+                    by {business.user?.name}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Rating & Location */}
+              <View style={tw`flex-row items-center`}>
+                <MaterialIcons name="star" size={16} color="#F59E0B" />
+                <Text style={tw`text-xs text-gray-700 ml-1`}>
+                  {business.rating}
                 </Text>
-                <Text style={tw`text-xs text-gray-500`}>
-                  by {business.user?.name}
+                <Text style={tw`text-xs text-gray-500 ml-2`}>
+                  {business.city}, {business.state}
                 </Text>
               </View>
-            </View>
 
-            {/* Rating & Location */}
-            <View style={tw`flex-row items-center`}>
-              <MaterialIcons name="star" size={16} color="#F59E0B" />
-              <Text style={tw`text-xs text-gray-700 ml-1`}>
-                {business.rating}
+              {/* About */}
+              <Text style={tw`text-sm text-gray-600 mb-3`}>
+                {business.about}
               </Text>
-              <Text style={tw`text-xs text-gray-500 ml-2`}>
-                {business.city}, {business.state}
-              </Text>
-            </View>
 
-            {/* About */}
-            <Text style={tw`text-sm text-gray-600 mb-3`}>{business.about}</Text>
-
-            {/* Services */}
-            <View style={tw`flex-row flex-wrap mb-3`}>
-              {business.services &&
-                business.services.map((service) => (
-                  <View
-                    key={service}
-                    style={tw`bg-gray-200 rounded-full px-3 py-1 mr-2 mb-2`}
-                  >
-                    <Text style={tw`text-xs text-gray-700`}>{service}</Text>
-                  </View>
-                ))}
-            </View>
-
-            {/* Social Links */}
-            {business.socialLinks && business.socialLinks.length > 0 && (
+              {/* Services */}
               <View style={tw`flex-row flex-wrap mb-3`}>
-                {business.socialLinks.map((link) => {
-                  let iconName;
-                  let iconType = "FontAwesome5";
-
-                  switch (link.platform?.toLowerCase()) {
-                    case "linkedin":
-                      iconName = "linkedin";
-                      break;
-                    case "facebook":
-                      iconName = "facebook";
-                      break;
-                    case "instagram":
-                      iconName = "instagram";
-                      break;
-                    case "twitter":
-                      iconName = "twitter";
-                      break;
-                    case "youtube":
-                      iconName = "youtube";
-                      break;
-                    default:
-                      iconName = "link";
-                      iconType = "MaterialIcons";
-                  }
-
-                  return (
-                    <TouchableOpacity
-                      key={link._id || link.url}
-                      style={tw`mr-3 mb-2`}
-                      onPress={() => Linking.openURL(link.url)}
+                {business.services &&
+                  business.services.map((service) => (
+                    <View
+                      key={service}
+                      style={tw`bg-gray-200 rounded-full px-3 py-1 mr-2 mb-2`}
                     >
-                      {iconType === "FontAwesome5" ? (
-                        <FontAwesome5
-                          name={iconName}
-                          size={20}
-                          color="#DC2626"
-                        />
-                      ) : (
-                        <MaterialIcons
-                          name={iconName}
-                          size={20}
-                          color="#DC2626"
-                        />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            )}
-
-            {business.gallery && business.gallery.length > 0 && (
-              <View style={tw`mb-3`}>
-                <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>
-                  Gallery
-                </Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {business.gallery.slice(0, 2).map((img, idx) => (
-                    <Image
-                      key={idx}
-                      source={{ uri: img }}
-                      style={tw`w-20 h-20 rounded-lg mr-2`}
-                    />
+                      <Text style={tw`text-xs text-gray-700`}>{service}</Text>
+                    </View>
                   ))}
-                  {business.gallery.length > 2 && (
-                    <TouchableOpacity
-                      style={tw`w-20 h-20 rounded-lg mr-2 justify-center items-center`}
-                      onPress={() =>
-                        navigation.navigate("BusinessDetail", {
-                          id: business._id,
-                        })
-                      }
-                    >
-                      <Text style={tw`text-blue-600 font-medium underline`}>
-                        View More
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </ScrollView>
               </View>
-            )}
-            {/* Action Buttons */}
-            <View style={tw`flex-row justify-between`}>
-              <TouchableOpacity
-                style={tw`flex-1 bg-red-500 rounded-lg py-2 mr-2 items-center`}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  if (business.phone) {
-                    Linking.openURL(`tel:${business.phone}`);
-                  } else {
-                    Alert.alert("No phone number available");
-                  }
-                }}
-              >
-                <Text style={tw`text-white font-medium`}>Call</Text>
-              </TouchableOpacity>
 
-              <TouchableOpacity
-                style={tw`flex-1 bg-red-500 rounded-lg py-2 mr-2 items-center`}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  if (business.email) {
-                    Linking.openURL(`mailto:${business.email}`);
-                  } else {
-                    Alert.alert("No email available");
-                  }
-                }}
-              >
-                <Text style={tw`text-white font-medium`}>Email</Text>
-              </TouchableOpacity>
+              {/* Social Links */}
+              {business.socialLinks && business.socialLinks.length > 0 && (
+                <View style={tw`flex-row flex-wrap mb-3`}>
+                  {business.socialLinks.map((link) => {
+                    let iconName;
+                    let iconType = "FontAwesome5";
 
-              <TouchableOpacity
-                style={tw`flex-1 bg-red-500 rounded-lg py-2 items-center`}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  navigation.navigate("BusinessDetail", { id: business._id });
-                }}
-              >
-                <Text style={tw`text-white font-medium`}>View Details</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        )
-      )}
+                    switch (link.platform?.toLowerCase()) {
+                      case "linkedin":
+                        iconName = "linkedin";
+                        break;
+                      case "facebook":
+                        iconName = "facebook";
+                        break;
+                      case "instagram":
+                        iconName = "instagram";
+                        break;
+                      case "twitter":
+                        iconName = "twitter";
+                        break;
+                      case "youtube":
+                        iconName = "youtube";
+                        break;
+                      default:
+                        iconName = "link";
+                        iconType = "MaterialIcons";
+                    }
+
+                    return (
+                      <TouchableOpacity
+                        key={link._id || link.url}
+                        style={tw`mr-3 mb-2`}
+                        onPress={() => Linking.openURL(link.url)}
+                      >
+                        {iconType === "FontAwesome5" ? (
+                          <FontAwesome5
+                            name={iconName}
+                            size={20}
+                            color="#DC2626"
+                          />
+                        ) : (
+                          <MaterialIcons
+                            name={iconName}
+                            size={20}
+                            color="#DC2626"
+                          />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+
+              {business.gallery && business.gallery.length > 0 && (
+                <View style={tw`mb-3`}>
+                  <Text style={tw`text-sm font-semibold text-gray-700 mb-2`}>
+                    Gallery
+                  </Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {business.gallery.slice(0, 2).map((img, idx) => (
+                      <Image
+                        key={idx}
+                        source={{ uri: img }}
+                        style={tw`w-20 h-20 rounded-lg mr-2`}
+                      />
+                    ))}
+                    {business.gallery.length > 2 && (
+                      <TouchableOpacity
+                        style={tw`w-20 h-20 rounded-lg mr-2 justify-center items-center`}
+                        onPress={() =>
+                          navigation.navigate("BusinessDetail", {
+                            id: business._id,
+                          })
+                        }
+                      >
+                        <Text style={tw`text-blue-600 font-medium underline`}>
+                          View More
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </ScrollView>
+                </View>
+              )}
+              {/* Action Buttons */}
+              <View style={tw`flex-row justify-between`}>
+                <TouchableOpacity
+                  style={tw`flex-1 bg-red-500 rounded-lg py-2 mr-2 items-center`}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    if (business.phone) {
+                      Linking.openURL(`tel:${business.phone}`);
+                    } else {
+                      Alert.alert("No phone number available");
+                    }
+                  }}
+                >
+                  <Text style={tw`text-white font-medium`}>Call</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={tw`flex-1 bg-red-500 rounded-lg py-2 mr-2 items-center`}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    if (business.email) {
+                      Linking.openURL(`mailto:${business.email}`);
+                    } else {
+                      Alert.alert("No email available");
+                    }
+                  }}
+                >
+                  <Text style={tw`text-white font-medium`}>Email</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={tw`flex-1 bg-red-500 rounded-lg py-2 items-center`}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    navigation.navigate("BusinessDetail", { id: business._id });
+                  }}
+                >
+                  <Text style={tw`text-white font-medium`}>View Details</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ),
+        )}
 
       {packagesModalVisible && (
         <Modal

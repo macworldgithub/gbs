@@ -11,22 +11,53 @@ export default function Conversations({ navigation }) {
   const [myUserId, setMyUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
     const init = async () => {
       try {
         const parsed = await getUserData();
-        if (parsed) {
+
+        // 👇 Explicit guest check
+        if (parsed?.isGuest === true) {
+          setIsGuest(true);
+          setToken(null);
+          setMyUserId(null);
+          setLoading(false);
+          return;
+        }
+
+        // 👇 Logged-in user
+        if (parsed?.token && (parsed?._id || parsed?.user?._id)) {
           setToken(parsed.token);
           setMyUserId(parsed._id || parsed.user?._id);
+          setIsGuest(false);
+          return;
         }
-      } catch (e) {}
+
+        // 👇 Fallback
+        setIsGuest(true);
+        setLoading(false);
+      } catch (e) {
+        setIsGuest(true);
+        setLoading(false);
+      }
     };
+
     init();
   }, []);
+
   useEffect(() => {
+    if (isGuest) {
+      setLoading(false);
+      return;
+    }
+
+    if (!token || !myUserId) {
+      return;
+    }
+
     const fetchConversations = async () => {
-      if (!token || !myUserId) return;
       setLoading(true);
       try {
         const { data } = await axios.get(
@@ -36,9 +67,7 @@ export default function Conversations({ navigation }) {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        console.log("✅ Conversations GET response:", data);
 
-        // ✅ Filter out group chats
         const conversations = Array.isArray(data?.conversations)
           ? data.conversations.filter((c) => !c.isGroup)
           : [];
@@ -62,7 +91,6 @@ export default function Conversations({ navigation }) {
           };
         });
 
-        console.log("✅ Conversations mapped for UI:", mapped);
         setItems(mapped);
       } catch (e) {
         console.log(
@@ -74,8 +102,9 @@ export default function Conversations({ navigation }) {
         setLoading(false);
       }
     };
+
     fetchConversations();
-  }, [token, myUserId]);
+  }, [token, myUserId, isGuest]);
 
   const openChat = (item) => {
     console.log("➡️ Open chat: ", item);
@@ -133,6 +162,29 @@ export default function Conversations({ navigation }) {
       </View>
     );
   };
+  const GuestLoginPrompt = () => {
+    return (
+      <View style={tw`flex-1 justify-center items-center px-6`}>
+        <MaterialIcons name="lock-outline" size={64} color="#DC2626" />
+
+        <Text style={tw`text-xl font-bold text-gray-800 mt-4`}>
+          Login Required
+        </Text>
+
+        <Text style={tw`text-sm text-gray-500 text-center mt-2`}>
+          Please log in to view your conversations and start chatting with
+          others.
+        </Text>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Signin")}
+          style={tw`mt-6 bg-red-600 px-8 py-3 rounded-full`}
+        >
+          <Text style={tw`text-white font-bold`}>Login Now</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
     <View style={tw`flex-1 bg-white mt-0`}>
@@ -146,6 +198,8 @@ export default function Conversations({ navigation }) {
       </View>
       {loading ? (
         <Text style={tw`text-center text-gray-500 mt-10`}>Loading...</Text>
+      ) : isGuest ? (
+        <GuestLoginPrompt />
       ) : (
         <FlatList
           data={items}

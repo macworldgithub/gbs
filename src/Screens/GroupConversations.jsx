@@ -18,16 +18,16 @@ import { getSession } from "../utils/secureAuth";
 // ================= IMAGES =================
 const COMMUNITY_IMAGES = {
   Announcements: null,
-  Social: require("../../assets/Community.png"),
-  Business: require("../../assets/Community.png"),
-  Wellbeing: require("../../assets/Community.png"),
-  Victoria: require("../../assets/Community.png"),
-  NSW: require("../../assets/Community.png"),
-  Qld: require("../../assets/Community.png"),
-  SA: require("../../assets/Community.png"),
-  "Horse Racing": require("../../assets/Community.png"),
-  "Wine Community": require("../../assets/Community.png"),
-  "GBS Golf": require("../../assets/Community.png"),
+  Social: require("../../assets/social.jpeg"),
+  Business: require("../../assets/business.png"),
+  Wellbeing: require("../../assets/wellbeing3.png"),
+  Victoria: require("../../assets/victoria.jpeg"),
+  NSW: require("../../assets/nsw.png"),
+  Qld: require("../../assets/qld.png"),
+  SA: require("../../assets/SA.jpeg"),
+  "Horse Racing": require("../../assets/horse riding.png"),
+  "Wine Community": require("../../assets/wine.jpeg"),
+  "GBS Golf": require("../../assets/golf.png"),
 };
 
 const DEFAULT_COMMUNITY_IMAGE = require("../../assets/Community.png");
@@ -209,6 +209,35 @@ export default function GroupConversations({ navigation }) {
           </TouchableOpacity>
         ))}
       </View>
+      {/* 🔔 Public Groups Info Dialog */}
+      {activeTab === "public" && !loading && (
+        <View
+          style={tw`mx-4 mt-4 mb-2 bg-white border border-red-200 rounded-xl p-4`}
+        >
+          <View style={tw`flex-row items-start`}>
+            <Ionicons
+              name="information-circle-outline"
+              size={22}
+              color="#dc2626"
+              style={tw`mr-2 mt-0.5`}
+            />
+            <View style={tw`flex-1`}>
+              <Text style={tw`text-base font-bold text-red-600 mb-1`}>
+                Public Groups
+              </Text>
+              <Text style={tw`text-sm text-gray-700 leading-5`}>
+                Public groups are open communities created to encourage
+                discussion, collaboration, and knowledge sharing among members.
+              </Text>
+              <Text style={tw`text-sm text-gray-700 leading-5 mt-1`}>
+                You may join any group that aligns with your interests. Once
+                joined, you can actively participate, share ideas, and engage
+                with other members.
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
 
       {loading ? (
         <ActivityIndicator style={tw`mt-14`} color="red" size="large" />

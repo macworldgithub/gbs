@@ -20,7 +20,6 @@ const newsData = [
       "The GBS Legends London Dry Gin Bold. Australian. Unapologetically Good.",
     detail:
       "A collaboration between GBS and Brunswick Aces celebrating mateship, grit, and good humour. This isn't just gin—it's pure GBS spirit in a bottle.\n\nOrder now: Price: $99.95 Pickup: Brunswick Aces, Brunswick East Delivery: FREE in VIC | Small charge interstate",
-    link: null,
     link: "https://brunswickaces.com/products/gbs-london-dry-gin",
     image: require("../../assets/news1.jpeg"),
   },
@@ -29,7 +28,7 @@ const newsData = [
     heading: "INTRODUCING GBS ALLIANCE MEMBERSHIP",
     title: "A Truly Elevated GBS Business Experience",
     detail:
-      "Accelerate your business relationships by design with the Good Blokes Society Alliance—a premium networking program for ambitious business owners, C-suite executives, general managers, and emerging leaders who are committed to growth and making a broader impact within the GBS community.\n\nThe Alliance Difference: This isn't just networking—it's a structured workshop forum where a united power group of like-minded members from diverse industries commit to 7 half-day sessions per year (Feb-Dec). Meet with the same trusted group to share ideas, resources, learning, and growth strategies while tackling challenges and unlocking opportunities together.\n\nWhat's Included:\n• 7 Half-Day Sessions (7:30 AM – 12:00 PM) at premium venues with limited members for focused collaboration\n• Guest Speakers at 4 of 7 sessions covering AI, HR, Marketing, Budgeting, Leadership, and more\n• Mid-Year & End-of-Year Signature Dinners to connect, celebrate, and support all Alliance members\n• Premium Hospitality including breakfast and barista coffee throughout each session\n• Exclusive Benefits: Access to the national GBS business network, masterclasses, HR/Marketing/Finance support, member offers, and a business promotional video\n\nInvestment: $7,500 + GST per year\n\nContact Leon Davies: 0448 931 555 | leon@goodblokessociety.com.au",
+      "Accelerate your business relationships by design with the Good Blokes Society Alliance—a premium networking program for ambitious business owners, C-suite executives, general managers, and emerging leaders who are committed to growth and making a broader impact within the GBS community.\n\nThe Alliance Difference: This isn't just networking—it's a structured workshop forum where a united power group of like-minded members from diverse industries commit to 7 half-day sessions per year (Feb-Dec). Meet with the same trusted group to share ideas, resources, learning, and growth strategies while tackling challenges and unlocking opportunities together.\n\nWhat's Included:\n• 7 Half-Day Sessions (7:30 AM – 12:00 PM) at premium venues with limited members for focused collaboration\n• Guest Speakers at 4 of 7 sessions covering AI, HR, Marketing, Budgeting, Leadership, and more\n• Mid-Year & End-of-Year Signature Dinners to connect, celebrate, and support all Alliance members\n• Premium Hospitality including breakfast and barista coffee throughout each session\n• Exclusive Benefits: Access to the national GBS business network, masterclasses, HR/Marketing/Finance support, member offers, and a business promotional video\n\nInvestment: $7,500  include GST per year\n\nContact Leon Davies: 0448 931 555 | leon@goodblokessociety.com.au",
     link: null,
     image: require("../../assets/wellbeing4.png"),
   },
@@ -89,7 +88,6 @@ export default function NewsDetail() {
           style={tw`text-base text-gray-700 leading-6 mb-6 whitespace-pre-line`}
         >
           {news.detail}
-          
         </Text>
 
         {news.link && (

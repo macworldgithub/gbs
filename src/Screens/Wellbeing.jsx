@@ -200,6 +200,42 @@ const handleCallPress = async (rawNumber) => {
   }
 };
 
+// Render plain text but convert phone-number-like substrings into clickable Text nodes
+const renderTextWithPhoneLinks = (text, onPress) => {
+  if (!text) return null;
+  const phoneRegex = /(\+?\d[\d\s()\-]{6,}\d)/g;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = phoneRegex.exec(text)) !== null) {
+    const idx = match.index;
+    if (idx > lastIndex) {
+      parts.push({ text: text.slice(lastIndex, idx), isPhone: false });
+    }
+    parts.push({ text: match[0], isPhone: true });
+    lastIndex = idx + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push({ text: text.slice(lastIndex), isPhone: false });
+  }
+
+  return parts.map((part, i) =>
+    part.isPhone ? (
+      <Text
+        key={`p-${i}`}
+        onPress={() => onPress && onPress(part.text)}
+        style={{ color: "green", fontWeight: "700" }}
+      >
+        {part.text}
+      </Text>
+    ) : (
+      <Text key={`t-${i}`}>{part.text}</Text>
+    )
+  );
+};
+
 export default function WellbeingScreen({ navigation }) {
   const [expandedId, setExpandedId] = useState(null);
 
@@ -276,15 +312,14 @@ export default function WellbeingScreen({ navigation }) {
 
           <Text style={tw`text-sm text-gray-600`}>
             If you need support or just want to have a confidential chat, call
-            the GBS Team on
-            {/* <Text style={tw`font-bold`}>1300 071 215</Text>. */}
-            <ContactButton
-              icon="call"
-              text="1300 07 12 15"
-              onPress={handleCallPress}
-              color="green"
-            />
+            the GBS Team on{" "}
           </Text>
+          <ContactButton
+            icon="call"
+            text="1300 07 12 15"
+            onPress={handleCallPress}
+            color="green"
+          />
         </View>
       </View>
 
@@ -332,7 +367,7 @@ export default function WellbeingScreen({ navigation }) {
             {isExpanded && (
               <View style={tw`mt-4 border-t border-gray-300 pt-3`}>
                 <Text style={tw`text-sm text-gray-700 leading-5`}>
-                  {item.moreInfo}
+                  {renderTextWithPhoneLinks(item.moreInfo, handleCallPress)}
                 </Text>
               </View>
             )}

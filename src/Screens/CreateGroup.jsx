@@ -118,6 +118,7 @@ export default function CreateGroup() {
         <View style={tw`flex-row items-center bg-gray-100 p-3 rounded-lg mb-4`}>
           <TextInput
             placeholder="Group name"
+            placeholderTextColor="#000000"
             value={groupName}
             onChangeText={setGroupName}
             style={tw`flex-1`}

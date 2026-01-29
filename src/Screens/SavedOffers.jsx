@@ -91,13 +91,23 @@ const SavedOffers = ({ navigation }) => {
           <View style={tw`bg-white border border-gray-300 rounded-lg p-4 mb-2`}>
             {/* Top Row: Title */}
             <View style={tw`flex-row justify-between items-start`}>
-              <View style={tw`flex-row items-center`}>
-                <View style={tw`bg-red-500 mr-2`}>
-                  <Image source={gift1} />
+              <View style={tw`flex-row items-center flex-1`}>
+                <View style={tw`bg-red-500 mr-2 p-1 rounded`}>
+                  <Image
+                    source={gift1}
+                    style={{ width: 40, height: 40, borderRadius: 8 }}
+                    resizeMode="cover"
+                  />
                 </View>
-                <Text style={tw`text-base font-bold text-gray-800`}>
-                  {offer.title}
-                </Text>
+                <View style={tw`flex-1`}>
+                  <Text
+                    style={tw`text-base font-bold text-gray-800`}
+                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                  >
+                    {offer.title}
+                  </Text>
+                </View>
               </View>
             </View>
 
@@ -124,7 +134,9 @@ const SavedOffers = ({ navigation }) => {
               </Text>
             </View>
 
-            <Text style={tw`text-sm text-gray-600 mt-2`}>
+            <Text
+              style={[tw`text-sm text-gray-600 mt-2`, { flexWrap: "wrap" }]}
+            >
               {offer.description}
             </Text>
 

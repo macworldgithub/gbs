@@ -31,7 +31,8 @@ const Favorite = () => {
         <TextInput
           placeholder="Search Event"
           style={tw`ml-2 flex-1 text-base`}
-          placeholderTextColor="#999"
+          
+          placeholderTextColor="black"
         />
       </View>
 

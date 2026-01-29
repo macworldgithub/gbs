@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { FontAwesome, Ionicons } from '@expo/vector-icons'; 
-import tw from 'tailwind-react-native-classnames';
-import Cards from '../../components/Cards';
-import { useNavigation } from '@react-navigation/native';
-
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import tw from "tailwind-react-native-classnames";
+import Cards from "../../components/Cards";
+import { useNavigation } from "@react-navigation/native";
 
 export default function SearchEvent() {
-  const [location, setLocation] = useState('Sleman, Yogyakarta');
-  const [query, setQuery] = useState('');
+  const [location, setLocation] = useState("Sleman, Yogyakarta");
+  const [query, setQuery] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState('Events');
+  const [selectedFilter, setSelectedFilter] = useState("Events");
   const navigation = useNavigation();
 
   return (
@@ -26,14 +25,16 @@ export default function SearchEvent() {
             <Ionicons name="options" size={16} color="white" />
           </TouchableOpacity>
           {filterOpen && (
-            <View style={tw`absolute top-10 right-0 bg-white shadow-md rounded-lg p-2 w-32 z-50`}>
+            <View
+              style={tw`absolute top-10 right-0 bg-white shadow-md rounded-lg p-2 w-32 z-50`}
+            >
               <Text style={tw`text-xs text-gray-400 mb-2`}>Filter</Text>
 
               <TouchableOpacity
                 onPress={() => {
-                  setSelectedFilter('Members');
+                  setSelectedFilter("Members");
                   setFilterOpen(false);
-                  navigation.navigate('MemberLocation');
+                  navigation.navigate("MemberLocation");
                 }}
               >
                 <Text style={tw`text-sm text-red-500 mb-1`}>Members</Text>
@@ -41,7 +42,7 @@ export default function SearchEvent() {
 
               <TouchableOpacity
                 onPress={() => {
-                  setSelectedFilter('Events');
+                  setSelectedFilter("Events");
                   setFilterOpen(false);
                 }}
               >
@@ -58,13 +59,16 @@ export default function SearchEvent() {
       </Text>
 
       {/* Search Bar */}
-      <View style={tw`flex-row items-center border border-red-400 rounded px-3 py-1`}>
+      <View
+        style={tw`flex-row items-center border border-red-400 rounded px-3 py-1`}
+      >
         <FontAwesome name="search" size={16} color="#888" />
         <TextInput
           style={tw`ml-2 flex-1 text-sm text-gray-800`}
           placeholder="Search something..."
           value={query}
           onChangeText={setQuery}
+          placeholderTextColor="black"
         />
       </View>
 

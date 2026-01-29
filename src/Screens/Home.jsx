@@ -739,13 +739,15 @@ import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
 const newsData = [
   {
     id: "1",
-    heading: "🍸 NEW GBS GIN AVAI...",
+    heading:
+      "🍸 NEW GBS GIN AVAILABLE NOW The GBS Legends London Dry Gin Bold. Australian. Unapologetically Good",
     image: require("../../assets/news1.jpeg"),
     location: "Brunswick Aces",
   },
   {
     id: "2",
-    heading: "INTRODUCING GBS...",
+    heading:
+      "INTRODUCING GBS ALLIANCE MEMBERSHIP A Truly Elevated GBS Business Experience",
     image: require("../../assets/wellbeing4.png"),
     location: "Brunswick Aces",
   },
@@ -1116,6 +1118,7 @@ export default function Home() {
               value={searchQuery}
               onChangeText={setSearchQuery}
               blurOnSubmit={false}
+              placeholderTextColor="black"
             />
           </View>
 
@@ -1186,10 +1189,17 @@ export default function Home() {
                         >
                           USERS
                         </Text>
+
                         {userResults.map((item) => (
                           <TouchableOpacity
                             key={item._id}
                             style={tw`px-4 py-3 border-b border-gray-200`}
+                            onPress={() =>
+                              navigation.navigate("Directory", {
+                                screen: "DirectoryDetail",
+                                params: { id: item._id },
+                              })
+                            }
                           >
                             <Text style={tw`text-base`}>{item.name}</Text>
                           </TouchableOpacity>
@@ -1258,11 +1268,12 @@ export default function Home() {
                     resizeMode="contain"
                   />
                   <View style={tw`p-3`}>
-                    <Text style={tw`font-bold text-sm`} numberOfLines={2}>
+                    <Text style={tw`font-bold text-sm`} numberOfLines={3}>
                       {item.heading}
                     </Text>
+
                     <Text style={tw`text-red-500 font-semibold mt-1`}>
-                      ${item.id === "1" ? "99.95" : "7,500 + GST"}
+                      ${item.id === "1" ? "99.95" : "7,500 include GST"}
                     </Text>
                     <Text style={tw`text-gray-500 text-xs mt-1`}>
                       {item.location}
