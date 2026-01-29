@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
+import MapboxSquareSelector from "./MapboxPolygonDrawer";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -58,7 +58,7 @@ export default function NotificationForm({
           ? new Date(notification.endDate)
           : new Date(),
         roles: (notification.roles || []).map((r) =>
-          typeof r === "string" ? r : r._id
+          typeof r === "string" ? r : r._id,
         ),
 
         area: {
@@ -94,7 +94,7 @@ export default function NotificationForm({
     } catch (e) {
       console.log(
         "[NotificationForm] roles error:",
-        e.response?.data || e.message
+        e.response?.data || e.message,
       );
       Alert.alert("Error", "Failed to load roles");
     } finally {
@@ -159,7 +159,7 @@ export default function NotificationForm({
         res = await axios.put(
           `${API_BASE_URL}/notification/${notification._id}`,
           payload,
-          { headers: { "Content-Type": "application/json" } }
+          { headers: { "Content-Type": "application/json" } },
         );
       } else {
         // CREATE
@@ -183,7 +183,7 @@ export default function NotificationForm({
               navigation.goBack(); // 👈 list me wapas
             },
           },
-        ]
+        ],
       );
     } catch (error) {
       console.error("❌ API Error:", error.response?.data || error.message);
@@ -370,7 +370,7 @@ export default function NotificationForm({
                   `px-3 py-1 rounded-full mr-2 mb-2`,
                   formData.roles.includes(role._id)
                     ? `bg-red-500`
-                    : `bg-gray-200`
+                    : `bg-gray-200`,
                 )}
                 onPress={() => toggleRole(role._id)}
               >
@@ -379,7 +379,7 @@ export default function NotificationForm({
                     `text-xs font-medium`,
                     formData.roles.includes(role._id)
                       ? `text-white`
-                      : `text-gray-700`
+                      : `text-gray-700`,
                   )}
                 >
                   {role.label}
@@ -393,17 +393,12 @@ export default function NotificationForm({
       {!formData.SendToAll && (
         <View style={tw`mt-6 h-80`}>
           <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
-            Select Area (Draw Polygon)
+            Select Area (Tap to set center - 10km square)
           </Text>
-          <MapboxPolygonDrawer
-            coordinates={formData.area?.coordinates || []}
+          <MapboxSquareSelector
             setCoordinates={(coords) => {
-              console.log(
-                "🗺️ Selected Coordinates:",
-                JSON.stringify(coords, null, 2)
-              );
-              setFormData((p) => ({
-                ...p,
+              setFormData((prev) => ({
+                ...prev,
                 area: { type: "MultiPolygon", coordinates: coords },
               }));
             }}
