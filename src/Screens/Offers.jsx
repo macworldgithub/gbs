@@ -251,6 +251,7 @@ const Offers = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
+
             {/* Discount under Title */}
             <Text style={tw`text-red-600 font-bold text-sm mt-1`}>
               {offer.discount}
