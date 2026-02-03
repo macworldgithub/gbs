@@ -13,6 +13,7 @@ import tw from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
 import { useIsFocused } from "@react-navigation/native";
 import { API_BASE_URL } from "../utils/config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function NotificationScreen() {
   const navigation = useNavigation();
@@ -111,36 +112,53 @@ export default function NotificationScreen() {
     }));
   };
 
-  const deleteNotification = (id) => {
-    Alert.alert(
-      "Delete",
-      "Are you sure you want to delete this notification?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const res = await fetch(`${API_BASE_URL}/notification/${id}`, {
-                method: "DELETE",
-                headers: { Accept: "*/*" },
-              });
-              if (res.ok) {
-                Alert.alert("Success", "Notification deleted");
-                fetchNotifications(); // refresh list
-              } else {
-                Alert.alert("Error", "Failed to delete notification");
-              }
-            } catch (error) {
-              console.error("❌ Delete error:", error);
-              Alert.alert("Error", "Something went wrong");
+ const deleteNotification = (id) => {
+  Alert.alert(
+    "Delete",
+    "Are you sure you want to delete this notification?",
+    [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+           const userData = await AsyncStorage.getItem("userData");
+           const parsed = userData ? JSON.parse(userData) : null;
+           const token = parsed?.token;
+
+           if (!token) {
+             Alert.alert("Error", "Please login again to perform this action");
+             return;
+           }
+
+            const res = await fetch(`${API_BASE_URL}/notification/${id}`, {
+              method: "DELETE",
+             headers: {
+               Accept: "*/*",
+               Authorization: `Bearer ${token}`,   // ← Yeh line add karo
+             },
+            });
+
+            if (res.ok) {
+              Alert.alert("Success", "Notification deleted");
+              fetchNotifications();
+            } else {
+             const errorData = await res.json().catch(() => ({}));
+             Alert.alert(
+                "Error",
+               errorData.message || "Failed to delete notification"
+              );
             }
-          },
+          } catch (error) {
+            console.error("❌ Delete error:", error);
+            Alert.alert("Error", "Something went wrong");
+          }
         },
-      ]
-    );
-  };
+      },
+    ]
+  );
+};
 
   const renderItem = (item) => (
     <View
@@ -167,7 +185,7 @@ export default function NotificationScreen() {
         <TouchableOpacity
           onPress={
             () =>
-              navigation.navigate("NotificationForm", { notification: item }) // 👈 ye notification data bhej raha
+              navigation.navigate("NotificationForm", { notification: item }) 
           }
           style={tw`mr-3`}
         >
@@ -208,7 +226,7 @@ export default function NotificationScreen() {
           style={tw`border border-red-500 rounded-full px-3 py-0.5`}
         >
           <Text style={tw`text-red-500 text-xs font-medium p-2`}>
-            create Notification
+            Create Notification
           </Text>
         </TouchableOpacity>
       </View>

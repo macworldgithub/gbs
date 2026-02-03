@@ -17,7 +17,7 @@ MapboxGL.setAccessToken(
 );
 
 const MapboxSquareSelector = ({ setCoordinates }) => {
-  const [center, setCenter] = useState(null); // ← null = no selection yet
+  const [center, setCenter] = useState(null);
   const [radiusKm, setRadiusKm] = useState("10");
   const [searchQuery, setSearchQuery] = useState("");
   const [squareCoords, setSquareCoords] = useState([]);
@@ -25,9 +25,11 @@ const MapboxSquareSelector = ({ setCoordinates }) => {
   const mapRef = useRef(null);
   const cameraRef = useRef(null);
 
-  // Initial map view (only affects visual starting position - no state change)
-  const INITIAL_CENTER = [151.2093, -33.8688]; // Sydney
+  const INITIAL_CENTER = [151.2093, -33.8688]; // Sydney (as in your latest code)
   const INITIAL_ZOOM = 11;
+
+  const MAPBOX_ACCESS_TOKEN =
+    "pk.eyJ1IjoibGVvbi1nYnMiLCJhIjoiY21jc3Eyam1kMTNhdDJqcTJwbzdtMWF2bSJ9.K3Jn-X37-Uy-J9hYU7XbQw";
 
   const generateSquare = (centerPoint, radiusStr) => {
     if (!centerPoint || centerPoint.length !== 2) return;
@@ -40,10 +42,9 @@ const MapboxSquareSelector = ({ setCoordinates }) => {
         units: "kilometers",
         steps: 4,
       });
-
       const bbox = turf.bbox(buffered);
-      const side = Math.max(bbox[2] - bbox[0], bbox[3] - bbox[1]);
 
+      const side = Math.max(bbox[2] - bbox[0], bbox[3] - bbox[1]);
       const centerX = (bbox[0] + bbox[2]) / 2;
       const centerY = (bbox[1] + bbox[3]) / 2;
 
@@ -60,65 +61,53 @@ const MapboxSquareSelector = ({ setCoordinates }) => {
 
       setSquareCoords(closedRing);
       setCoordinates([[closedRing]]);
+
+      if (cameraRef.current) {
+        cameraRef.current.fitBounds(
+          [squareBbox[0], squareBbox[1]],
+          [squareBbox[2], squareBbox[3]],
+          60,
+          800,
+        );
+      }
     } catch (err) {
-      console.error("Square error:", err);
+      console.error("Square generation error:", err);
     }
   };
 
-  // Only generate/update square when center is actually set by user
   useEffect(() => {
-    if (center) {
-      generateSquare(center, radiusKm);
-    } else {
-      // Clear when no center selected
+    if (!center) {
       setSquareCoords([]);
       setCoordinates([]);
+      return;
     }
+    generateSquare(center, radiusKm);
   }, [center, radiusKm]);
 
   const handleMapPress = (e) => {
     const coords = e?.geometry?.coordinates;
     if (Array.isArray(coords) && coords.length === 2) {
       setCenter(coords);
-      cameraRef.current?.setCamera({
-        centerCoordinate: coords,
-        zoomLevel: 13, // zoom in a bit when user selects
-        animationDuration: 800,
-      });
     }
   };
 
-  const MAPBOX_ACCESS_TOKEN =
-    "pk.eyJ1IjoibGVvbi1nYnMiLCJhIjoiY21jc3Eyam1kMTNhdDJqcTJwbzdtMWF2bSJ9.K3Jn-X37-Uy-J9hYU7XbQw";
-
   const searchLocation = async () => {
     const query = searchQuery.trim();
-    if (!query) {
-      Alert.alert("Empty", "Please enter a location");
-      return;
-    }
-
-    if (query.length < 3) {
-      Alert.alert("Too short", "Please type at least 3 characters");
-      return;
-    }
+    if (!query) return Alert.alert("Empty", "Please enter a location");
+    if (query.length < 3)
+      return Alert.alert("Too short", "At least 3 characters");
 
     try {
       const encodedQuery = encodeURIComponent(query);
       const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${MAPBOX_ACCESS_TOKEN}&limit=5&types=place,locality,neighborhood,address,poi`;
 
       const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
-
       if (data.features?.length > 0) {
-        const feature = data.features[0];
-        const [lng, lat] = feature.center;
+        const [lng, lat] = data.features[0].center;
         const newCenter = [lng, lat];
-
         setCenter(newCenter);
 
         cameraRef.current?.setCamera({
@@ -127,29 +116,64 @@ const MapboxSquareSelector = ({ setCoordinates }) => {
           animationDuration: 1200,
         });
       } else {
-        Alert.alert("Not Found", `No results found for "${query}"`);
+        Alert.alert("Not Found", `No results for "${query}"`);
       }
     } catch (err) {
       console.error("Search error:", err);
-      Alert.alert(
-        "Search Failed",
-        "Could not reach Mapbox. Check your internet or try again later.",
-      );
+      Alert.alert("Search Failed", "Could not reach Mapbox. Check connection.");
     }
   };
 
-  const reset = () => {
-    setCenter(null); // ← this removes square + marker
+  const zoomIn = () => {
+    if (!mapRef.current || !cameraRef.current) return;
+
+    mapRef.current
+      .getZoom()
+      .then((currentZoom) => {
+        const nextZoom = Math.min(currentZoom + 1.8, 20);
+        cameraRef.current.setCamera({
+          zoomLevel: nextZoom,
+          animationDuration: 400,
+        });
+      })
+      .catch((err) => {
+        console.warn("getZoom failed (zoom in)", err);
+        cameraRef.current.setCamera({
+          zoomLevel: 15,
+          animationDuration: 400,
+        });
+      });
+  };
+
+  const zoomOut = () => {
+    if (!mapRef.current || !cameraRef.current) return;
+
+    mapRef.current
+      .getZoom()
+      .then((currentZoom) => {
+        const nextZoom = Math.max(currentZoom - 1.8, 2);
+        cameraRef.current.setCamera({
+          zoomLevel: nextZoom,
+          animationDuration: 400,
+        });
+      })
+      .catch((err) => {
+        console.warn("getZoom failed (zoom out)", err);
+        cameraRef.current.setCamera({
+          zoomLevel: 8,
+          animationDuration: 400,
+        });
+      });
+  };
+
+  const handleClear = () => {
+    setRadiusKm("0");
     setSquareCoords([]);
     setCoordinates([]);
-    setSearchQuery("");
 
-    // Optional: smoothly go back to Sydney view on reset
-    cameraRef.current?.setCamera({
-      centerCoordinate: INITIAL_CENTER,
-      zoomLevel: INITIAL_ZOOM,
-      animationDuration: 1000,
-    });
+    if (center) {
+      generateSquare(center, "10");
+    }
   };
 
   return (
@@ -167,6 +191,8 @@ const MapboxSquareSelector = ({ setCoordinates }) => {
           ref={cameraRef}
           zoomLevel={INITIAL_ZOOM}
           centerCoordinate={INITIAL_CENTER}
+          animationMode="flyTo"
+          animationDuration={0}
         />
 
         {squareCoords.length > 0 && (
@@ -179,11 +205,11 @@ const MapboxSquareSelector = ({ setCoordinates }) => {
           >
             <MapboxGL.FillLayer
               id="fill"
-              style={{ fillColor: "rgba(59,178,208,0.3)" }}
+              style={{ fillColor: "rgba(59, 178, 208, 0.28)" }}
             />
             <MapboxGL.LineLayer
               id="line"
-              style={{ lineColor: "#3bb2d0", lineWidth: 3 }}
+              style={{ lineColor: "#3bb2d0", lineWidth: 3.2 }}
             />
           </MapboxGL.ShapeSource>
         )}
@@ -199,11 +225,11 @@ const MapboxSquareSelector = ({ setCoordinates }) => {
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Search location (e.g. Sydney, Melbourne, Karachi)"
+            placeholder="Search location (e.g. Melbourne, Sydney)"
             value={searchQuery}
             onChangeText={setSearchQuery}
             onSubmitEditing={searchLocation}
-            placeholderTextColor="#666"
+            placeholderTextColor="#888"
             autoCapitalize="none"
             returnKeyType="search"
           />
@@ -215,29 +241,41 @@ const MapboxSquareSelector = ({ setCoordinates }) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.controlContainer}>
-          <Text style={styles.label}>Distance (km):</Text>
-          <TextInput
-            style={styles.radiusInput}
-            keyboardType="numeric"
-            value={radiusKm}
-            onChangeText={(val) => {
-              if (/^\d*\.?\d*$/.test(val)) setRadiusKm(val);
-            }}
-            placeholder="10"
-          />
-          <TouchableOpacity style={styles.resetButton} onPress={reset}>
-            <Text style={styles.buttonText}>Reset</Text>
+        <View style={styles.controlRow}>
+          <View style={styles.radiusGroup}>
+            <Text style={styles.label}>Distance (km):</Text>
+            <TextInput
+              style={styles.radiusInput}
+              keyboardType="numeric"
+              value={radiusKm}
+              onChangeText={(val) => {
+                if (/^\d*\.?\d*$/.test(val) || val === "") setRadiusKm(val);
+              }}
+              placeholder="10"
+            />
+          </View>
+
+          <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
+            <Text style={styles.buttonText}>Clear</Text>
           </TouchableOpacity>
         </View>
 
-        {center && (
+        {center && radiusKm && (
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>
-              Area: {parseFloat(radiusKm || "0").toFixed(1)} km²
+              Area ≈ {parseFloat(radiusKm).toFixed(1)} km radius
             </Text>
           </View>
         )}
+
+        <View style={styles.zoomControls}>
+          <TouchableOpacity style={styles.zoomButton} onPress={zoomIn}>
+            <Text style={styles.zoomText}>+</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.zoomButton} onPress={zoomOut}>
+            <Text style={styles.zoomText}>−</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -246,6 +284,7 @@ const MapboxSquareSelector = ({ setCoordinates }) => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { ...StyleSheet.absoluteFillObject },
+
   overlay: {
     position: "absolute",
     top: 16,
@@ -253,70 +292,122 @@ const styles = StyleSheet.create({
     right: 16,
     zIndex: 10,
   },
+
   searchContainer: {
     flexDirection: "row",
     backgroundColor: "white",
-    borderRadius: 8,
+    borderRadius: 10,
     overflow: "hidden",
     elevation: 4,
     shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    shadowOpacity: 0.18,
+    shadowRadius: 5,
   },
   searchInput: {
     flex: 1,
-    padding: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     fontSize: 16,
-    color: "#333",
+    color: "#222",
   },
   searchButton: {
     backgroundColor: "#3bb2d0",
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     justifyContent: "center",
   },
-  controlContainer: {
+
+  controlRow: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "white",
     marginTop: 12,
     padding: 12,
-    borderRadius: 8,
-    elevation: 4,
+    borderRadius: 10,
+    elevation: 3,
+    flexWrap: "wrap",
   },
-  label: { fontSize: 14, fontWeight: "600", marginRight: 10, color: "#444" },
+  radiusGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginRight: 8,
+    color: "#333",
+  },
   radiusInput: {
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 6,
-    padding: 10,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     width: 80,
     textAlign: "center",
-    marginRight: 12,
     fontSize: 16,
   },
-  resetButton: {
+
+  clearButton: {
     backgroundColor: "#ef4444",
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 6,
+    paddingVertical: 11,
+    borderRadius: 8,
+    marginRight: 12,
   },
-  buttonText: { color: "white", fontWeight: "600", fontSize: 14 },
+
+  zoomControls: {
+    flexDirection: "row",
+    position: "absolute",
+    left: -16,
+    bottom: -100, // adjust position as needed
+  },
+  zoomButton: {
+    backgroundColor: "white",
+    width: 34,
+    height: 34,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 4,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+  },
+  zoomText: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#333",
+  },
+
+  buttonText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+
   infoBox: {
-    backgroundColor: "rgba(0,0,0,0.75)",
+    backgroundColor: "rgba(0,0,0,0.65)",
     alignSelf: "flex-start",
     marginTop: 12,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
-  infoText: { color: "white", fontWeight: "600", fontSize: 14 },
+  infoText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+
   centerMarker: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     backgroundColor: "#3bb2d0",
-    borderRadius: 16,
-    borderWidth: 4,
+    borderRadius: 18,
+    borderWidth: 5,
     borderColor: "white",
+    opacity: 0.92,
   },
 });
 

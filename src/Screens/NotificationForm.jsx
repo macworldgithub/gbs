@@ -19,6 +19,7 @@ import * as turf from "@turf/turf";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { API_BASE_URL } from "../utils/config";
 import { Platform } from "react-native";
+import { getUserData } from "../utils/storage";
 
 export default function NotificationForm({
   onSubmit,
@@ -31,6 +32,9 @@ export default function NotificationForm({
 
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [endDateTouched, setEndDateTouched] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [authToken, setAuthToken] = useState(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -39,7 +43,7 @@ export default function NotificationForm({
     startDate: new Date(),
     endDate: new Date(),
     SendToAll: false,
-    roles: [], // 👈 selected roles
+    roles: [],
   });
 
   const [loadingRoles, setLoadingRoles] = useState(false);
@@ -68,11 +72,51 @@ export default function NotificationForm({
       });
     }
   }, [notification]);
+  useEffect(() => {
+    if (!notification && formData.startDate && !endDateTouched) {
+      setFormData((prev) => ({
+        ...prev,
+        endDate: prev.startDate,
+      }));
+    }
+  }, [formData.startDate, notification, endDateTouched]);
 
-  // Load roles from API
+
   useEffect(() => {
     loadRoles();
   }, []);
+
+  useEffect(() => {
+  const loadUser = async () => {
+    try {
+      const user = await getUserData();
+      console.log("[NotificationForm] Full user object:", user);
+
+      if (!user) {
+        console.log("[NotificationForm] No user found");
+        return;
+      }
+
+      setAuthToken(user.token || null);
+      console.log("[NotificationForm] Token exists:", !!user.token);
+
+      const permissions = Array.isArray(user.permissions) ? user.permissions : [];
+      console.log("[NotificationForm] Permissions array:", permissions);
+
+      const hasCustomNotifPerm = permissions.some(
+        (p) => p.name === "notification_custom" && p.value === true
+      );
+      console.log("[NotificationForm] Has notification_custom permission?", hasCustomNotifPerm);
+
+      setIsAdmin(hasCustomNotifPerm);
+    } catch (e) {
+      console.error("[NotificationForm] User load error", e);
+    }
+  };
+
+  loadUser();
+}, []);
+
 
   const loadRoles = async () => {
     try {
@@ -108,13 +152,18 @@ export default function NotificationForm({
       return {
         ...prev,
         roles: alreadySelected
-          ? prev.roles.filter((id) => id !== roleId) // remove
-          : [...prev.roles, roleId], // add
+          ? prev.roles.filter((id) => id !== roleId) 
+          : [...prev.roles, roleId], 
       };
     });
   };
 
   const handleSubmit = async () => {
+   
+   if (!authToken) {
+    Alert.alert("Error", "Authentication required. Please login again.");
+    return;
+  }
     try {
       let fixedCoords = [];
 
@@ -145,26 +194,34 @@ export default function NotificationForm({
       const payload = {
         ...formData,
         SendToAll: false,
-        area: { type: "MultiPolygon", coordinates: fixedCoords },
+        area: formData.area, 
         startDate: formData.startDate.toISOString(),
         endDate: formData.endDate.toISOString(),
       };
 
       console.log("📦 Payload:", JSON.stringify(payload, null, 2));
 
-      // 🔄 Check create or update
+   
       let res;
       if (notification?._id) {
         // UPDATE
         res = await axios.put(
           `${API_BASE_URL}/notification/${notification._id}`,
           payload,
-          { headers: { "Content-Type": "application/json" } },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+          },
         );
       } else {
         // CREATE
         res = await axios.post(`${API_BASE_URL}/notification`, payload, {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
         });
       }
 
@@ -180,7 +237,7 @@ export default function NotificationForm({
             text: "OK",
             onPress: () => {
               if (onSubmit) onSubmit(payload);
-              navigation.goBack(); // 👈 list me wapas
+              navigation.goBack(); 
             },
           },
         ],
@@ -249,25 +306,7 @@ export default function NotificationForm({
           }}
         />
       )}
-      {/* {showStartPicker && (
-        <DateTimePicker
-          value={formData.startDate || new Date()}
-          mode="datetime"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={(event, date) => {
-            if (Platform.OS === "android") {
-              setShowStartPicker(false); // Android: close manually
-            }
-
-            // 👉 Android crash avoid
-            if (event?.type === "dismissed" || !date) {
-              return;
-            }
-
-            setFormData((p) => ({ ...p, startDate: date }));
-          }}
-        />
-      )} */}
+     
       <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
       <TouchableOpacity
         onPress={() => setShowEndPicker(true)}
@@ -287,72 +326,13 @@ export default function NotificationForm({
           onChange={(e, date) => {
             setShowEndPicker(Platform.OS === "ios");
             if (date) {
+              setEndDateTouched(true); // 👈 important
               setFormData((p) => ({ ...p, endDate: date }));
             }
           }}
         />
       )}
-      {/* {showEndPicker && (
-        <DateTimePicker
-          value={formData.endDate || new Date()}
-          mode="datetime"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={(event, date) => {
-            if (Platform.OS === "android") {
-              setShowEndPicker(false);
-            }
-
-            if (event?.type === "dismissed" || !date) {
-              return;
-            }
-
-            setFormData((p) => ({ ...p, endDate: date }));
-          }}
-        />
-      )} */}
-
-      {/* <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text> */}
-      {/* <TouchableOpacity
-        onPress={() => setShowEndPicker(true)}
-        style={tw`border p-2 rounded mb-4`}
-      >
-        <Text>
-          {formData.endDate
-            ? formData.endDate.toLocaleString()
-            : "Select end date"}
-        </Text>
-      </TouchableOpacity> */}
-      {/* ß
-      {showEndPicker && (
-        <DateTimePicker
-          value={formData.endDate || new Date()}
-          mode="datetime"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={(event, date) => {
-            if (Platform.OS === "android") {
-              setShowEndPicker(false);
-              if (event.type === "dismissed") {
-                return;
-              }
-            }
-
-            if (date) {
-              setFormData((p) => ({ ...p, endDate: date }));
-            }
-          }}
-        />
-      )} */}
-
-      {/* Send to All */}
-      {/* <View style={tw`flex-row items-center mt-4`}>
-        <Text style={tw`flex-1 text-sm text-gray-700`}>Send to World</Text>
-        <Switch
-          value={formData.SendToAll}
-          onValueChange={(val) =>
-            setFormData((p) => ({ ...p, SendToAll: val }))
-          }
-        />
-      </View> */}
+      
       {/* Roles */}
       <View style={tw`mt-6`}>
         <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>Roles *</Text>

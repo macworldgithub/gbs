@@ -45,7 +45,7 @@ const UpgradePackage = ({ navigation }) => {
       } catch (e) {
         console.log(
           "[UpgradePackage] roles error:",
-          e.response?.data || e.message
+          e.response?.data || e.message,
         );
         setError("Failed to load roles");
       } finally {
@@ -102,61 +102,63 @@ const UpgradePackage = ({ navigation }) => {
         )}
 
         {!loading &&
-          roles.map((role) => (
-            <View
-              key={role._id}
-              style={[
-                tw`bg-white rounded-xl p-4 mb-3 border border-red-200`,
-                { overflow: "hidden" },
-              ]}
-            >
-              <View style={tw`flex-row justify-between`}>
-                <View style={[tw`pr-3`, { flex: 1 }]}>
-                  <Text style={tw`text-base font-bold text-gray-800`}>
-                    {role.label}
-                  </Text>
-                  {role.price !== undefined && (
-                    <Text style={tw`text-sm text-red-500 font-semibold mt-1`}>
-                      Price:${role.price}
+          roles
+            .filter((role) => role.label !== "Chairman's Club")
+            .map((role) => (
+              <View
+                key={role._id}
+                style={[
+                  tw`bg-white rounded-xl p-4 mb-3 border border-red-200`,
+                  { overflow: "hidden" },
+                ]}
+              >
+                {/* baqi pura card wahi rahega */}
+                <View style={tw`flex-row justify-between`}>
+                  <View style={[tw`pr-3`, { flex: 1 }]}>
+                    <Text style={tw`text-base font-bold text-gray-800`}>
+                      {role.label}
                     </Text>
-                  )}
-                  <Text style={tw`text-xs text-gray-500 mt-1`}>
-                    Months: 12 • Trial: false
-                  </Text>
+                    {role.price !== undefined && (
+                      <Text style={tw`text-sm text-red-500 font-semibold mt-1`}>
+                        Price:${role.price}
+                      </Text>
+                    )}
+                    <Text style={tw`text-xs text-gray-500 mt-1`}>
+                      Months: 12 • Trial: false
+                    </Text>
 
-                  {!role.label.includes("Chairman's Club") && (
                     <TouchableOpacity
                       style={tw`mt-3 px-3 py-2 bg-gray-100 rounded-lg self-start`}
-                      onPress={() => openRoleDetails(role)} // <-- Your function here
+                      onPress={() => openRoleDetails(role)}
                     >
                       <Text style={tw`text-gray-700 text-sm font-semibold`}>
                         View Details
                       </Text>
                     </TouchableOpacity>
-                  )}
+                  </View>
+
+                  <TouchableOpacity
+                    style={[
+                      tw`px-4 py-2 rounded-lg`,
+                      currentRoleId === role._id
+                        ? tw`bg-gray-400`
+                        : tw`bg-red-500`,
+                      { alignSelf: "flex-start" },
+                    ]}
+                    disabled={submitting || currentRoleId === role._id}
+                    onPress={() => upgradeToRole(role)}
+                  >
+                    <Text style={tw`text-white font-semibold`}>
+                      {currentRoleId === role._id
+                        ? "Current Plan"
+                        : submitting
+                          ? "Please wait"
+                          : "Select"}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  style={[
-                    tw`px-4 py-2 rounded-lg`,
-                    currentRoleId === role._id
-                      ? tw`bg-gray-400`
-                      : tw`bg-red-500`,
-                    { alignSelf: "flex-start" },
-                  ]}
-                  disabled={submitting || currentRoleId === role._id}
-                  onPress={() => upgradeToRole(role)}
-                >
-                  <Text style={tw`text-white font-semibold`}>
-                    {currentRoleId === role._id
-                      ? "Current Plan"
-                      : submitting
-                      ? "Please wait"
-                      : "Select"}
-                  </Text>
-                </TouchableOpacity>
               </View>
-            </View>
-          ))}
+            ))}
       </ScrollView>
 
       {/* Success Modal */}
