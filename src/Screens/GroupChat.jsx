@@ -11,6 +11,8 @@ import {
   ScrollView,
   Platform,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  SafeAreaView,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -77,9 +79,7 @@ export default function GroupChat() {
     })();
   }, []);
 
-  // Load available users for adding participants
-  // Load available users for adding participants
-  // Load available users for adding participants
+  
   const loadAvailableUsers = async () => {
     try {
       setLoadingUsers(true); // ✅ START LOADING
@@ -674,360 +674,370 @@ export default function GroupChat() {
   };
 
   return (
-    <View style={tw`flex-1 bg-white mt-6 mb-8`}>
-      {/* Header */}
-      <View
-        style={tw`flex-row items-center justify-between px-4 py-2 border-b border-gray-300 mt-10`}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+      {" "}
+      {/* ← good practice on iOS */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined} // ← key line
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0} // adjust if you have tab bar/header
+        enabled={Platform.OS === "ios"} // disable on Android (usually not needed)
       >
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} />
-        </TouchableOpacity>
-        <View style={tw`flex-row items-center mr-24 `}>
-          <TouchableOpacity onPress={handlePickGroupImage}>
-            <Image
-              source={
-                groupImage
-                  ? { uri: groupImage }
-                  : require("../../assets/user.jpg")
-              }
-              style={tw`w-10 h-10 rounded-full mr-2`}
-            />
+        <View
+          style={tw`flex-row items-center justify-between px-4 py-2 border-b border-gray-300 mt-10`}
+        >
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} />
           </TouchableOpacity>
-          <View>
-            <Text style={tw`font-semibold text-base`}>
-              {/* {group?.name || "Group"} */}
-              {group?.name || route.params?.groupName || "Group"}
-            </Text>
-            <Text style={tw`text-xs text-gray-500`}>Group Conversation</Text>
+          <View style={tw`flex-row items-center mr-24 `}>
+            <TouchableOpacity onPress={handlePickGroupImage}>
+              <Image
+                source={
+                  groupImage
+                    ? { uri: groupImage }
+                    : require("../../assets/user.jpg")
+                }
+                style={tw`w-10 h-10 rounded-full mr-2`}
+              />
+            </TouchableOpacity>
+            <View>
+              <Text style={tw`font-semibold text-base`}>
+                {/* {group?.name || "Group"} */}
+                {group?.name || route.params?.groupName || "Group"}
+              </Text>
+              <Text style={tw`text-xs text-gray-500`}>Group Conversation</Text>
+            </View>
+          </View>
+          <View style={tw`flex-row`}>
+            <TouchableOpacity
+              onPress={() => setShowViewParticipants(true)}
+              style={tw`mr-3`}
+            >
+              <Ionicons name="people" size={24} color="red" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setShowAddParticipant(true);
+                loadAvailableUsers();
+              }}
+            >
+              <Ionicons name="person-add" size={24} color="red" />
+            </TouchableOpacity>
           </View>
         </View>
-        <View style={tw`flex-row`}>
-          <TouchableOpacity
-            onPress={() => setShowViewParticipants(true)}
-            style={tw`mr-3`}
-          >
-            <Ionicons name="people" size={24} color="red" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              setShowAddParticipant(true);
-              loadAvailableUsers();
-            }}
-          >
-            <Ionicons name="person-add" size={24} color="red" />
-          </TouchableOpacity>
-        </View>
-      </View>
 
-      <FlatList
-        ref={listRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={tw`pb-2`}
-        onScroll={handleScroll} // ✅ Detect scroll events
-        scrollEventThrottle={16} // Optimize scroll event frequency
-        ListHeaderComponent={
-          isLoadingOlder ? (
-            <View style={tw`py-2 items-center`}>
-              <ActivityIndicator size="small" color="#3b82f6" />
-              <Text style={tw`text-gray-500 text-xs mt-1`}>
-                Loading older messages...
-              </Text>
-            </View>
-          ) : null
-        }
-        renderItem={({ item }) => {
-          const isMe = item.fromMe;
+        <FlatList
+          ref={listRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={tw`pb-2`}
+          onScroll={handleScroll} // ✅ Detect scroll events
+          scrollEventThrottle={16} // Optimize scroll event frequency
+          ListHeaderComponent={
+            isLoadingOlder ? (
+              <View style={tw`py-2 items-center`}>
+                <ActivityIndicator size="small" color="#3b82f6" />
+                <Text style={tw`text-gray-500 text-xs mt-1`}>
+                  Loading older messages...
+                </Text>
+              </View>
+            ) : null
+          }
+          renderItem={({ item }) => {
+            const isMe = item.fromMe;
 
-          return (
-            <View
-              style={tw.style(
-                "px-4 mt-2 w-full",
-                isMe ? "items-end" : "items-start",
-              )}
-            >
-              {/* Bubble */}
+            return (
               <View
                 style={tw.style(
-                  " rounded-2xl px-4 py-2",
-                  isMe ? "bg-red-500" : "bg-gray-200",
+                  "px-4 mt-2 w-full",
+                  isMe ? "items-end" : "items-start",
                 )}
               >
-                {/* Media (image/video) */}
-                {item.url && item.type === "image" && (
-                  <Image
-                    source={{ uri: item.url }}
-                    style={tw`w-56 h-56 rounded-lg mb-2`}
-                    resizeMode="cover"
-                  />
-                )}
-                {item.url && item.type === "video" && (
-                  <Video
-                    source={{ uri: item.url }}
-                    style={tw`w-64 h-40 rounded-lg mb-2`}
-                    controls
-                    resizeMode="contain"
-                    paused={false}
-                  />
-                )}
-                {/* Sender name - only show for others */}
-                {!isMe && (
-                  <Text
-                    style={[tw`text-xs font-semibold mb-1`, { color: "red" }]}
-                  >
-                    {item.senderName || "Unknown"}
-                  </Text>
-                )}
-
-                {/* Message text */}
-                {item.text ? (
-                  <Text
-                    style={tw.style(
-                      "text-base",
-                      isMe ? "text-white" : "text-black",
-                    )}
-                  >
-                    {item.text}
-                  </Text>
-                ) : null}
-
-                {/* Time and status inside bubble */}
-                <View style={tw`flex-row items-center justify-between mt-1`}>
-                  <Text
-                    style={tw.style(
-                      "text-xs",
-                      isMe ? "text-pink-100" : "text-gray-500",
-                    )}
-                  >
-                    {item.time}
-                  </Text>
-
-                  {isMe && (
-                    <Ionicons
-                      name={
-                        item.readBy?.length >= participants.length - 1 // ✅ everyone except me
-                          ? "checkmark-done" // seen by all
-                          : item.readBy?.length > 0
-                            ? "checkmark-done-outline" // seen by some
-                            : "checkmark" // sent only
-                      }
-                      size={12}
-                      color={
-                        item.readBy?.length >= participants.length - 1
-                          ? "#60a5fa"
-                          : "#d1d5db"
-                      }
+                {/* Bubble */}
+                <View
+                  style={tw.style(
+                    " rounded-2xl px-4 py-2",
+                    isMe ? "bg-red-500" : "bg-gray-200",
+                  )}
+                >
+                  {/* Media (image/video) */}
+                  {item.url && item.type === "image" && (
+                    <Image
+                      source={{ uri: item.url }}
+                      style={tw`w-56 h-56 rounded-lg mb-2`}
+                      resizeMode="cover"
                     />
                   )}
+                  {item.url && item.type === "video" && (
+                    <Video
+                      source={{ uri: item.url }}
+                      style={tw`w-64 h-40 rounded-lg mb-2`}
+                      controls
+                      resizeMode="contain"
+                      paused={false}
+                    />
+                  )}
+                  {/* Sender name - only show for others */}
+                  {!isMe && (
+                    <Text
+                      style={[tw`text-xs font-semibold mb-1`, { color: "red" }]}
+                    >
+                      {item.senderName || "Unknown"}
+                    </Text>
+                  )}
+
+                  {/* Message text */}
+                  {item.text ? (
+                    <Text
+                      style={tw.style(
+                        "text-base",
+                        isMe ? "text-white" : "text-black",
+                      )}
+                    >
+                      {item.text}
+                    </Text>
+                  ) : null}
+
+                  {/* Time and status inside bubble */}
+                  <View style={tw`flex-row items-center justify-between mt-1`}>
+                    <Text
+                      style={tw.style(
+                        "text-xs",
+                        isMe ? "text-pink-100" : "text-gray-500",
+                      )}
+                    >
+                      {item.time}
+                    </Text>
+
+                    {isMe && (
+                      <Ionicons
+                        name={
+                          item.readBy?.length >= participants.length - 1 // ✅ everyone except me
+                            ? "checkmark-done" // seen by all
+                            : item.readBy?.length > 0
+                              ? "checkmark-done-outline" // seen by some
+                              : "checkmark" // sent only
+                        }
+                        size={12}
+                        color={
+                          item.readBy?.length >= participants.length - 1
+                            ? "#60a5fa"
+                            : "#d1d5db"
+                        }
+                      />
+                    )}
+                  </View>
                 </View>
               </View>
-            </View>
-          );
-        }}
-      />
-
-      {/* Typing Status */}
-      <Text style={tw`text-xs text-gray-400 px-4 pt-2`}>
-        {group?.name || "Group"} is active
-      </Text>
-
-      {/* Input */}
-      <View
-        style={tw`flex-row items-center px-2 py-2 border-t border-gray-300`}
-      >
-        <TouchableOpacity onPress={handlePlus}>
-          <FontAwesome name="plus" size={20} style={tw`mx-2`} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleCamera}>
-          <Ionicons name="camera" size={20} style={tw`mx-2`} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={pickMedia}>
-          <Ionicons name="image" size={20} style={tw`mx-2`} />
-        </TouchableOpacity>
-        <TextInput
-          placeholder="Type Here..."
-          value={newMessage}
-          onChangeText={setNewMessage}
-          style={tw`flex-1 bg-gray-100 rounded-full px-4 py-2 mx-2`}
+            );
+          }}
         />
-        <TouchableOpacity onPress={sendMessage}>
-          <Ionicons name="send" size={24} color="#3b82f6" />
-        </TouchableOpacity>
-      </View>
 
-      {/* Add Participant Modal */}
-      {/* Add Participant Modal */}
-      <Modal visible={showAddParticipant} transparent animationType="slide">
-        <View style={tw`flex-1 bg-black/50 justify-center items-center`}>
-          <BlurView
-            style={tw`absolute inset-0`}
-            blurType="light"
-            blurAmount={10}
-            reducedTransparencyFallbackColor="rgba(0,0,0,0.5)"
+        {/* Typing Status */}
+        <Text style={tw`text-xs text-gray-400 px-4 pt-2`}>
+          {group?.name || "Group"} is active
+        </Text>
+
+        {/* Input */}
+        <View
+          style={tw`flex-row items-center px-2 py-2 border-t border-gray-300`}
+        >
+          <TouchableOpacity onPress={handlePlus}>
+            <FontAwesome name="plus" size={20} style={tw`mx-2`} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleCamera}>
+            <Ionicons name="camera" size={20} style={tw`mx-2`} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={pickMedia}>
+            <Ionicons name="image" size={20} style={tw`mx-2`} />
+          </TouchableOpacity>
+          <TextInput
+            placeholder="Type Here..."
+            value={newMessage}
+            onChangeText={setNewMessage}
+            style={tw`flex-1 bg-gray-100 rounded-full px-4 py-2 mx-2`}
           />
-          <View style={tw`w-11/12 bg-white rounded-xl p-4 max-h-96`}>
-            <View style={tw`flex-row justify-between items-center mb-4`}>
-              <Text style={tw`text-lg font-bold`}>Add Participant</Text>
-              <TouchableOpacity onPress={() => setShowAddParticipant(false)}>
-                <Ionicons name="close" size={24} color="black" />
-              </TouchableOpacity>
-            </View>
+          <TouchableOpacity onPress={sendMessage}>
+            <Ionicons name="send" size={24} color="#3b82f6" />
+          </TouchableOpacity>
+        </View>
 
-            {/* ✅ SEARCH INPUT */}
-            <View
-              style={tw`flex-row items-center bg-gray-100 rounded-lg px-3 py-2 mb-4`}
-            >
-              <Ionicons name="search" size={20} color="gray" />
-              <TextInput
-                placeholder="Search by name or email..."
-                value={searchQuery}
-                onChangeText={handleSearch}
-                style={tw`flex-1 ml-2 text-black`}
-                placeholderTextColor="gray"
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setSearchQuery("");
-                    setFilteredUsers(availableUsers);
-                  }}
-                >
-                  <Ionicons name="close-circle" size={20} color="gray" />
+        {/* Add Participant Modal */}
+        {/* Add Participant Modal */}
+        <Modal visible={showAddParticipant} transparent animationType="slide">
+          <View style={tw`flex-1 bg-black/50 justify-center items-center`}>
+            <BlurView
+              style={tw`absolute inset-0`}
+              blurType="light"
+              blurAmount={10}
+              reducedTransparencyFallbackColor="rgba(0,0,0,0.5)"
+            />
+            <View style={tw`w-11/12 bg-white rounded-xl p-4 max-h-96`}>
+              <View style={tw`flex-row justify-between items-center mb-4`}>
+                <Text style={tw`text-lg font-bold`}>Add Participant</Text>
+                <TouchableOpacity onPress={() => setShowAddParticipant(false)}>
+                  <Ionicons name="close" size={24} color="black" />
                 </TouchableOpacity>
-              )}
-            </View>
+              </View>
 
-            <ScrollView>
-              {/* ✅ SHOW LOADER WHILE LOADING */}
-              {loadingUsers ? (
-                <View style={tw`py-10 items-center`}>
-                  <ActivityIndicator size="large" color="#3b82f6" />
-                  <Text style={tw`text-gray-500 text-sm mt-2`}>
-                    Loading users...
-                  </Text>
-                </View>
-              ) : filteredUsers.length > 0 ? (
-                // ✅ SHOW FILTERED USERS WHEN LOADED
-                filteredUsers.map((user) => (
+              {/* ✅ SEARCH INPUT */}
+              <View
+                style={tw`flex-row items-center bg-gray-100 rounded-lg px-3 py-2 mb-4`}
+              >
+                <Ionicons name="search" size={20} color="gray" />
+                <TextInput
+                  placeholder="Search by name or email..."
+                  value={searchQuery}
+                  onChangeText={handleSearch}
+                  style={tw`flex-1 ml-2 text-black`}
+                  placeholderTextColor="gray"
+                />
+                {searchQuery.length > 0 && (
                   <TouchableOpacity
-                    key={user._id}
-                    onPress={() => addParticipant(user._id)}
-                    style={tw`flex-row items-center p-3 border-b border-gray-200`}
+                    onPress={() => {
+                      setSearchQuery("");
+                      setFilteredUsers(availableUsers);
+                    }}
                   >
-                    <Image
-                      source={require("../../assets/user.jpg")}
-                      style={tw`w-10 h-10 rounded-full mr-3`}
-                    />
-                    <View style={tw`flex-1`}>
-                      <Text style={tw`text-black font-semibold`}>
-                        {user.name || "Unnamed"}
-                      </Text>
-                      {user.email ? (
-                        <Text style={tw`text-gray-500 text-xs`}>
-                          {user.email}
-                        </Text>
-                      ) : null}
-                    </View>
-                    <Ionicons name="add-circle" size={24} color="#ef4444" />
+                    <Ionicons name="close-circle" size={20} color="gray" />
                   </TouchableOpacity>
-                ))
-              ) : (
-                // ✅ SHOW EMPTY STATE WHEN NO USERS FOUND
-                <View style={tw`py-10 items-center`}>
-                  <Ionicons name="search-outline" size={48} color="#d1d5db" />
-                  <Text style={tw`text-gray-500 text-center text-sm mt-2`}>
-                    {searchQuery.trim()
-                      ? `No users found for "${searchQuery}"`
-                      : "No users available to add"}
-                  </Text>
-                  {searchQuery.trim() && (
-                    <TouchableOpacity
-                      onPress={() => {
-                        setSearchQuery("");
-                        setFilteredUsers(availableUsers);
-                      }}
-                      style={tw`mt-2`}
-                    >
-                      <Text style={tw`text-blue-500 text-sm`}>
-                        Clear search
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+                )}
+              </View>
 
-      {/* View Participants Modal */}
-      <Modal visible={showViewParticipants} transparent animationType="slide">
-        <View style={tw`flex-1 bg-black/50 justify-center items-center`}>
-          <BlurView
-            style={tw`absolute inset-0`}
-            blurType="light"
-            blurAmount={10}
-            reducedTransparencyFallbackColor="white"
-          />
-          <View style={tw`w-11/12 bg-white rounded-xl p-4 max-h-96`}>
-            <View style={tw`flex-row justify-between items-center mb-4`}>
-              <Text style={tw`text-lg font-bold`}>Group Participants</Text>
-              <TouchableOpacity onPress={() => setShowViewParticipants(false)}>
-                <Ionicons name="close" size={24} color="black" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView>
-              {participants.map((participant) => (
-                <View
-                  key={participant._id || participant.id}
-                  style={tw`flex-row items-center justify-between p-3 border-b border-gray-200`}
-                >
-                  <View style={tw`flex-row items-center flex-1`}>
-                    <Image
-                      source={require("../../assets/user.jpg")}
-                      style={tw`w-10 h-10 rounded-full mr-3`}
-                    />
-                    <View style={tw`flex-1`}>
-                      <Text style={tw`text-black font-semibold`}>
-                        {participant.name || "Unnamed"}
-                      </Text>
-                      {participant.email ? (
-                        <Text style={tw`text-gray-500 text-xs`}>
-                          {participant.email}
-                        </Text>
-                      ) : null}
-                    </View>
+              <ScrollView>
+                {/* ✅ SHOW LOADER WHILE LOADING */}
+                {loadingUsers ? (
+                  <View style={tw`py-10 items-center`}>
+                    <ActivityIndicator size="large" color="#3b82f6" />
+                    <Text style={tw`text-gray-500 text-sm mt-2`}>
+                      Loading users...
+                    </Text>
                   </View>
-
-                  {(participant._id || participant.id) !== myUserId && (
+                ) : filteredUsers.length > 0 ? (
+                  // ✅ SHOW FILTERED USERS WHEN LOADED
+                  filteredUsers.map((user) => (
                     <TouchableOpacity
-                      onPress={() =>
-                        removeParticipant(
-                          participant._id || participant.id,
-                          participant.name || "this user",
-                        )
-                      }
-                      style={tw`p-2`}
+                      key={user._id}
+                      onPress={() => addParticipant(user._id)}
+                      style={tw`flex-row items-center p-3 border-b border-gray-200`}
                     >
-                      <Ionicons
-                        name="remove-circle"
-                        size={24}
-                        color="#ef4444"
+                      <Image
+                        source={require("../../assets/user.jpg")}
+                        style={tw`w-10 h-10 rounded-full mr-3`}
                       />
+                      <View style={tw`flex-1`}>
+                        <Text style={tw`text-black font-semibold`}>
+                          {user.name || "Unnamed"}
+                        </Text>
+                        {user.email ? (
+                          <Text style={tw`text-gray-500 text-xs`}>
+                            {user.email}
+                          </Text>
+                        ) : null}
+                      </View>
+                      <Ionicons name="add-circle" size={24} color="#ef4444" />
                     </TouchableOpacity>
-                  )}
-                </View>
-              ))}
-              {participants.length === 0 && (
-                <Text style={tw`text-gray-500 text-center py-4`}>
-                  No participants found
-                </Text>
-              )}
-            </ScrollView>
+                  ))
+                ) : (
+                  // ✅ SHOW EMPTY STATE WHEN NO USERS FOUND
+                  <View style={tw`py-10 items-center`}>
+                    <Ionicons name="search-outline" size={48} color="#d1d5db" />
+                    <Text style={tw`text-gray-500 text-center text-sm mt-2`}>
+                      {searchQuery.trim()
+                        ? `No users found for "${searchQuery}"`
+                        : "No users available to add"}
+                    </Text>
+                    {searchQuery.trim() && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSearchQuery("");
+                          setFilteredUsers(availableUsers);
+                        }}
+                        style={tw`mt-2`}
+                      >
+                        <Text style={tw`text-blue-500 text-sm`}>
+                          Clear search
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+              </ScrollView>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+
+        {/* View Participants Modal */}
+        <Modal visible={showViewParticipants} transparent animationType="slide">
+          <View style={tw`flex-1 bg-black/50 justify-center items-center`}>
+            <BlurView
+              style={tw`absolute inset-0`}
+              blurType="light"
+              blurAmount={10}
+              reducedTransparencyFallbackColor="white"
+            />
+            <View style={tw`w-11/12 bg-white rounded-xl p-4 max-h-96`}>
+              <View style={tw`flex-row justify-between items-center mb-4`}>
+                <Text style={tw`text-lg font-bold`}>Group Participants</Text>
+                <TouchableOpacity
+                  onPress={() => setShowViewParticipants(false)}
+                >
+                  <Ionicons name="close" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView>
+                {participants.map((participant) => (
+                  <View
+                    key={participant._id || participant.id}
+                    style={tw`flex-row items-center justify-between p-3 border-b border-gray-200`}
+                  >
+                    <View style={tw`flex-row items-center flex-1`}>
+                      <Image
+                        source={require("../../assets/user.jpg")}
+                        style={tw`w-10 h-10 rounded-full mr-3`}
+                      />
+                      <View style={tw`flex-1`}>
+                        <Text style={tw`text-black font-semibold`}>
+                          {participant.name || "Unnamed"}
+                        </Text>
+                        {participant.email ? (
+                          <Text style={tw`text-gray-500 text-xs`}>
+                            {participant.email}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </View>
+
+                    {(participant._id || participant.id) !== myUserId && (
+                      <TouchableOpacity
+                        onPress={() =>
+                          removeParticipant(
+                            participant._id || participant.id,
+                            participant.name || "this user",
+                          )
+                        }
+                        style={tw`p-2`}
+                      >
+                        <Ionicons
+                          name="remove-circle"
+                          size={24}
+                          color="#ef4444"
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ))}
+                {participants.length === 0 && (
+                  <Text style={tw`text-gray-500 text-center py-4`}>
+                    No participants found
+                  </Text>
+                )}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
