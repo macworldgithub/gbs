@@ -460,7 +460,7 @@ const BusinessPage = ({ navigation }) => {
         showsHorizontalScrollIndicator={false}
         style={tw`mb-4`}
       >
-        {["All", "VIC", "NSW", "QLD", "SA", "other"].map((location) => (
+        {["All", "VIC", "NSW", "QLD", "SA", "Other"].map((location) => (
           <TouchableOpacity
             key={location}
             style={tw`px-4 py-2 mr-2 rounded-md ${selectedState === location ? "bg-red-500" : "bg-gray-100"}`}
