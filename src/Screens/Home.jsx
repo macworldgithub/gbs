@@ -865,7 +865,7 @@ export default function Home() {
     if (coordinates.length > 0) {
       console.log(
         "[Home] Selected coordinates:",
-        JSON.stringify(coordinates, null, 2)
+        JSON.stringify(coordinates, null, 2),
       );
     }
   }, [coordinates]);
@@ -936,7 +936,7 @@ export default function Home() {
       setBusinessResults([]);
       setOfferResults([]);
       setUserResults([]);
-    }, [])
+    }, []),
   );
 
   useEffect(() => {
@@ -1004,7 +1004,7 @@ export default function Home() {
                   onPress: () => navigation.navigate("Signup"),
                 },
               ],
-              { cancelable: false }
+              { cancelable: false },
             );
             await AsyncStorage.removeItem("userData");
             await AsyncStorage.removeItem("guestExpiry");
@@ -1041,7 +1041,7 @@ export default function Home() {
               { text: "Sign In", onPress: () => navigation.navigate("Signin") },
               { text: "Sign Up", onPress: () => navigation.navigate("Signup") },
             ],
-            { cancelable: false }
+            { cancelable: false },
           );
           return;
         }
@@ -1103,7 +1103,7 @@ export default function Home() {
               <Text style={tw`text-red-700 text-sm`}>
                 Guest access — {guestRemainingStr} left
               </Text>
-              <Text style={tw`text-red-600 font-semibold`}>Upgrade</Text>
+              <Text style={tw`text-red-600 font-semibold`}>Join Now</Text>
             </TouchableOpacity>
           )}
 
@@ -1233,13 +1233,13 @@ export default function Home() {
                   `px-4 py-2 mr-2 rounded-md border`,
                   activeTab === item.key
                     ? "bg-red-100 border-red-500"
-                    : "bg-white border-gray-300"
+                    : "bg-white border-gray-300",
                 )}
               >
                 <Text
                   style={tw.style(
                     `text-sm font-medium`,
-                    activeTab === item.key ? "text-red-600" : "text-gray-700"
+                    activeTab === item.key ? "text-red-600" : "text-gray-700",
                   )}
                 >
                   {item.label}
