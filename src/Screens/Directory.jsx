@@ -118,6 +118,7 @@ export default function MembersDirectory({ navigation }) {
     setLoading(true);
     setPage(1);
     setHasNext(false);
+    console.log("Filtering by state:", state);
 
     searchUsers(search, state, 1, false, true);
   };
@@ -283,12 +284,12 @@ export default function MembersDirectory({ navigation }) {
           showsHorizontalScrollIndicator={false}
           style={tw`mb-4`}
         >
-          {["All", "VIC", "NSW", "QLD", "SA", "other"].map((filter) => (
+          {["All", "VIC", "NSW", "QLD", "SA", "Other"].map((filter) => (
             <TouchableOpacity
               key={filter}
               onPress={() => handleStateFilter(filter)}
               style={tw`px-4 py-2 mr-2 rounded-lg border ${
-                selectedState === filter 
+                selectedState === filter
                   ? "bg-red-100 border-red-400"
                   : "bg-gray-100 border-gray-300"
               }`}
