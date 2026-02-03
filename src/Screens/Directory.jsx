@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,8 @@ export default function MembersDirectory({ navigation }) {
   const [search, setSearch] = useState("");
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Ref for ScrollView to enable auto-scroll to top on page change
+  const scrollViewRef = useRef(null);
 
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
@@ -41,6 +43,7 @@ export default function MembersDirectory({ navigation }) {
     state = "All",
     pageNumber = 1,
     isPagination = false,
+    scrollToTop = false,
   ) => {
     try {
       isPagination ? setPaginationLoading(true) : setLoading(true);
@@ -76,6 +79,10 @@ export default function MembersDirectory({ navigation }) {
         setMembers(formatted);
         setHasNext(formatted.length === LIMIT);
         setPage(pageNumber);
+        // Auto-scroll to top if requested (pagination)
+        if (scrollToTop && scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({ y: 0, animated: true });
+        }
       } else {
         setMembers([]);
         setHasNext(false);
@@ -99,7 +106,7 @@ export default function MembersDirectory({ navigation }) {
     setHasNext(false);
 
     const timeout = setTimeout(() => {
-      searchUsers(text, selectedState, 1);
+      searchUsers(text, selectedState, 1, false, true);
     }, 500);
 
     setSearchTimeout(timeout);
@@ -112,7 +119,7 @@ export default function MembersDirectory({ navigation }) {
     setPage(1);
     setHasNext(false);
 
-    searchUsers(search, state, 1);
+    searchUsers(search, state, 1, false, true);
   };
 
   /* ---------------- INIT ---------------- */
@@ -215,7 +222,7 @@ export default function MembersDirectory({ navigation }) {
   /* ---------------- UI ---------------- */
   return (
     <View style={tw`flex-1 bg-white px-4 pt-4`}>
-      <ScrollView>
+      <ScrollView ref={scrollViewRef}>
         {/* HEADER */}
         <View style={tw`flex-row mt-14 border-b border-gray-200`}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -249,8 +256,8 @@ export default function MembersDirectory({ navigation }) {
         </View>
 
         {/* STATE FILTER */}
-        <View style={tw`flex-row justify-between mb-4`}>
-          {["All", "VIC", "NSW", "QLD", "SA", "WA"].map((filter) => (
+        {/* <View style={tw`flex-row justify-between mb-4`}>
+          {["All", "VIC", "NSW", "QLD", "SA", "Other"].map((filter) => (
             <TouchableOpacity
               key={filter}
               onPress={() => handleStateFilter(filter)}
@@ -269,7 +276,34 @@ export default function MembersDirectory({ navigation }) {
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </View> */}
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={tw`mb-4`}
+        >
+          {["All", "VIC", "NSW", "QLD", "SA", "other"].map((filter) => (
+            <TouchableOpacity
+              key={filter}
+              onPress={() => handleStateFilter(filter)}
+              style={tw`px-4 py-2 mr-2 rounded-lg border ${
+                selectedState === filter 
+                  ? "bg-red-100 border-red-400"
+                  : "bg-gray-100 border-gray-300"
+              }`}
+            >
+              <Text
+                style={tw`text-sm ${
+                  selectedState === filter ? "text-red-500" : "text-gray-600"
+                }`}
+              >
+                {filter}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
         {loading && (
           <Text style={tw`text-center text-gray-400 mt-6`}>
             Loading members...
@@ -356,7 +390,8 @@ export default function MembersDirectory({ navigation }) {
           <TouchableOpacity
             disabled={page === 1 || paginationLoading}
             onPress={() =>
-              page > 1 && searchUsers(search, selectedState, page - 1, true)
+              page > 1 &&
+              searchUsers(search, selectedState, page - 1, true, true)
             }
             style={tw`px-3 py-2 rounded-lg ${
               page === 1 ? "bg-gray-100" : "bg-red-100"
@@ -379,7 +414,8 @@ export default function MembersDirectory({ navigation }) {
           <TouchableOpacity
             disabled={!hasNext || paginationLoading}
             onPress={() =>
-              hasNext && searchUsers(search, selectedState, page + 1, true)
+              hasNext &&
+              searchUsers(search, selectedState, page + 1, true, true)
             }
             style={tw`px-3 py-2 rounded-lg ${
               hasNext ? "bg-red-100" : "bg-gray-100"

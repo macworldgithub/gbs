@@ -75,7 +75,7 @@ export default function DirectoryDetail({ route, navigation }) {
               text: "Login",
               onPress: () => navigation.navigate("Signin"),
             },
-          ]
+          ],
         );
         return;
       }
@@ -208,7 +208,7 @@ export default function DirectoryDetail({ route, navigation }) {
               {user?.location && (
                 <View style={tw`mb-3`}>
                   <Text style={tw`text-black font-semibold`}>Location</Text>
-                  <Text style={tw`text-gray-700`}>{user.location}</Text>
+                  <Text style={tw`text-gray-700`}>{user.state}</Text>
                 </View>
               )}
 

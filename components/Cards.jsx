@@ -104,7 +104,7 @@ const Cards = ({
         .filter(
           (event) =>
             stateFilter.toLowerCase() === "all" ||
-            getStateFromEvent(event) === stateFilter.toUpperCase()
+            getStateFromEvent(event) === stateFilter.toUpperCase(),
         )
         .slice(0, limit)
     );
@@ -130,7 +130,7 @@ const Cards = ({
       return;
     }
     Linking.openURL(bookingUrl).catch((error) =>
-      Alert.alert("Error", "Unable to open booking link.")
+      Alert.alert("Error", "Unable to open booking link."),
     );
   };
 

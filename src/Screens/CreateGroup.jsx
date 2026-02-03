@@ -47,7 +47,7 @@ export default function CreateGroup() {
 
   const toggleSelect = (id) => {
     setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
@@ -79,7 +79,7 @@ export default function CreateGroup() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const conversationId = res?.data?._id;
@@ -94,7 +94,7 @@ export default function CreateGroup() {
     } catch (e) {
       Alert.alert(
         "Error",
-        e.response?.data?.message || e.message || "Failed to create group"
+        e.response?.data?.message || e.message || "Failed to create group",
       );
     } finally {
       setSubmitting(false);

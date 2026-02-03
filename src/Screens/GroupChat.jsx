@@ -95,7 +95,7 @@ export default function GroupChat() {
       const currentParticipantIds = participants.map((p) => p._id || p.id);
       const filtered = list.filter(
         (u) =>
-          u?._id && u._id !== meId && !currentParticipantIds.includes(u._id)
+          u?._id && u._id !== meId && !currentParticipantIds.includes(u._id),
       );
       setAvailableUsers(filtered);
       setFilteredUsers(filtered);
@@ -126,7 +126,7 @@ export default function GroupChat() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       Alert.alert("Success", "Participant added successfully");
@@ -138,7 +138,7 @@ export default function GroupChat() {
     } catch (e) {
       Alert.alert(
         "Error",
-        e.response?.data?.message || e.message || "Failed to add participant"
+        e.response?.data?.message || e.message || "Failed to add participant",
       );
     }
   };
@@ -170,13 +170,13 @@ export default function GroupChat() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                   },
-                }
+                },
               );
 
               Alert.alert("Success", "Participant removed successfully");
 
               setParticipants((prev) =>
-                prev.filter((p) => (p._id || p.id) !== userId)
+                prev.filter((p) => (p._id || p.id) !== userId),
               );
               setSearchQuery("");
 
@@ -187,12 +187,12 @@ export default function GroupChat() {
                 "Error",
                 e.response?.data?.message ||
                   e.message ||
-                  "Failed to remove participant"
+                  "Failed to remove participant",
               );
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -214,7 +214,7 @@ export default function GroupChat() {
         if (incoming.fromMe) {
           const idx = next.findIndex(
             (m) =>
-              m.fromMe && m.status === "sending" && m.type === incoming.type
+              m.fromMe && m.status === "sending" && m.type === incoming.type,
           );
           if (idx !== -1) next.splice(idx, 1);
         }
@@ -223,7 +223,7 @@ export default function GroupChat() {
         next.sort(
           (a, b) =>
             new Date(a.createdAt || Date.now()) -
-            new Date(b.createdAt || Date.now())
+            new Date(b.createdAt || Date.now()),
         );
         return next;
       });
@@ -256,8 +256,8 @@ export default function GroupChat() {
         prev.map((m) =>
           m.id === messageId
             ? { ...m, readBy: [...new Set([...(m.readBy || []), userId])] }
-            : m
-        )
+            : m,
+        ),
       );
     });
 
@@ -276,7 +276,7 @@ export default function GroupChat() {
     try {
       const res = await axios.get(
         `${API_BASE_URL}/messages/conversation/${conversationId}?page=${newPage}&limit=30`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       console.log("📥 Raw API response:", res.data);
@@ -284,12 +284,12 @@ export default function GroupChat() {
       setTotalMessages(res.data?.total || 0); // Store total messages
       // Backend returns newest first; sort ascending so newest at bottom
       const sortedByCreatedAt = [...msgs].sort(
-        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
       );
       console.log("📥 Messages from API:", msgs);
 
       const formatted = sortedByCreatedAt.map((m) =>
-        formatMessage(m, myUserId)
+        formatMessage(m, myUserId),
       );
       console.log("✅ Formatted messages:", formatted);
 
@@ -309,7 +309,7 @@ export default function GroupChat() {
       if (newPage === 1) {
         setTimeout(
           () => listRef.current?.scrollToEnd?.({ animated: false }),
-          0
+          0,
         );
       }
 
@@ -453,7 +453,7 @@ export default function GroupChat() {
     const filtered = availableUsers.filter(
       (user) =>
         (user.name && user.name.toLowerCase().includes(lowercasedQuery)) ||
-        (user.email && user.email.toLowerCase().includes(lowercasedQuery))
+        (user.email && user.email.toLowerCase().includes(lowercasedQuery)),
     );
     setFilteredUsers(filtered);
   };
@@ -625,7 +625,7 @@ export default function GroupChat() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       const { url: uploadUrl, key: fileKey } = presign || {};
       if (!uploadUrl || !fileKey) {
@@ -652,7 +652,7 @@ export default function GroupChat() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const updated = updateRes?.data;
@@ -743,14 +743,14 @@ export default function GroupChat() {
             <View
               style={tw.style(
                 "px-4 mt-2 w-full",
-                isMe ? "items-end" : "items-start"
+                isMe ? "items-end" : "items-start",
               )}
             >
               {/* Bubble */}
               <View
                 style={tw.style(
                   " rounded-2xl px-4 py-2",
-                  isMe ? "bg-red-500" : "bg-gray-200"
+                  isMe ? "bg-red-500" : "bg-gray-200",
                 )}
               >
                 {/* Media (image/video) */}
@@ -784,7 +784,7 @@ export default function GroupChat() {
                   <Text
                     style={tw.style(
                       "text-base",
-                      isMe ? "text-white" : "text-black"
+                      isMe ? "text-white" : "text-black",
                     )}
                   >
                     {item.text}
@@ -796,7 +796,7 @@ export default function GroupChat() {
                   <Text
                     style={tw.style(
                       "text-xs",
-                      isMe ? "text-pink-100" : "text-gray-500"
+                      isMe ? "text-pink-100" : "text-gray-500",
                     )}
                   >
                     {item.time}
@@ -1005,7 +1005,7 @@ export default function GroupChat() {
                       onPress={() =>
                         removeParticipant(
                           participant._id || participant.id,
-                          participant.name || "this user"
+                          participant.name || "this user",
                         )
                       }
                       style={tw`p-2`}

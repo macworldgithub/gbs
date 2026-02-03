@@ -159,9 +159,9 @@ const FeaturedEventsScreen = () => {
             )}
           </Text>
 
-          <Text style={tw`text-black text-sm font-semibold mt-1`}>
+          {/* <Text style={tw`text-black text-sm font-semibold mt-1`}>
             Seats: <Text style={tw`font-normal`}>{availableSeats}</Text>
-          </Text>
+          </Text> */}
         </View>
 
         {/* Right Section (Image + Button below it) */}
@@ -182,7 +182,7 @@ const FeaturedEventsScreen = () => {
               `px-3 py-2 rounded-xl w-full`,
               bookedEvents.includes(item?.eventId)
                 ? "bg-gray-400"
-                : "bg-red-600"
+                : "bg-red-600",
             )}
             disabled={bookedEvents.includes(item?.eventId)}
             onPress={() => handleBuyTicket(bookingUrl)}
