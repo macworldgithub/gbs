@@ -278,6 +278,16 @@ const Offers = ({ navigation }) => {
                   {offer.description}
                 </Text>
 
+                <Text
+                  style={tw`text-sm text-gray-700 mt-3 leading-6`}
+                  numberOfLines={4}
+                >
+                  <Text style={tw`font-bold text-red-600`}>
+                    How to Redeem:{" "}
+                  </Text>
+                  {offer.howToRedeem}
+                </Text>
+
                 {/* Contact Info */}
                 {contactInfo[index] && (
                   <View style={tw`mt-3`}>

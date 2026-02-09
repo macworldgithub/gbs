@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
+  Linking,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import gift1 from "../../assets/gift1.png";
@@ -12,6 +13,23 @@ import { API_BASE_URL } from "../utils/config";
 import { getUserData } from "../utils/storage";
 import { ScrollView } from "react-native-gesture-handler";
 import Ionicons from "react-native-vector-icons/Ionicons";
+
+const contactInfo = [
+  {
+    phone: "0416 050 212",
+    email: "scott@bossmanmedia.com.au",
+    visitLink: "https://bossmanmedia.com.au/contact-us/",
+  },
+  {
+    phone: "0498 800 900",
+    email: "angek@aussietel.com.au",
+    visitLink: "https://www.aussietel.com.au/contact/",
+  },
+  {
+    email: "info@menzclub.com.au",
+    visitLink: "https://menzclub.com.au/",
+  },
+];
 
 const SavedOffers = ({ navigation }) => {
   const [offers, setOffers] = useState([]);
@@ -83,7 +101,7 @@ const SavedOffers = ({ navigation }) => {
         </Text>
       )}
 
-      {offers.map((offer) => (
+      {offers.map((offer, index) => (
         <TouchableOpacity
           key={offer._id}
           onPress={() => navigation.navigate("OfferDetails", { id: offer._id })}
@@ -92,13 +110,6 @@ const SavedOffers = ({ navigation }) => {
             {/* Top Row: Title */}
             <View style={tw`flex-row justify-between items-start`}>
               <View style={tw`flex-row items-center flex-1`}>
-                <View style={tw`bg-red-500 mr-2 p-1 rounded`}>
-                  <Image
-                    source={gift1}
-                    style={{ width: 40, height: 40, borderRadius: 8 }}
-                    resizeMode="cover"
-                  />
-                </View>
                 <View style={tw`flex-1`}>
                   <Text
                     style={tw`text-base font-bold text-gray-800`}
@@ -139,14 +150,56 @@ const SavedOffers = ({ navigation }) => {
             >
               {offer.description}
             </Text>
+            <Text
+              style={tw`text-sm text-gray-700 mt-3 leading-6`}
+              numberOfLines={4}
+            >
+              <Text style={tw`font-bold text-red-600`}>How to Redeem: </Text>
+              {offer.howToRedeem}
+            </Text>
 
-            {offer.termsAndConditions?.length > 0 && (
-              <View style={tw`bg-gray-100 p-2 rounded mt-3`}>
-                {offer.termsAndConditions.map((term, idx) => (
-                  <Text key={idx} style={tw`text-xs text-gray-500`}>
-                    • {term}
+            {contactInfo[index] && (
+              <View style={tw`mt-3`}>
+                {contactInfo[index].phone && (
+                  <Text
+                    style={tw`text-sm text-blue-600 `}
+                    onPress={() =>
+                      Linking.openURL(`tel:${contactInfo[index].phone}`)
+                    }
+                  >
+                    Phone: {contactInfo[index].phone}
                   </Text>
-                ))}
+                )}
+                {contactInfo[index].email && (
+                  <Text
+                    style={tw`text-sm text-blue-600 `}
+                    onPress={() =>
+                      Linking.openURL(`mailto:${contactInfo[index].email}`)
+                    }
+                  >
+                    Email: {contactInfo[index].email}
+                  </Text>
+                )}
+                {/* {contactInfo[index].visitLink && (
+                  <Text
+                    style={tw`text-sm text-blue-600 `}
+                    onPress={() =>
+                      Linking.openURL(contactInfo[index].visitLink)
+                    }
+                  >
+                    Visit link
+                  </Text>
+                )} */}
+                {contactInfo[index].visitLink && (
+                  <TouchableOpacity
+                    style={tw`bg-red-500 px-4 py-2 mt-2 rounded-full items-center`}
+                    onPress={() =>
+                      Linking.openURL(contactInfo[index].visitLink)
+                    }
+                  >
+                    <Text style={tw`text-white font-semibold`}>Redeem</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             )}
           </View>

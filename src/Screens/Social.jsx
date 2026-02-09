@@ -449,9 +449,9 @@ const Social = () => {
                         >
                           Details: {getDetails(event.description)}
                         </Text>
-                        <Text style={tw`text-sm text-gray-600 font-semibold`}>
+                        {/* <Text style={tw`text-sm text-gray-600 font-semibold`}>
                           Seats: {seats}
-                        </Text>
+                        </Text> */}
                       </View>
                       <View style={tw`w-32 h-32`}>
                         <Image

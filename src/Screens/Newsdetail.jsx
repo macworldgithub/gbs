@@ -80,16 +80,6 @@ export default function NewsDetail() {
           resizeMode="contain"
         />
 
-        {news.title && (
-          <Text style={tw`text-xl font-bold mb-3`}>{news.title}</Text>
-        )}
-
-        <Text
-          style={tw`text-base text-gray-700 leading-6 mb-6 whitespace-pre-line`}
-        >
-          {news.detail}
-        </Text>
-
         {news.link && (
           <TouchableOpacity
             onPress={() => Linking.openURL(news.link)}
@@ -100,6 +90,16 @@ export default function NewsDetail() {
             </Text>
           </TouchableOpacity>
         )}
+
+        {news.title && (
+          <Text style={tw`text-xl font-bold mb-3`}>{news.title}</Text>
+        )}
+
+        <Text
+          style={tw`text-base text-gray-700 leading-6 mb-6 whitespace-pre-line`}
+        >
+          {news.detail}
+        </Text>
 
         {/* Special contact for id "2" */}
         {newsId === "2" && (
