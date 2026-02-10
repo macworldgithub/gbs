@@ -40,7 +40,7 @@ export default function ContactUs({ navigation }) {
   const handleEmail = async () => {
     const subject = encodeURIComponent(`Contact from ${name || "Guest"}`);
     const body = encodeURIComponent(
-      `${message}\n\nReply to: ${email || "(not provided)"}`
+      `${message}\n\nReply to: ${email || "(not provided)"}`,
     );
     const url = `mailto:?subject=${subject}&body=${body}`;
     const supported = await Linking.canOpenURL(url);
@@ -78,7 +78,7 @@ export default function ContactUs({ navigation }) {
       const responseMsg = data.response || "Message sent successfully.";
 
       if (accepted.length > 0) {
-        Alert.alert("Success", responseMsg, [
+        Alert.alert("message send Successfully", [
           {
             text: "OK",
             onPress: () => {
@@ -97,7 +97,7 @@ export default function ContactUs({ navigation }) {
       console.error("[ContactUs] API error:", err);
       Alert.alert(
         "Error",
-        typeof msg === "string" ? msg : "Failed to send message."
+        typeof msg === "string" ? msg : "Failed to send message.",
       );
     } finally {
       console.log("[ContactUs] Submit finished");

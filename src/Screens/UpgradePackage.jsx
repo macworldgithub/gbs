@@ -124,7 +124,7 @@ const UpgradePackage = ({ navigation }) => {
                       </Text>
                     )}
                     <Text style={tw`text-xs text-gray-500 mt-1`}>
-                      Months: 12 • Trial: false
+                      Months: 12 
                     </Text>
 
                     <TouchableOpacity
