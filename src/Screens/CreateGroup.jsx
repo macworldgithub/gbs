@@ -22,6 +22,46 @@ export default function CreateGroup() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [myUserId, setMyUserId] = useState(null);
+  const [participantMap, setParticipantMap] = useState({});
+
+  useEffect(() => {
+    const loadParticipantNames = async () => {
+      try {
+        const parsed = await getUserData();
+        const token = parsed?.token;
+
+        const res = await axios.get(
+          "https://gbs.westsidecarcare.com.au/messages/public-groups",
+          {
+            headers: {
+              accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const groups = res?.data?.groups || [];
+
+        const map = {};
+        groups.forEach((g) => {
+          (g.participants || []).forEach((p) => {
+            if (p?._id) {
+              map[p._id] = p.name || "Unnamed";
+            }
+          });
+        });
+
+        setParticipantMap(map);
+      } catch (e) {
+        console.log(
+          "participant name load error",
+          e?.response?.data || e.message,
+        );
+      }
+    };
+
+    loadParticipantNames();
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -87,9 +127,33 @@ export default function CreateGroup() {
         throw new Error("Invalid server response");
       }
 
+      const creatorId = parsed?._id || parsed?.user?._id || null;
+      const creatorParticipant = creatorId
+        ? {
+            _id: creatorId,
+            name: parsed?.name || parsed?.user?.name || "You",
+            email: parsed?.email || parsed?.user?.email || "",
+          }
+        : null;
+
+   
+      const selectedUsers = users.filter((u) => selectedIds.includes(u._id));
+      const resolvedParticipants = selectedUsers.map((u) => ({
+        _id: u._id,
+        name: participantMap[u._id] || u.name || "Unnamed",
+        email: u.email || "",
+      }));
+
+      const participantsForChat = [
+        // Ensure creator appears first if available
+        ...(creatorParticipant ? [creatorParticipant] : []),
+        ...resolvedParticipants,
+      ];
+
       navigation.replace("GroupChat", {
         conversationId,
         group: { name: groupName.trim() },
+        participants: participantsForChat,
       });
     } catch (e) {
       Alert.alert(
@@ -168,7 +232,8 @@ export default function CreateGroup() {
                     style={tw`mr-2`}
                   />
                   <View style={tw`flex-1`}>
-                    <Text style={tw`text-black`}>{u.name || "Unnamed"}</Text>
+                    <Text>{participantMap[u._id] || u.name || "Unnamed"}</Text>
+
                     {u.email ? (
                       <Text style={tw`text-gray-500 text-xs`}>{u.email}</Text>
                     ) : null}

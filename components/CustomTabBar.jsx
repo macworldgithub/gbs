@@ -18,6 +18,18 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
             canPreventDefault: true,
           });
 
+          // Special handling for Directory tab:
+          // Always take user to the Directory list screen,
+          // not whatever nested screen (e.g. last opened member detail)
+          if (route.name === "Directory") {
+            if (!event.defaultPrevented) {
+              navigation.navigate("Directory", {
+                screen: "DirectoryList",
+              });
+            }
+            return;
+          }
+
           if (!isFocused && !event.defaultPrevented) {
             navigation.navigate(route.name);
           }
