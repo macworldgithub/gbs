@@ -346,10 +346,11 @@ const EventDetail = () => {
   }, [eventId]);
 
   const isBookingOpen = (event) => {
-    if (!event.sessionList || event.sessionList.length === 0) return false;
-    const today = new Date("2025-11-28T00:00:00Z");
-    const bookingStartDate = new Date(event.sessionList[0].bookingStartDate);
-    const bookingEndDate = new Date(event.sessionList[0].bookingEndDate);
+    const session = event.sessionList?.[0];
+    if (!session) return false;
+    const today = new Date();
+    const bookingStartDate = new Date(session.bookingStartDate);
+    const bookingEndDate = new Date(session.bookingEndDate);
     return bookingStartDate <= today && today < bookingEndDate;
   };
 
@@ -364,8 +365,9 @@ const EventDetail = () => {
   }
 
   const session = event.sessionList?.[0];
+  const availableSeats = session?.sessionAvailability ?? 0;
   const heroImage = event.listOfImages?.find(
-    (img) => img.purpose === "Hero"
+    (img) => img.purpose === "Hero",
   )?.imageFileName;
   const bookingAvailable = isBookingOpen(event);
 
@@ -441,6 +443,10 @@ const EventDetail = () => {
             {session
               ? new Date(session.bookingEndDate).toLocaleString()
               : "N/A"}
+          </Text>
+          <Text style={tw`text-sm text-gray-700 mb-1`}>
+            <Text style={tw`font-semibold text-red-500`}>Tickets:</Text>{" "}
+            {availableSeats || "N/A"}
           </Text>
         </View>
 
