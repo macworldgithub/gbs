@@ -30,7 +30,7 @@ const COMMUNITY_IMAGES = {
   "GBS Golf": require("../../assets/golf.png"),
 };
 
-const DEFAULT_COMMUNITY_IMAGE = require("../../assets/Community.png");
+const DEFAULT_COMMUNITY_IMAGE = require("../../assets/community_new.png");
 
 const getCommunityImage = (name) =>
   COMMUNITY_IMAGES[name] || DEFAULT_COMMUNITY_IMAGE;
