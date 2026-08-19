@@ -7,15 +7,17 @@ import {
   ScrollView,
   Linking,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/config";
 
-const PHONE_DISPLAY = "1300 07 12 15";
+const PHONE_DISPLAY = "0448 931 555";
 // const PHONE_NUMBER = "1300071215";
-const PHONE_NUMBER = "+611300071215"; // +61 for Australia
+const PHONE_NUMBER = "0448931555"; // +61 for Australia
 
 export default function ContactUs({ navigation }) {
   const [name, setName] = useState("");
@@ -78,17 +80,14 @@ export default function ContactUs({ navigation }) {
       const responseMsg = data.response || "Message sent successfully.";
 
       if (accepted.length > 0) {
-        Alert.alert("message send Successfully", [
-          {
-            text: "OK",
-            onPress: () => {
-              setName("");
-              setEmail("");
-              setMessage("");
-            },
-          },
-        ]);
+        setName("");
+        setEmail("");
+        setMessage("");
+        Alert.alert("Success", "Message sent successfully!");
       } else {
+        setName("");
+        setEmail("");
+        setMessage("");
         Alert.alert("Sent", responseMsg);
       }
     } catch (e) {
@@ -106,9 +105,13 @@ export default function ContactUs({ navigation }) {
   };
 
   return (
-    <View style={tw`flex-1 bg-white mt-12`}>
-      <ScrollView style={tw`flex-1`}>
-        <View style={tw`flex-row items-center bg-red-500 px-4 py-3`}>
+    <KeyboardAvoidingView
+      style={tw`flex-1 bg-white`}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      <ScrollView style={tw`flex-1`} scrollEnabled={true}>
+        <View style={tw`flex-row items-center bg-red-500 px-4 py-3 mt-12`}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={tw`mr-3`}
@@ -193,6 +196,6 @@ export default function ContactUs({ navigation }) {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

@@ -435,6 +435,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SignupUser } from "../utils/api";
+import DropDownPicker from "react-native-dropdown-picker";
 import { Picker } from "@react-native-picker/picker";
 
 export default function Signup() {
@@ -452,6 +453,10 @@ export default function Signup() {
   const [state, setState] = useState("VIC");
   const [selectedPackageId, setSelectedPackageId] = useState("");
   const [packages, setPackages] = useState([]);
+  const [selectedCode, setSelectedCode] = useState("+61");
+  const [showPhoneDropdown, setShowPhoneDropdown] = useState(false);
+  const [packageOpen, setPackageOpen] = useState(false);
+  const [stateOpen, setStateOpen] = useState(false);
 
   const businessRoles = [
     "business",
@@ -487,6 +492,13 @@ export default function Signup() {
 
   const roleName = selectedPackageId ? getRoleNameById(selectedPackageId) : "";
   const isBusinessRole = businessRoles.includes(roleName);
+
+  const packageItems = packages
+    .filter((pkg) => pkg.label !== "Chairman's Club")
+    .map((pkg) => ({
+      label: pkg.label || pkg.name,
+      value: pkg._id,
+    }));
 
   const handleSignup = async () => {
     try {
@@ -532,7 +544,10 @@ export default function Signup() {
       //   return;
       // }
 
-      if (phone.length !== 7) {
+      if (
+        (selectedCode === "+61" && phone.length !== 9) ||
+        (selectedCode === "04" && phone.length !== 8)
+      ) {
         Alert.alert(
           "Invalid phone number",
           "Please enter a valid Australian mobile number",
@@ -540,7 +555,13 @@ export default function Signup() {
         return;
       }
 
-      const formattedPhone = `+6141${phone}`;
+      let formattedPhone = "";
+
+      if (selectedCode === "+61") {
+        formattedPhone = "+61" + phone;
+      } else {
+        formattedPhone = "+61" + phone;
+      }
 
       // Require agreement to both policies
       if (!agreeCodeOfConduct || !agreeMemberValues) {
@@ -580,6 +601,15 @@ export default function Signup() {
       if (response && response._id) {
         await AsyncStorage.setItem("user", JSON.stringify(response));
         await AsyncStorage.setItem("email", response.email || email);
+
+        if (selectedPackageId) {
+          await AsyncStorage.setItem("selectedPackage", selectedPackageId);
+          console.log(
+            "✅ Selected Package ID saved in Signup:",
+            selectedPackageId,
+          );
+        }
+
         navigation.navigate("Signin");
       } else {
         Alert.alert("Signup incomplete", "Invalid response from server");
@@ -594,6 +624,14 @@ export default function Signup() {
     }
   };
 
+  const stateItems = [
+    { label: "VIC", value: "VIC" },
+    { label: "NSW", value: "NSW" },
+    { label: "QLD", value: "QLD" },
+    { label: "SA", value: "SA" },
+    { label: "WA", value: "WA" },
+  ];
+
   // Debug logs (remove in production)
   console.log("State selected:", state);
   console.log("Interested In:", interestedIn);
@@ -606,6 +644,10 @@ export default function Signup() {
   console.log("Selected Package ID:", selectedPackageId);
   console.log("Packages:", packages);
 
+  const phoneFormats = [
+    { code: "+61", label: "Australia (+61)" },
+    { code: "04", label: "Australia (Local 04)" },
+  ];
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -628,7 +670,7 @@ export default function Signup() {
           </Text>
         </Text>
         {/* Package Selection Dropdown - At the top */}
-        <View style={tw`border rounded-xl px-4 py-1 mb-4`}>
+        {/* <View style={tw`border rounded-xl px-4 py-1 mb-4`}>
           <Text style={tw`text-gray-700 text-sm mb-1 ml-1`}>
             Select Package *
           </Text>
@@ -653,6 +695,24 @@ export default function Signup() {
               />
             ))}
           </Picker>
+        </View> */}
+
+        <View style={tw`mb-4 z-50`}>
+          <Text style={tw`text-gray-700 text-sm mb-1 ml-1`}>
+            Select Package *
+          </Text>
+          <DropDownPicker
+            open={packageOpen}
+            value={selectedPackageId}
+            items={packageItems}
+            setOpen={setPackageOpen}
+            setValue={setSelectedPackageId}
+            placeholder="Select a package"
+            style={tw`border border-gray-300 rounded-xl`}
+            textStyle={tw`text-sm text-gray-700`}
+            dropDownContainerStyle={tw`border border-gray-300 rounded-xl`}
+            zIndex={5000}
+          />
         </View>
         {/* Name */}
         <View
@@ -722,20 +782,28 @@ export default function Signup() {
         >
           <Ionicons name="call-outline" size={20} color="gray" />
 
-          {/* Fixed 041 */}
-          <Text style={tw`ml-2 text-sm text-gray-700 font-semibold`}>041</Text>
+          {/* Country Code Dropdown */}
+          <TouchableOpacity
+            onPress={() => setShowPhoneDropdown(true)}
+            style={tw`flex-row items-center ml-2`}
+          >
+            <Text style={tw`text-sm text-gray-700 font-semibold`}>
+              {selectedCode}
+            </Text>
+            <Ionicons name="chevron-down" size={16} color="gray" />
+          </TouchableOpacity>
 
           <View style={tw`w-px h-5 bg-gray-300 mx-2`} />
 
-          {/* User enters only remaining digits */}
+          {/* Phone Input */}
           <TextInput
-            placeholder="XXXXXXX"
+            placeholder={selectedCode === "+61" ? "412345678" : "12345678"}
             placeholderTextColor="black"
             style={tw`flex-1 text-sm text-gray-700`}
             value={phone}
             onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, ""))}
             keyboardType="phone-pad"
-            maxLength={7}
+            maxLength={selectedCode === "+61" ? 9 : 8}
           />
         </View>
 
@@ -780,7 +848,7 @@ export default function Signup() {
           />
         </View>
         {/* State Dropdown */}
-        <View style={tw`border rounded-xl px-4 py-1 mb-4`}>
+        {/* <View style={tw`border rounded-xl px-4 py-1 mb-4`}>
           <Text style={tw`text-gray-700 text-sm mb-1 ml-1`}>Select State</Text>
           <Picker
             selectedValue={state}
@@ -793,6 +861,20 @@ export default function Signup() {
             <Picker.Item label="SA" value="SA" />
             <Picker.Item label="WA" value="WA" />
           </Picker>
+        </View> */}
+
+        <View style={tw`mb-4 z-40`}>
+          <Text style={tw`text-gray-700 text-sm mb-1 ml-1`}>Select State</Text>
+          <DropDownPicker
+            open={stateOpen}
+            value={state}
+            items={stateItems}
+            setOpen={setStateOpen}
+            setValue={setState}
+            style={tw`border border-gray-300 rounded-xl`}
+            textStyle={tw`text-sm text-gray-700`}
+            zIndex={4000}
+          />
         </View>
         {/* Code of Conduct Checkbox */}
         <View style={tw`flex-row items-center mb-3`}>
@@ -868,6 +950,33 @@ export default function Signup() {
           .
         </Text>
       </ScrollView>
+      {showPhoneDropdown && (
+        <TouchableOpacity
+          style={tw`absolute top-0 left-0 right-0 bottom-0 bg-black bg-opacity-40 justify-center items-center`}
+          activeOpacity={1}
+          onPress={() => setShowPhoneDropdown(false)}
+        >
+          <View style={tw`bg-white w-3/4 rounded-xl p-4`}>
+            <Text style={tw`text-lg font-semibold mb-3 text-black`}>
+              Select phone format
+            </Text>
+
+            {phoneFormats.map((item) => (
+              <TouchableOpacity
+                key={item.code}
+                style={tw`py-3 border-b border-gray-200`}
+                onPress={() => {
+                  setSelectedCode(item.code);
+                  setPhone("");
+                  setShowPhoneDropdown(false);
+                }}
+              >
+                <Text style={tw`text-gray-700`}>{item.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      )}
     </KeyboardAvoidingView>
   );
 }

@@ -159,6 +159,8 @@ const AddOfferScreen = ({ navigation, route }) => {
           value={form.description}
           onChangeText={(t) => updateField("description", t)}
           style={tw`border border-gray-300 rounded-lg px-3 py-2 min-h-20`}
+          placeholder="Enter description"
+          placeholderTextColor="black"
           multiline
         />
 
@@ -177,6 +179,8 @@ const AddOfferScreen = ({ navigation, route }) => {
           value={(form.termsAndConditions || []).join("\n")}
           onChangeText={(t) => updateField("termsAndConditions", t.split("\n").map((s) => s.trim()))}
           style={tw`border border-gray-300 rounded-lg px-3 py-2 min-h-20`}
+          placeholder="Enter each term on a new line"
+          placeholderTextColor="black"
           multiline
         />
 
@@ -198,7 +202,7 @@ const AddOfferScreen = ({ navigation, route }) => {
 const LabeledInput = ({ label, value, onChangeText, placeholder }) => (
   <View style={tw`mb-3`}>
     <Text style={tw`text-sm text-gray-700 mb-1`}>{label}</Text>
-    <TextInput value={value} onChangeText={onChangeText} placeholder={placeholder} style={tw`border border-gray-300 rounded-lg px-3 py-2`} />
+    <TextInput value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor="black" style={tw`border border-gray-300 rounded-lg px-3 py-2`} />
   </View>
 );
 

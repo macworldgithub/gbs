@@ -713,6 +713,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
+  Linking,
   View,
   Text,
   TextInput,
@@ -724,6 +725,7 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  AppState,
 } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -734,7 +736,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Drawer from "../../components/Drawer";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/config";
-import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
+// import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
+import { checkForPackageUpgrade } from "../utils/packageTracker";
 
 const newsData = [
   {
@@ -749,7 +752,26 @@ const newsData = [
     heading:
       "INTRODUCING GBS ALLIANCE MEMBERSHIP A Truly Elevated GBS Business Experience",
     image: require("../../assets/wellbeing4.png"),
-    location: "Brunswick Aces",
+    // location: "Brunswick Aces",
+  },
+  // {
+  //   id: "3 ",
+  //   heading:
+  //     "Run The Tan — Sunday 26th April GBS is proudly entering a team in ",
+  //   image: require("../../assets/news3.png"),
+  //   // location: "Brunswick Aces",
+  // },
+  // {
+  //   id: "4",
+  //   heading: "SUPPORTING CRI DU CHAT — April 17th, Club Sunbury",
+  //   image: require("../../assets/news4.png"),
+
+  // },
+  {
+    id: "5",
+    heading: "GBS Newsletter\nGet the latest from the GBS News Room",
+    image: require("../../assets/news5.png"),
+    // location: "Brunswick Aces",
   },
 ];
 
@@ -785,6 +807,7 @@ export default function Home() {
   const [submittingEvent, setSubmittingEvent] = useState(false);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [eventForm, setEventForm] = useState({
     title: "",
     description: "",
@@ -796,6 +819,9 @@ export default function Home() {
 
   const [guestExpiry, setGuestExpiry] = useState(null);
   const [guestRemainingStr, setGuestRemainingStr] = useState("");
+  const [upgradeSuccessVisible, setUpgradeSuccessVisible] = useState(false);
+  const [upgradedRoleName, setUpgradedRoleName] = useState("");
+  const [appState, setAppState] = useState(AppState.currentState);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -930,14 +956,122 @@ export default function Home() {
     console.log(`[Home] Tab changed to: ${key}`);
   };
 
+  //login api call automatically
+
+  const autoLoginRefresh = async () => {
+    try {
+      const credsRaw = await AsyncStorage.getItem("userCredentials");
+      if (!credsRaw) return;
+      const { identifier, password } = JSON.parse(credsRaw);
+
+      console.log("🔄 Background auto-login refresh started...");
+
+      let payload = {};
+      const trimmedId = identifier.trim();
+      if (trimmedId.includes("@")) {
+        payload.email = trimmedId.toLowerCase();
+      } else {
+        let cleanPhone = trimmedId.replace(/\s/g, "");
+        if (cleanPhone.startsWith("04") && cleanPhone.length === 10) {
+          payload.phone = "+61" + cleanPhone.substring(1);
+        } else if (cleanPhone.startsWith("4") && cleanPhone.length === 9) {
+          payload.phone = "+61" + cleanPhone;
+        } else {
+          payload.phone = cleanPhone.startsWith("+")
+            ? cleanPhone
+            : "+61" + cleanPhone;
+        }
+      }
+      payload.password = password;
+
+      const res = await axios.post(`${API_BASE_URL}/user/auth/signin`, payload);
+      if (res.data?.token && res.data?.user) {
+        const userData = { token: res.data.token, ...res.data.user };
+        await AsyncStorage.setItem("userData", JSON.stringify(userData));
+        console.log("✅ Auto-login refresh successful.");
+      }
+    } catch (err) {
+      console.log(
+        "⚠️ Auto-login refresh failed:",
+        err.response?.data?.message || err.message,
+      );
+    }
+  };
+
+  // ✅ Admin emails excluded from upgrade modal
+  const adminExcludedEmails = [
+    "shaun@goodblokessociety.com.au",
+    "leon@goodblokessociety.com.au",
+  ];
+
+  const shouldSkipModalsForAdmin = async () => {
+    try {
+      const userDataRaw = await AsyncStorage.getItem("userData");
+      if (!userDataRaw) return false;
+      const userData = JSON.parse(userDataRaw);
+      if (
+        userData?.isAdmin === true ||
+        adminExcludedEmails.includes(userData?.email?.toLowerCase())
+      ) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       setSearchQuery("");
       setBusinessResults([]);
       setOfferResults([]);
       setUserResults([]);
+      autoLoginRefresh();
+
+      // ✅ Check for package upgrade when home is focused (skip for admins)
+      (async () => {
+        const skipForAdmin = await shouldSkipModalsForAdmin();
+        if (skipForAdmin) {
+          console.log("✅ Admin user — skipping upgrade modal on focus");
+          return;
+        }
+        const upgradeResult = await checkForPackageUpgrade();
+        if (upgradeResult.upgraded) {
+          setUpgradedRoleName(upgradeResult.newRoleName);
+          setUpgradeSuccessVisible(true);
+        }
+      })();
     }, []),
   );
+
+  useEffect(() => {
+    const checkUpgrade = async () => {
+      // ✅ Skip for admin users
+      const skipForAdmin = await shouldSkipModalsForAdmin();
+      if (skipForAdmin) {
+        console.log("✅ Admin user — skipping upgrade modal on app resume");
+        return;
+      }
+      const upgradeResult = await checkForPackageUpgrade();
+      if (upgradeResult.upgraded) {
+        setUpgradedRoleName(upgradeResult.newRoleName);
+        setUpgradeSuccessVisible(true);
+      }
+    };
+
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (appState.match(/inactive|background/) && nextAppState === "active") {
+        console.log(
+          "🔄 App became active in Home — checking for package upgrade...",
+        );
+        checkUpgrade();
+      }
+      setAppState(nextAppState);
+    });
+
+    return () => subscription.remove();
+  }, [appState]);
 
   useEffect(() => {
     console.log(`[Home] activeTab changed to: ${activeTab}`);
@@ -1071,6 +1205,146 @@ export default function Home() {
       clearInterval(id);
     };
   }, [guestExpiry, navigation]);
+
+  // ==================== FIXED PAYMENT MODAL LOGIC ====================
+  useEffect(() => {
+    const checkForPaymentModal = async () => {
+      try {
+        const userDataRaw = await AsyncStorage.getItem("userData");
+        if (!userDataRaw) return;
+
+        const userData = JSON.parse(userDataRaw);
+
+        if (userData?.isGuest) return;
+
+        // ✅ Skip modal for admin users or specific admin emails
+        const adminExcludedEmails = [
+          "shaun@goodblokessociety.com.au",
+          "leon@goodblokessociety.com.au",
+        ];
+        if (
+          userData?.isAdmin === true ||
+          adminExcludedEmails.includes(userData?.email?.toLowerCase())
+        ) {
+          console.log(
+            "✅ Admin user or excluded email — skipping payment modal",
+          );
+          setShowPaymentModal(false);
+          return;
+        }
+
+        // ✅ Role IDs to exclude from showing payment modal
+        const excludedRoleIds = [
+          "6915636090f43d76fc6cf61b", // founder
+          "69156a2390f43d76fc6cf61c", // life_member
+          "69156a2390f43d76fc6cf61d", // national_partner
+          "6916d50d391fd5aaf21f76eb", // singapore_foundation
+        ];
+
+        const excludedRoleNames = [
+          "founder",
+          "life_member",
+          "national_partner",
+          "singapore_foundation",
+        ];
+
+        const userRoleId =
+          userData?.role?._id || userData?.activatedPackage?.role?._id;
+        const userRoleName =
+          userData?.role?.name || userData?.activatedPackage?.role?.name;
+
+        const isExcludedRole =
+          excludedRoleIds.includes(userRoleId) ||
+          excludedRoleNames.includes(userRoleName);
+
+        const hasActivePackage =
+          !!userData?.activatedPackage &&
+          userData.activatedPackage.endDate &&
+          new Date(userData.activatedPackage.endDate) > new Date();
+
+        console.log("🔍 Has Active Package:", hasActivePackage);
+        console.log("🔍 Is Excluded Role:", isExcludedRole);
+
+        if (!hasActivePackage && !isExcludedRole) {
+          console.log(
+            "✅ No active package & NOT excluded role → Forcing modal",
+          );
+          setShowPaymentModal(true);
+          await AsyncStorage.setItem("paymentModalShownThisSession", "true");
+        } else {
+          console.log("✅ User has active package or is an excluded role");
+          setShowPaymentModal(false);
+          await AsyncStorage.removeItem("paymentModalShownThisSession");
+        }
+      } catch (e) {
+        console.log("❌ Payment modal check error:", e);
+      }
+    };
+
+    const timer = setTimeout(checkForPaymentModal, 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // ==================== HANDLE PAYMENT WITH TOKEN & ROLE ID ====================
+  const handleVisitPaymentWebsite = async () => {
+    try {
+      const userDataRaw = await AsyncStorage.getItem("userData");
+      let selectedPackageId = await AsyncStorage.getItem("selectedPackage");
+
+      console.log(
+        "📦 Selected Package ID from AsyncStorage:",
+        selectedPackageId,
+      );
+
+      if (!userDataRaw) {
+        Alert.alert("Error", "User data not found");
+        return;
+      }
+
+      const userData = JSON.parse(userDataRaw);
+      const token = userData?.token;
+
+      if (!token) {
+        Alert.alert("Error", "No authentication token found");
+        return;
+      }
+
+      // Fallback: Agar selectedPackage nahi mila to userData se try karo
+      if (!selectedPackageId && userData?.activatedPackage?.role?._id) {
+        selectedPackageId = userData.activatedPackage.role._id;
+        console.log("🔄 Fallback: Got roleId from activatedPackage");
+      }
+
+      if (!selectedPackageId) {
+        Alert.alert("Error", "Package ID not found. Please login again.");
+        console.log("❌ No Package ID found even after fallback");
+        return;
+      }
+
+      const paymentUrl = `https://gbs-stripe.vercel.app/?token=${encodeURIComponent(
+        token,
+      )}&roleId=${encodeURIComponent(selectedPackageId)}`;
+      console.log("token", token);
+      console.log("🔗 Final Payment URL:", paymentUrl);
+      console.log("🆔 Sending roleId:", selectedPackageId);
+
+      const supported = await Linking.canOpenURL(paymentUrl);
+      if (supported) {
+        await Linking.openURL(paymentUrl);
+        setShowPaymentModal(false);
+      } else {
+        Alert.alert("Error", "Cannot open payment link right now.");
+      }
+    } catch (err) {
+      console.error("Payment link error:", err);
+      Alert.alert("Error", "Failed to open payment website.");
+    }
+  };
+
+  // Close modal
+  const closePaymentModal = () => {
+    setShowPaymentModal(false);
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -1273,7 +1547,10 @@ export default function Home() {
                     </Text>
 
                     <Text style={tw`text-red-500 font-semibold mt-1`}>
-                      ${item.id === "1" ? "99.95" : "7,500 include GST"}
+                      {item.id === "1" ? "$ 99.95" : ""}
+                    </Text>
+                    <Text style={tw`text-red-500 font-semibold mt-1`}>
+                      {item.id === "2" ? "$ 7,500 include GST" : ""}
                     </Text>
                     <Text style={tw`text-gray-500 text-xs mt-1`}>
                       {item.location}
@@ -1297,6 +1574,83 @@ export default function Home() {
         </View>
       </ScrollView>
 
+      <Modal
+        visible={showPaymentModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closePaymentModal}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0, 0, 0, 0.75)", // ← This is the correct way in React Native
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 24,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              borderRadius: 24,
+              padding: 32,
+              width: "100%",
+              maxWidth: 340,
+            }}
+          >
+            <Text style={tw`text-2xl font-bold text-center mb-3 text-gray-900`}>
+              Activate Your Membership
+            </Text>
+
+            <Text style={tw`text-gray-600 text-center mb-8 leading-6`}>
+              To enjoy all features including My Business, Events, and more,
+              please complete your membership payment.
+            </Text>
+
+            <TouchableOpacity
+              onPress={handleVisitPaymentWebsite}
+              style={tw`bg-red-500 py-4 rounded-2xl mb-4`}
+            >
+              <Text style={tw`text-white text-center font-semibold text-lg`}>
+                Visit Website
+              </Text>
+            </TouchableOpacity>
+
+            {/* <TouchableOpacity onPress={closePaymentModal} style={tw`py-3`}>
+              <Text style={tw`text-gray-500 text-center font-medium`}>
+                Remind Me Later
+              </Text>
+            </TouchableOpacity> */}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Package Upgrade Success Modal */}
+      <Modal visible={upgradeSuccessVisible} transparent animationType="fade">
+        <View
+          style={tw`flex-1 bg-black bg-opacity-50 justify-center items-center`}
+        >
+          <View style={tw`bg-white w-11/12 max-w-md rounded-2xl p-6`}>
+            <Text style={tw`text-lg font-bold text-gray-900 text-center`}>
+              Package Upgraded
+            </Text>
+            <Text style={tw`text-sm text-gray-600 text-center mt-2`}>
+              We will credit the remaining balance on your current membership
+              should you upgrade during your current term.
+            </Text>
+            <View style={tw`flex-row mt-5`}>
+              <TouchableOpacity
+                style={tw`flex-1 bg-red-500 py-2 rounded-lg`}
+                onPress={() => setUpgradeSuccessVisible(false)}
+              >
+                <Text style={tw`text-white text-center font-semibold`}>
+                  Great!
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       {/* Drawer Overlay — Yeh sabse upar render hoga */}
       <Drawer isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </View>

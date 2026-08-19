@@ -11,7 +11,8 @@ import {
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/config";
-import { Ionicons } from "@expo/vector-icons";
+import { deleteGroupConversation } from "../utils/api";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getSession } from "../utils/secureAuth";
 
@@ -30,7 +31,7 @@ const COMMUNITY_IMAGES = {
   "GBS Golf": require("../../assets/golf.png"),
 };
 
-const DEFAULT_COMMUNITY_IMAGE = require("../../assets/community_new.png");
+const DEFAULT_COMMUNITY_IMAGE = require("../../assets/Community.png");
 
 const getCommunityImage = (name) =>
   COMMUNITY_IMAGES[name] || DEFAULT_COMMUNITY_IMAGE;
@@ -45,8 +46,10 @@ const getAuthToken = async () => {
 };
 
 // ================= MAIN =================
-export default function GroupConversations({ navigation }) {
-  const [activeTab, setActiveTab] = useState("mygroups");
+export default function GroupConversations({ navigation, route }) {
+  const [activeTab, setActiveTab] = useState(
+    route?.params?.initialTab || "mygroups"
+  );
   const [loading, setLoading] = useState(true);
 
   const [myGroups, setMyGroups] = useState([]);
@@ -119,6 +122,38 @@ export default function GroupConversations({ navigation }) {
     }
   };
 
+  const handleDeleteGroup = async (conversationId) => {
+    Alert.alert(
+      "Delete Group",
+      "Are you sure you want to delete this entire group conversation? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            const token = await getAuthToken();
+            if (!token) return;
+
+            try {
+              setLoading(true);
+              await deleteGroupConversation(conversationId, token);
+              Alert.alert("Success", "Group deleted successfully");
+              loadData();
+            } catch (err) {
+              const errMsg =
+                err.response?.data?.message ||
+                "Only the group admin can perform this action.";
+              Alert.alert("Error", errMsg);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // const openChat = (group) => {
   //   navigation.navigate("GroupChat", {
   //     conversationId: group._id,
@@ -160,6 +195,14 @@ export default function GroupConversations({ navigation }) {
           <Text style={tw`text-lg font-bold flex-1`}>
             {item.groupName} {isAnnouncements ? "(Admin Only)" : ""}
           </Text>
+          {isMyGroup && !isAnnouncements && (
+            <TouchableOpacity
+              onPress={() => handleDeleteGroup(item._id)}
+              style={tw`p-2`}
+            >
+              <MaterialIcons name="delete-outline" size={24} color="#ef4444" />
+            </TouchableOpacity>
+          )}
         </TouchableOpacity>
 
         {activeTab !== "mygroups" && !isAnnouncements && (

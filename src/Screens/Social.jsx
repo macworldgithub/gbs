@@ -258,11 +258,20 @@ const Social = () => {
     return cityToStateMap[city] || "All";
   };
 
+  // const isEventUpcoming = (event) => {
+  //   if (!event.sessionList || event.sessionList.length === 0) return false;
+  //   const today = new Date("2025-12-09T00:00:00Z");
+  //   const endDate = new Date(event.sessionList[0].eventEndDate);
+  //   return endDate > today;
+  // };
+
   const isEventUpcoming = (event) => {
     if (!event.sessionList || event.sessionList.length === 0) return false;
-    const today = new Date("2025-12-09T00:00:00Z");
+
+    const now = new Date(); // current date/time
     const endDate = new Date(event.sessionList[0].eventEndDate);
-    return endDate > today;
+
+    return endDate >= now; // show only current/upcoming events
   };
 
   const isBookingOpen = (event) => {
@@ -303,13 +312,20 @@ const Social = () => {
     fetchEvents();
   }, []);
 
-  const filteredEvents = events.filter(
-    (event) =>
-      // hide events explicitly marked as not public
-      event.isPublic !== false &&
-      (selectedState === "All" || getStateFromEvent(event) === selectedState) &&
-      isEventUpcoming(event)
-  );
+  const filteredEvents = events
+    .filter(
+      (event) =>
+        // hide events explicitly marked as not public
+        event.isPublic !== false &&
+        (selectedState === "All" ||
+          getStateFromEvent(event) === selectedState) &&
+        isEventUpcoming(event),
+    )
+    .sort((a, b) => {
+      const dateA = new Date(a?.sessionList?.[0]?.eventStartDate || 0);
+      const dateB = new Date(b?.sessionList?.[0]?.eventStartDate || 0);
+      return dateA - dateB; // chronological order (earliest first)
+    });
 
   const handleEventPress = (eventId) => {
     navigation.navigate("EventDetail", { eventId });
@@ -373,13 +389,13 @@ const Social = () => {
               `px-4 py-2 mr-2 rounded-md border`,
               selectedState === st
                 ? "bg-red-100 border-red-500"
-                : "bg-white border-gray-300"
+                : "bg-white border-gray-300",
             )}
           >
             <Text
               style={tw.style(
                 `text-sm`,
-                selectedState === st ? "text-red-600" : "text-gray-700"
+                selectedState === st ? "text-red-600" : "text-gray-700",
               )}
             >
               {st}
@@ -466,8 +482,8 @@ const Social = () => {
                               Linking.openURL(event.bookingUrl).catch(() =>
                                 Alert.alert(
                                   "Error",
-                                  "Unable to open booking link"
-                                )
+                                  "Unable to open booking link",
+                                ),
                               )
                             }
                             style={tw`bg-red-500 p-2 mb-2 mt-4 rounded-xl w-32`}
@@ -475,7 +491,7 @@ const Social = () => {
                             <Text
                               style={tw`text-white text-center font-semibold`}
                             >
-                              Buy Ticket
+                              View Tickets
                             </Text>
                           </TouchableOpacity>
                         )}

@@ -15,24 +15,33 @@ import { getUserData } from "../../src/utils/storage";
 import { Ionicons } from "@expo/vector-icons";
 import NoticeboardTab from "./Noticeboard";
 
-const tabs = ["All", "Member Offers", "Noticeboard"];
+const tabs = ["All", "Noticeboard"];
 
-const contactInfo = [
-  {
+const businessContactMap = {
+  bossman: {
     phone: "0416 050 212",
     email: "scott@bossmanmedia.com.au",
     visitLink: "https://bossmanmedia.com.au/contact-us/",
   },
-  {
+  aussietel: {
     phone: "0498 800 900",
     email: "angek@aussietel.com.au",
     visitLink: "https://www.aussietel.com.au/contact/",
   },
-  {
+  menzclub: {
     email: "info@menzclub.com.au",
     visitLink: "https://menzclub.com.au/",
   },
-];
+};
+
+const getContactInfo = (businessName) => {
+  if (!businessName) return null;
+  const lowerName = businessName.toLowerCase();
+  if (lowerName.includes("bossman")) return businessContactMap.bossman;
+  if (lowerName.includes("aussietel")) return businessContactMap.aussietel;
+  if (lowerName.includes("menzclub")) return businessContactMap.menzclub;
+  return null;
+};
 
 const Offers = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState("All");
@@ -55,12 +64,25 @@ const Offers = ({ navigation }) => {
     const backendMessage = error?.response?.data?.message;
     const statusCode = error?.response?.status;
 
+    // If server explicitly returned a message for not-found, show it
     if (statusCode === 404 && backendMessage) return backendMessage;
+
+    // Session expired
     if (statusCode === 401)
       return "Your session has expired. Please log in again.";
+
+    // Permission / forbidden — show a friendly Urdu message explaining top-tier requirement
+    if (statusCode === 403) {
+      // Show a formal English message explaining the Top Tier requirement
+      return "You do not have a Top Tier Business package. Exclusive offers are available only to Top Tier members — please upgrade your package to view them.";
+    }
+
+    // No response object — likely network error
     if (!error?.response)
       return "We couldn't connect to the server. Please check your internet.";
-    return "No offers are available for you at the moment.";
+
+    // Fallback
+    return backendMessage || "No offers are available for you at the moment.";
   };
 
   const fetchOffers = async (tab) => {
@@ -144,6 +166,80 @@ const Offers = ({ navigation }) => {
     }
   };
 
+  const renderClickableHowToRedeem = (text) => {
+    if (!text) return null;
+
+    const emailRegex = /[\w.-]+@[\w.-]+\.\w+/g;
+    const phoneRegex = /(?:\+?61|0)[\s-]?\d{1,4}[\s-]?\d{1,4}[\s-]?\d{1,4}/g;
+
+    const parts = [];
+    let lastIndex = 0;
+
+    const allMatches = [];
+
+    // Find all emails
+    let match;
+    while ((match = emailRegex.exec(text)) !== null) {
+      allMatches.push({ type: "email", text: match[0], index: match.index });
+    }
+
+    // Find all phones
+    while ((match = phoneRegex.exec(text)) !== null) {
+      allMatches.push({ type: "phone", text: match[0], index: match.index });
+    }
+
+    // Sort by position
+    allMatches.sort((a, b) => a.index - b.index);
+
+    allMatches.forEach(({ type, text: matchText, index }) => {
+      // Add text before the match
+      if (index > lastIndex) {
+        parts.push(
+          <Text
+            key={`text-${parts.length}`}
+            style={tw`text-sm text-gray-700 leading-6`}
+          >
+            {text.slice(lastIndex, index)}
+          </Text>,
+        );
+      }
+
+      // Add line break + clickable contact on new line
+      parts.push(<Text key={`break-${parts.length}`}>{"\n"}</Text>);
+
+      parts.push(
+        <Text
+          key={`link-${parts.length}`}
+          style={tw`text-sm text-blue-600 font-medium`}
+          onPress={() => {
+            if (type === "email") {
+              Linking.openURL(`mailto:${matchText}`);
+            } else {
+              const cleanPhone = matchText.replace(/[\s-]/g, "");
+              Linking.openURL(`tel:${cleanPhone}`);
+            }
+          }}
+        >
+          {type === "phone" ? "Phone: " : "Email: "}
+          {matchText}
+        </Text>,
+      );
+
+      lastIndex = index + matchText.length;
+    });
+
+    // Remaining text
+    if (lastIndex < text.length) {
+      parts.push(
+        <Text key={`text-end`} style={tw`text-sm text-gray-700 leading-6`}>
+          {text.slice(lastIndex)}
+        </Text>,
+      );
+    }
+
+    return parts;
+  };
+
   return (
     <ScrollView style={tw`flex-1 bg-white px-4 py-4`}>
       {/* Header */}
@@ -195,6 +291,14 @@ const Offers = ({ navigation }) => {
             <View style={tw`mt-12 items-center px-6`}>
               <Text style={tw`text-base text-gray-700 text-center`}>
                 {error}
+              </Text>
+            </View>
+          )}
+
+          {!loading && !error && offers.length === 0 && (
+            <View style={tw`mt-12 items-center px-6`}>
+              <Text style={tw`text-base text-gray-700 text-center`}>
+                No offers are available for you at the moment.
               </Text>
             </View>
           )}
@@ -271,6 +375,7 @@ const Offers = ({ navigation }) => {
                 </View>
 
                 {/* Description */}
+                {/* Description */}
                 <Text
                   style={tw`text-sm text-gray-700 mt-3 leading-6`}
                   numberOfLines={4}
@@ -278,54 +383,54 @@ const Offers = ({ navigation }) => {
                   {offer.description}
                 </Text>
 
+                {/* How to Redeem */}
                 <Text
                   style={tw`text-sm text-gray-700 mt-3 leading-6`}
-                  numberOfLines={4}
+                  numberOfLines={10} // Increased
                 >
                   <Text style={tw`font-bold text-red-600`}>
                     How to Redeem:{" "}
                   </Text>
-                  {offer.howToRedeem}
+                  {renderClickableHowToRedeem(offer.howToRedeem)}
                 </Text>
 
                 {/* Contact Info */}
-                {contactInfo[index] && (
+                {getContactInfo(offer.business?.companyName) && (
                   <View style={tw`mt-3`}>
-                    {contactInfo[index].phone && (
+                    {/* {getContactInfo(offer.business?.companyName)?.phone && (
                       <Text
                         style={tw`text-sm text-blue-600 `}
                         onPress={() =>
-                          Linking.openURL(`tel:${contactInfo[index].phone}`)
+                          Linking.openURL(
+                            `tel:${getContactInfo(offer.business?.companyName)?.phone}`,
+                          )
                         }
                       >
-                        Phone: {contactInfo[index].phone}
+                        Phone:{" "}
+                        {getContactInfo(offer.business?.companyName)?.phone}
                       </Text>
-                    )}
-                    {contactInfo[index].email && (
+                    )} */}
+                    {/* {getContactInfo(offer.business?.companyName)?.email && (
                       <Text
                         style={tw`text-sm text-blue-600 `}
                         onPress={() =>
-                          Linking.openURL(`mailto:${contactInfo[index].email}`)
+                          Linking.openURL(
+                            `mailto:${getContactInfo(offer.business?.companyName)?.email}`,
+                          )
                         }
                       >
-                        Email: {contactInfo[index].email}
+                        Email:{" "}
+                        {getContactInfo(offer.business?.companyName)?.email}
                       </Text>
-                    )}
-                    {/* {contactInfo[index].visitLink && (
-                  <Text
-                    style={tw`text-sm text-blue-600 `}
-                    onPress={() =>
-                      Linking.openURL(contactInfo[index].visitLink)
-                    }
-                  >
-                    Visit link
-                  </Text>
-                )} */}
-                    {contactInfo[index].visitLink && (
+                    )} */}
+                    {getContactInfo(offer.business?.companyName)?.visitLink && (
                       <TouchableOpacity
                         style={tw`bg-red-500 px-4 py-2 mt-2 rounded-full items-center`}
                         onPress={() =>
-                          Linking.openURL(contactInfo[index].visitLink)
+                          Linking.openURL(
+                            getContactInfo(offer.business?.companyName)
+                              ?.visitLink,
+                          )
                         }
                       >
                         <Text style={tw`text-white font-semibold`}>Redeem</Text>

@@ -158,6 +158,7 @@
 //     </ScrollView>
 //   );
 // }
+
 import React, { useState } from "react";
 import {
   View,
@@ -232,7 +233,7 @@ const renderTextWithPhoneLinks = (text, onPress) => {
       </Text>
     ) : (
       <Text key={`t-${i}`}>{part.text}</Text>
-    )
+    ),
   );
 };
 
@@ -244,17 +245,18 @@ export default function WellbeingScreen({ navigation }) {
     {
       id: 1,
       heading: "MEHELP PSYCHOLOGY    FREE MENTAL HEALTH SUPPORT ONLINE",
+      phone: "1300 323 411",
       shortSummary:
         "Founded by Phillipa Brown, a strong ally of the Good Blokes Society, MeHelp Psychology provides high-quality online mental health support with absolutely no out-of-pocket costs.",
       moreInfo:
         "Fully bulk-billed phone and video sessions mean you can get help from home, without waitlists or financial stress.\n\nyou or someone you know needs support, caring psychologists are ready to help.How MeHelp Works:\n• 100% Bulk-Billed – Absolutely no out-of-pocket costs\n• Online sessions –  Phone or video from the comfort of home\n• Hand-Matched Psychologists – Caring, experienced professionals matched to your needs\n• No waitlists – Get support when you need it\n• Personalised care – Therapy that feels personal, supportive, and genuinely helpful\n\nWho MeHelp Supports:\nWhether you're navigating stress, anxiety, depression, life transitions, relationship challenges, or simply want to feel more grounded, MeHelp makes getting the right support simple, convenient, and human.\n\nGet Started Today.",
-      image: require("../../assets/wellbeing1.png"),
+      image: require("../../assets/mehelp.png"),
       link: "https://www.mehelp.com.au",
     },
     {
       id: 2,
-      heading:
-        "OUTSIDE THE LOCKER ROOM – CHANGING THE GAME FOR MENTAL HEALTH                                                                 ",
+      heading: "OUTSIDE THE LOCKER ROOM – CHANGING THE GAME FOR MENTAL HEALTH",
+      phone: "13 11 14",
       shortSummary:
         "OTLR - Led by GBS Members Todd Morgan (CEO), Tim Cook (National Program Manager), and Corey Sells (Board Member), Outside The Locker Room (OTLR) is a registered charity delivering critical mental health education to sporting clubs, schools, and businesses across Australia.",
       moreInfo:
@@ -265,16 +267,18 @@ export default function WellbeingScreen({ navigation }) {
     {
       id: 3,
       heading: "RESET MY FUTURE HELP FOR YOU OR SOMEONE YOU KNOW",
+      phone: "1800 300 813",
       shortSummary:
         "GBS Member Graeme Alford offers private, confidential support for those struggling with alcohol, drugs, gambling, or anger through Reset My Future – a proven alternative to residential rehab. Discuss your path forward with a free 30 min consultation.",
       moreInfo:
-        "RESET MY FUTURE – PRIVATE ADDICTION RECOVERY SUPPORT \n\nYou Don't Have to Do It Alone, Reset My Future offers private, online 12-week recovery programs designed as a modern alternative to traditional residential rehab.\nIf you or someone you know is struggling with alcohol, drugs, gambling, or anger, Graeme Alford and his expert team provide the structure, tools, and confidential support needed to reclaim your life – without disrupting work or family commitments.\nNational Free Call: 1800 300 813",
+        "RESET MY FUTURE – PRIVATE ADDICTION RECOVERY SUPPORT \n\nYou Don't Have to Do It Alone, Reset My Future offers private, online 12-week recovery programs designed as a modern alternative to traditional residential rehab.\nIf you or someone you know is struggling with alcohol, drugs, gambling, or anger, Graeme Alford and his expert team provide the structure, tools, and confidential support needed to reclaim your life – without disrupting work or family commitments.",
       image: require("../../assets/wellbeing3.png"),
       link: "https://www.resetmyfuture.com.au",
     },
     {
       id: 4,
       heading: "WELLBEING FOR BLOKES  THE ESSENTIALS",
+      phone: "1300 07 12 15",
       shortSummary:
         "Looking after yourself isn't complicated. Small, consistent actions keep you functioning at your best. Here's what actually matters.",
       moreInfo:
@@ -328,58 +332,101 @@ export default function WellbeingScreen({ navigation }) {
         const isExpanded = expandedId === item.id;
 
         return (
-          <View key={item.id} style={tw`bg-gray-100 rounded-lg p-4 mb-4`}>
+          <View
+            key={item.id}
+            style={tw`bg-white rounded-2xl p-4 mb-5 shadow-md border border-gray-200`}
+          >
             {/* COLLAPSED VIEW */}
             <TouchableOpacity
               onPress={() => toggleExpand(item.id)}
-              style={tw`flex-row`}
-              activeOpacity={0.8}
+              activeOpacity={0.9}
             >
-              {/* LEFT IMAGE */}
+              {/* TOP LOGO */}
               <Image
                 source={item.image}
-                style={tw`w-20 h-20 rounded-lg mr-3`}
+                style={tw`w-full h-32 rounded-lg mb-3 bg-white`}
                 resizeMode="contain"
               />
 
-              {/* RIGHT CONTENT */}
-              <View style={tw`flex-1`}>
-                <Text style={tw`text-sm font-bold text-gray-800 mb-1`}>
+              {/* CONTENT */}
+              <View>
+                <Text
+                  style={tw`text-base font-bold text-gray-800 mb-2 text-center`}
+                >
                   {item.heading}
                 </Text>
 
                 <Text
                   numberOfLines={isExpanded ? 0 : 3}
-                  style={tw`text-xs text-gray-600`}
+                  style={tw`text-sm text-gray-600 text-center`}
                 >
                   {item.shortSummary}
                 </Text>
-              </View>
 
-              <Ionicons
-                name={isExpanded ? "chevron-up" : "chevron-down"}
-                size={20}
-                color="#555"
-              />
+                <View style={tw`items-center mt-2`}>
+                  <Ionicons
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    size={22}
+                    color="#666"
+                  />
+                </View>
+              </View>
             </TouchableOpacity>
 
             {/* EXPANDED VIEW */}
             {isExpanded && (
               <View style={tw`mt-4 border-t border-gray-300 pt-3`}>
-                <Text style={tw`text-sm text-gray-700 leading-5`}>
+                {/* MORE INFO */}
+                <Text style={tw`text-sm text-gray-700 leading-5 mb-4`}>
                   {renderTextWithPhoneLinks(item.moreInfo, handleCallPress)}
                 </Text>
+
+                {/* CONTACT SECTION */}
+
+                <View style={tw`border-t border-gray-200 pt-3`}>
+                  <Text style={tw`text-xs text-gray-500 font-bold mb-2`}>
+                    CONTACT
+                  </Text>
+
+                  {/* PHONE */}
+
+                  {item.phone && (
+                    <TouchableOpacity
+                      onPress={() => handleCallPress(item.phone)}
+                      style={tw`flex-row items-center mb-3`}
+                    >
+                      <Ionicons name="call" size={18} color="#16A34A" />
+
+                      <Text
+                        style={tw`text-sm text-green-600 font-semibold ml-2`}
+                      >
+                        {item.phone}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {/* WEBSITE */}
+
+                  {item.link && (
+                    <TouchableOpacity
+                      onPress={() => Linking.openURL(item.link)}
+                      style={tw`flex-row items-center`}
+                    >
+                      <Ionicons
+                        name="globe-outline"
+                        size={18}
+                        color="#2563EB"
+                      />
+
+                      <Text
+                        style={tw`text-sm text-blue-600 font-semibold ml-2`}
+                      >
+                        Visit Website
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
-            )}
-            {item.link && isExpanded && (
-              <TouchableOpacity
-                onPress={() => Linking.openURL(item.link)}
-                style={tw`mt-3`}
-              >
-                <Text style={tw`text-sm text-blue-600 font-semibold`}>
-                  Visit Website
-                </Text>
-              </TouchableOpacity>
             )}
           </View>
         );

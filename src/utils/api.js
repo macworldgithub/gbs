@@ -1,7 +1,6 @@
 import axios from "axios";
 import { API_BASE_URL } from "./config";
 
-
 export const SignupUser = async (userData) => {
   try {
     const response = await axios.post(
@@ -12,7 +11,7 @@ export const SignupUser = async (userData) => {
           "Content-Type": "application/json",
           Accept: "*/*",
         },
-      }
+      },
     );
     return response.data;
   } catch (error) {
@@ -24,7 +23,7 @@ export const SignupUser = async (userData) => {
 export const sendForgotPasswordOtp = async (email) => {
   const res = await axios.post(
     `${API_BASE_URL}/user/forgot-password/send-otp`,
-    { email }
+    { email },
   );
   return res.data;
 };
@@ -88,12 +87,12 @@ export const SigninUser = async (identifier, password = undefined) => {
           "Content-Type": "application/json",
           Accept: "*/*",
         },
-      }
+      },
     );
     console.log("✅ API.js - Response Status:", response.status); // Debug: Status
     console.log(
       "✅ API.js - Response Data:",
-      JSON.stringify(response.data, null, 2)
+      JSON.stringify(response.data, null, 2),
     ); // Debug: Data
     return response.data;
   } catch (error) {
@@ -102,9 +101,90 @@ export const SigninUser = async (identifier, password = undefined) => {
       "❌ API.js - Error Response Data:",
       error.response?.data
         ? JSON.stringify(error.response.data, null, 2)
-        : "No data"
+        : "No data",
     ); // Debug: Error data
     console.log("❌ API.js - Error Status:", error.response?.status); // Debug: Status
+    throw error;
+  }
+};
+
+const activateIfNeeded = async (packageId, token) => {
+  if (!packageId || !token) return;
+
+  try {
+    const now = new Date().toISOString();
+
+    const payload = {
+      role: packageId, // the package _id
+      startDate: now,
+      months: 12, // ← adjust business rule (or make configurable)
+      trial: false, // ← adjust
+    };
+
+    const response = await axios.post(`${API_BASE_URL}/user-package`, payload, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("Package activated after login:", response.data);
+
+    // Optional: update local user data
+    const updatedUser = {
+      ...user,
+      activatedPackage:
+        response.data.activatedPackage || response.data.userPackage,
+    };
+
+    await storeUserData(updatedUser);
+    // You can also update AsyncStorage directly if needed
+  } catch (err) {
+    console.error(
+      "Package activation error after login:",
+      err.response?.data || err,
+    );
+    throw err; // let outer catch handle logging
+  }
+};
+
+export const deleteGroupConversation = async (conversationId, token) => {
+  try {
+    const response = await axios.delete(
+      `${API_BASE_URL}/messages/group/${conversationId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Delete Group API error:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+
+// Fetch notification details by ID
+export const getNotificationById = async (notificationId) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/notification/${notificationId}`,
+      {
+        headers: {
+          Accept: "*/*",
+        },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Get Notification error:",
+      error.response?.data || error.message,
+    );
     throw error;
   }
 };

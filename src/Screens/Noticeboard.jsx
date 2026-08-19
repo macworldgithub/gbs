@@ -50,7 +50,7 @@ const NoticeboardTab = () => {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-        }
+        },
       );
 
       Alert.alert("Success", "Noticeboard post created successfully!");
@@ -65,7 +65,7 @@ const NoticeboardTab = () => {
     } catch (error) {
       Alert.alert(
         "Error",
-        error?.response?.data?.message || "Failed to create noticeboard post."
+        error?.response?.data?.message || "Failed to create noticeboard post.",
       );
     }
   };
@@ -81,11 +81,10 @@ const NoticeboardTab = () => {
           urgent notices. Avoid personal or informal content.
         </Text>
       </View>
-      <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>
+      {/* <Text style={tw`text-xl font-bold text-gray-800 mb-4`}>
         Create Noticeboard Announcement
       </Text>
 
-      {/* Title */}
       <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Title</Text>
       <TextInput
         style={tw`border border-gray-300 rounded-lg p-3 mb-3`}
@@ -94,7 +93,6 @@ const NoticeboardTab = () => {
         onChangeText={setTitle}
       />
 
-      {/* Content */}
       <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>Content</Text>
       <TextInput
         multiline
@@ -104,8 +102,6 @@ const NoticeboardTab = () => {
         value={content}
         onChangeText={setContent}
       />
-
-      {/* Pin Toggle */}
       <TouchableOpacity
         onPress={() => setIsPinned(!isPinned)}
         style={tw`flex-row items-center mb-4`}
@@ -118,7 +114,6 @@ const NoticeboardTab = () => {
         <Text style={tw`text-gray-700`}>Pin this announcement</Text>
       </TouchableOpacity>
 
-      {/* Expiry Date */}
       <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>
         Expiry Date
       </Text>
@@ -133,7 +128,7 @@ const NoticeboardTab = () => {
         <Text style={tw`text-gray-700`}>
           {expiryDate ? expiryDate.toDateString() : "Select expiry date"}
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {/* Date Picker Modal */}
       <Modal transparent animationType="slide" visible={showPicker}>
@@ -184,14 +179,14 @@ const NoticeboardTab = () => {
       </Modal>
 
       {/* Submit Button */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={tw`bg-red-500 py-3 rounded-lg`}
         onPress={submitNotice}
       >
         <Text style={tw`text-center text-white font-bold`}>
           Submit Announcement
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <NoticeboardList key={refreshKey} pinned={true} />
     </View>

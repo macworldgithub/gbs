@@ -36,6 +36,7 @@ export default function MembersDirectory({ navigation }) {
   const [selectedState, setSelectedState] = useState("All");
   const [searchTimeout, setSearchTimeout] = useState(null);
   const [paginationLoading, setPaginationLoading] = useState(false);
+  const [myEmail, setMyEmail] = useState(null);
 
   /* ---------------- SEARCH USERS ---------------- */
   const searchUsers = async (
@@ -157,6 +158,7 @@ export default function MembersDirectory({ navigation }) {
 
       setToken(rawToken);
       setMyUserId(user._id || user?.user?._id);
+      setMyEmail(user.email);
 
       // Only fetch members when user is fully authenticated
       searchUsers("", "All", 1);
@@ -338,7 +340,16 @@ export default function MembersDirectory({ navigation }) {
                   </Text>
 
                   <TouchableOpacity
-                    onPress={() => openChat(item)}
+                    onPress={() => {
+                      if (myEmail === item.email) {
+                        Alert.alert(
+                          "Cannot Start Chat",
+                          "You cannot start a chat with yourself.",
+                        );
+                        return;
+                      }
+                      openChat(item);
+                    }}
                     style={tw`bg-red-500 px-3 py-1 rounded-lg`}
                   >
                     <Text style={tw`text-white text-xs`}>

@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import MapboxSquareSelector from "./MapboxPolygonDrawer";
+// import MapboxSquareSelector from "./MapboxPolygonDrawer";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -375,14 +375,14 @@ export default function NotificationForm({
           <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
             Select Area (Tap to set center - 10km square)
           </Text>
-          <MapboxSquareSelector
+          {/* <MapboxSquareSelector
             setCoordinates={(coords) => {
               setFormData((prev) => ({
                 ...prev,
                 area: { type: "MultiPolygon", coordinates: coords },
               }));
             }}
-          />
+          /> */}
         </View>
       )}
       {/* Actions */}

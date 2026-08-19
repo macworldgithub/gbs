@@ -9,6 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import { useRoute, useFocusEffect } from "@react-navigation/native";
@@ -46,7 +47,7 @@ export default function Chat({ navigation }) {
   const [token, setToken] = useState(null);
   const [myUserId, setMyUserId] = useState(null);
   const [conversationId, setConversationId] = useState(
-    route.params?.conversationId || null
+    route.params?.conversationId || null,
   );
 
   console.log("checking:", messages);
@@ -92,7 +93,7 @@ export default function Chat({ navigation }) {
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (res.data?._id) {
@@ -101,7 +102,7 @@ export default function Chat({ navigation }) {
       } catch (e) {
         console.error(
           "❌ ensureConversation error:",
-          e.response?.data || e.message
+          e.response?.data || e.message,
         );
       }
     };
@@ -150,25 +151,53 @@ export default function Chat({ navigation }) {
     return formatted;
   };
 
+  const renderTextWithLinks = (text, isMe) => {
+    if (!text) return null;
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (part.match(urlRegex)) {
+        return (
+          <Text
+            key={index}
+            style={tw.style(
+              "underline",
+              isMe ? "text-white font-bold" : "text-blue-600 font-bold",
+            )}
+            onPress={() =>
+              Linking.openURL(part).catch((err) =>
+                Alert.alert("Error", "Unable to open link"),
+              )
+            }
+          >
+            {part}
+          </Text>
+        );
+      }
+      return <Text key={index}>{part}</Text>;
+    });
+  };
+
   // ✅ Fetch messages
   const fetchMessages = async () => {
     if (!token || !myUserId || !conversationId) return;
     try {
       const res = await axios.get(
         `${API_BASE_URL}/messages/conversation/${conversationId}?page=1&limit=50`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       console.log("📥 Raw API response:", res.data);
       const msgs = Array.isArray(res.data?.messages) ? res.data.messages : [];
       // Backend returns newest first; sort ascending so newest at bottom
       const sortedByCreatedAt = [...msgs].sort(
-        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
       );
       console.log("📥 Messages from API:", msgs);
 
       const formatted = sortedByCreatedAt.map((m) =>
-        formatMessage(m, myUserId)
+        formatMessage(m, myUserId),
       );
       console.log("✅ Formatted messages:", formatted);
 
@@ -198,7 +227,7 @@ export default function Chat({ navigation }) {
   useFocusEffect(
     React.useCallback(() => {
       fetchMessages();
-    }, [conversationId, token, myUserId])
+    }, [conversationId, token, myUserId]),
   );
 
   // ✅ Socket setup
@@ -248,12 +277,12 @@ export default function Chat({ navigation }) {
             (m) =>
               m.fromMe &&
               m.status === "sending" &&
-              m.type === formattedIncoming.type
+              m.type === formattedIncoming.type,
           );
           if (idx !== -1) {
             console.log(
               "🗑️ Removing optimistic sending placeholder at index",
-              idx
+              idx,
             );
             next.splice(idx, 1);
           }
@@ -296,8 +325,8 @@ export default function Chat({ navigation }) {
     s.on("messageRead", (data) => {
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === data?.messageId ? { ...m, status: "seen" } : m
-        )
+          m.id === data?.messageId ? { ...m, status: "seen" } : m,
+        ),
       );
     });
 
@@ -374,7 +403,7 @@ export default function Chat({ navigation }) {
       console.error("❌ Error sending message:", err);
       // Remove last optimistic sending message on error
       setMessages((prev) =>
-        prev.filter((m) => m.status !== "sending" || !m.fromMe)
+        prev.filter((m) => m.status !== "sending" || !m.fromMe),
       );
     }
   };
@@ -503,7 +532,7 @@ export default function Chat({ navigation }) {
       if (!socketRef.current) throw new Error("Socket not connected");
 
       console.log(
-        `🚀 Emitting socket message with ${displayType}, size: ${sizeInMB} MB`
+        `🚀 Emitting socket message with ${displayType}, size: ${sizeInMB} MB`,
       );
 
       socketRef.current.emit("sendMessage", {
@@ -520,7 +549,7 @@ export default function Chat({ navigation }) {
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       Alert.alert(
         "Error",
-        `Failed to send ${displayType.toLowerCase()}: ${err.message}`
+        `Failed to send ${displayType.toLowerCase()}: ${err.message}`,
       );
     } finally {
       setTimeout(() => {
@@ -616,7 +645,7 @@ export default function Chat({ navigation }) {
               <View
                 style={tw.style(
                   `px-4 py-2 my-1`,
-                  item.fromMe ? "items-end" : "items-start"
+                  item.fromMe ? "items-end" : "items-start",
                 )}
               >
                 {/* TEXT */}
@@ -624,10 +653,12 @@ export default function Chat({ navigation }) {
                   <View
                     style={tw.style(
                       "rounded-xl px-4 py-2 flex-row items-center",
-                      item.fromMe ? "bg-pink-200" : "bg-gray-100"
+                      item.fromMe ? "bg-pink-200" : "bg-gray-100",
                     )}
                   >
-                    <Text style={tw`mr-1`}>{item.text}</Text>
+                    <Text style={tw`mr-1`}>
+                      {renderTextWithLinks(item.text, item.fromMe)}
+                    </Text>
                     {/* ✅ status checkmarks */}
                     {item.fromMe && (
                       <Ionicons
@@ -707,32 +738,35 @@ export default function Chat({ navigation }) {
             <View
               style={tw`flex-1 bg-gray-100 rounded-3xl flex-row items-center px-2 py-1`}
             >
-              <TouchableOpacity style={tw`px-2`}>
+              {/* <TouchableOpacity style={tw`px-2`}>
                 <Ionicons name="happy-outline" size={22} color="#6b7280" />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
               <TextInput
                 placeholder="Message"
                 value={newMessage}
                 onChangeText={setNewMessage}
                 style={tw`flex-1 px-2 py-1`}
+                returnKeyType="send"
+                onSubmitEditing={sendMessage}
                 blurOnSubmit={false}
-                multiline
               />
 
-              <TouchableOpacity onPress={pickMedia} style={tw`px-2`}>
+              {/* <TouchableOpacity onPress={pickMedia} style={tw`px-2`}>
                 <Ionicons name="attach-outline" size={22} color="#6b7280" />
+              </TouchableOpacity> */}
+              <TouchableOpacity onPress={pickMedia}>
+                <Ionicons name="image" size={20} style={tw`mx-2`} />
               </TouchableOpacity>
-
-              <TouchableOpacity onPress={handleCamera} style={tw`px-2`}>
+              {/* <TouchableOpacity onPress={handleCamera} style={tw`px-2`}>
                 <Ionicons name="camera-outline" size={22} color="#6b7280" />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
             <TouchableOpacity
               onPress={sendMessage}
               disabled={!newMessage.trim()}
               style={tw.style(
                 `ml-2 w-10 h-10 rounded-full items-center justify-center`,
-                newMessage.trim() ? `bg-green-500` : `bg-gray-300`
+                newMessage.trim() ? `bg-green-500` : `bg-gray-300`,
               )}
             >
               <Ionicons name="send" size={20} color="#fff" />

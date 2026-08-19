@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import tw from "tailwind-react-native-classnames";
 
 const PaymentSuccess = () => {
   const navigation = useNavigation();
@@ -11,26 +10,37 @@ const PaymentSuccess = () => {
   };
 
   return (
-    <View style={tw`flex-1 bg-white items-center justify-center px-6`}>
-      {/* Icon */}
-      <Image
-        source={require("../../assets/paymentSuccess.png")} // Replace with actual path
-        style={{ width: 100, height: 100, marginBottom: 30 }}
-        resizeMode="contain"
-      />
-
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "#fff",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 24,
+      }}
+    >
       {/* Success Text */}
-      <Text style={tw`text-xl font-bold text-black mb-2`}>Payment Success!</Text>
-      <Text style={tw`text-gray-600 text-center mb-12`}>
+      <Text style={{ fontSize: 20, fontWeight: "bold", color: "#000", marginBottom: 8 }}>
+        Payment Success!
+      </Text>
+      <Text style={{ color: "#6b7280", textAlign: "center", marginBottom: 48 }}>
         Please check your ticket in the My Ticket menu
       </Text>
 
       {/* Button */}
       <TouchableOpacity
         onPress={handleCheckTicket}
-        style={tw`absolute bottom-6 left-6 right-6 bg-red-500 py-4 rounded-full`}
+        style={{
+          position: "absolute",
+          bottom: 24,
+          left: 24,
+          right: 24,
+          backgroundColor: "#ef4444",
+          paddingVertical: 16,
+          borderRadius: 9999,
+        }}
       >
-        <Text style={tw`text-white text-center font-semibold text-base`}>
+        <Text style={{ color: "#fff", textAlign: "center", fontWeight: "600", fontSize: 16 }}>
           Check Ticket
         </Text>
       </TouchableOpacity>

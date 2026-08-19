@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   SafeAreaView,
+  Linking,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -79,7 +80,6 @@ export default function GroupChat() {
     })();
   }, []);
 
-  
   const loadAvailableUsers = async () => {
     try {
       setLoadingUsers(true); // ✅ START LOADING
@@ -361,6 +361,34 @@ export default function GroupChat() {
           ? msg.media[0].signedUrl
           : null,
     };
+  };
+
+  const renderTextWithLinks = (text, isMe) => {
+    if (!text) return null;
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (part.match(urlRegex)) {
+        return (
+          <Text
+            key={index}
+            style={tw.style(
+              "underline",
+              isMe ? "text-white font-bold" : "text-blue-600 font-bold",
+            )}
+            onPress={() =>
+              Linking.openURL(part).catch((err) =>
+                Alert.alert("Error", "Unable to open link"),
+              )
+            }
+          >
+            {part}
+          </Text>
+        );
+      }
+      return <Text key={index}>{part}</Text>;
+    });
   };
 
   // Load messages
@@ -794,7 +822,7 @@ export default function GroupChat() {
                         isMe ? "text-white" : "text-black",
                       )}
                     >
-                      {item.text}
+                      {renderTextWithLinks(item.text, isMe)}
                     </Text>
                   ) : null}
 
@@ -845,9 +873,9 @@ export default function GroupChat() {
           <TouchableOpacity onPress={handlePlus}>
             <FontAwesome name="plus" size={20} style={tw`mx-2`} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleCamera}>
+          {/* <TouchableOpacity onPress={handleCamera}>
             <Ionicons name="camera" size={20} style={tw`mx-2`} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity onPress={pickMedia}>
             <Ionicons name="image" size={20} style={tw`mx-2`} />
           </TouchableOpacity>

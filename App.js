@@ -21,8 +21,6 @@ import EditProfile from "./src/Screens/EditProfile";
 import AccountSecurity from "./src/Screens/AccountSecurity";
 import QRCodeScreen from "./src/Screens/QRCodeScreen";
 import Scanner from "./src/Screens/Scanner";
-import PaymentSettings from "./src/Screens/PaymentSettings";
-import PaymentMethod from "./src/Screens/PaymentMethod";
 import AddPaymentMethod from "./src/Screens/AddPaymentMethod";
 import PaymentSuccess from "./src/Screens/PaymentSuccess";
 import GeneralSetting from "./src/Screens/GeneralSetting";
@@ -79,7 +77,6 @@ import {
   getSession,
 } from "./src/utils/secureAuth";
 import ReactNativeBiometrics from "react-native-biometrics";
-import StripeCheckout from "./src/Screens/StripeCheckout";
 import CodeOfConduct from "./src/Screens/CodeOfConduct";
 import GBSMemberValues from "./src/Screens/GBSMemberValues";
 import MembershipDetails from "./src/Screens/MembershipDetails";
@@ -418,11 +415,6 @@ export default function App() {
             <Stack.Screen name="OnboardingTwo" component={OnboardingTwo} />
             <Stack.Screen name="IntroVideo" component={IntroVideoScreen} />
             <Stack.Screen name="Tabs" component={AuthTabs} />
-            <Stack.Screen
-              name="StripeCheckout"
-              component={StripeCheckout}
-              options={{ title: "Payment" }}
-            />
             <Stack.Screen name="Signup" component={Signup} />
             <Stack.Screen name="Home" component={Home} />
             <Stack.Screen name="Signin" component={Signin} />
@@ -437,12 +429,10 @@ export default function App() {
             <Stack.Screen name="AccountSecurity" component={AccountSecurity} />
             <Stack.Screen name="QRCodeScreen" component={QRCodeScreen} />
             <Stack.Screen name="Scanner" component={Scanner} />
-            <Stack.Screen name="PaymentSettings" component={PaymentSettings} />
             <Stack.Screen
               name="AddPaymentMethod"
               component={AddPaymentMethod}
             />
-            <Stack.Screen name="PaymentMethod" component={PaymentMethod} />
             <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
             <Stack.Screen name="GeneralSetting" component={GeneralSetting} />
             <Stack.Screen name="Theme" component={Theme} />

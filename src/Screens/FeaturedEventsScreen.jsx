@@ -35,13 +35,31 @@ const FeaturedEventsScreen = () => {
       const data = await response.json();
       const eventsArray = Array.isArray(data) ? data : data?.events || [];
 
-      const today = new Date("2025-12-09");
+      const now = new Date();
+
       const upcomingEvents = eventsArray.filter((event) => {
         // hide events explicitly marked as not public
         if (event.isPublic === false) return false;
-        const endDate = event.sessionList?.[0]?.eventEndDate;
-        if (!endDate) return false;
-        return new Date(endDate) > today;
+
+        // no sessions → ignore
+        if (!event.sessionList || event.sessionList.length === 0) return false;
+
+        // check if ANY session is current or upcoming
+        const hasUpcomingSession = event.sessionList.some((session) => {
+          if (!session?.eventEndDate) return false;
+
+          const endDate = new Date(session.eventEndDate);
+          return endDate >= now;
+        });
+
+        return hasUpcomingSession;
+      });
+
+      // Sort events by start date in chronological order
+      upcomingEvents.sort((a, b) => {
+        const dateA = new Date(a?.sessionList?.[0]?.eventStartDate || 0);
+        const dateB = new Date(b?.sessionList?.[0]?.eventStartDate || 0);
+        return dateA - dateB;
       });
 
       setAllEvents(upcomingEvents);
@@ -165,7 +183,7 @@ const FeaturedEventsScreen = () => {
         </View>
 
         {/* Right Section (Image + Button below it) */}
-        <View style={tw`items-center`}>
+        <View style={tw`items-center overflow-hidden `}>
           <Image
             source={
               item?.listOfImages?.[0]?.imageFileName
@@ -173,8 +191,8 @@ const FeaturedEventsScreen = () => {
                 : fallbackImage
             }
             defaultSource={fallbackImage}
-            style={tw`w-28 h-28 rounded-xl mb-2`}
-            resizeMode="cover"
+            style={tw`w-28 h-32 rounded-xl mb-2`}
+            resizeMode="contain"
           />
 
           <TouchableOpacity
@@ -188,7 +206,7 @@ const FeaturedEventsScreen = () => {
             onPress={() => handleBuyTicket(bookingUrl)}
           >
             <Text style={tw`text-white text-center font-semibold`}>
-              {bookedEvents.includes(item?.eventId) ? "Booked" : "Buy Ticket"}
+              {bookedEvents.includes(item?.eventId) ? "Booked" : "View Tickets"}
             </Text>
           </TouchableOpacity>
         </View>

@@ -23,6 +23,7 @@ export default function CreateGroup() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [myUserId, setMyUserId] = useState(null);
   const [participantMap, setParticipantMap] = useState({});
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     const loadParticipantNames = async () => {
@@ -90,6 +91,13 @@ export default function CreateGroup() {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
+  const filteredUsers = users.filter((u) => {
+    const name = (participantMap[u._id] || u.name || "").toLowerCase();
+    const email = (u.email || "").toLowerCase();
+    const search = searchText.toLowerCase();
+
+    return name.includes(search) || email.includes(search);
+  });
 
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
@@ -136,7 +144,6 @@ export default function CreateGroup() {
           }
         : null;
 
-   
       const selectedUsers = users.filter((u) => selectedIds.includes(u._id));
       const resolvedParticipants = selectedUsers.map((u) => ({
         _id: u._id,
@@ -214,8 +221,17 @@ export default function CreateGroup() {
 
         {showDropdown && (
           <View style={tw`bg-gray-50 rounded-lg mb-4 max-h-64`}>
+            {/* Search Bar */}
+            <View style={tw`p-2 border-b border-gray-200`}>
+              <TextInput
+                placeholder="Search members..."
+                value={searchText}
+                onChangeText={setSearchText}
+                style={tw`bg-white p-2 rounded-lg`}
+              />
+            </View>
             <ScrollView>
-              {users.map((u) => (
+              {filteredUsers.map((u) => (
                 <TouchableOpacity
                   key={u._id}
                   onPress={() => toggleSelect(u._id)}
@@ -240,7 +256,7 @@ export default function CreateGroup() {
                   </View>
                 </TouchableOpacity>
               ))}
-              {users.length === 0 && (
+              {filteredUsers.length === 0 && (
                 <Text style={tw`text-gray-500 px-3 py-3`}>
                   No other users found
                 </Text>

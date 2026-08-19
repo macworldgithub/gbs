@@ -397,7 +397,7 @@ const EventDetail = () => {
           style={tw`bg-red-600 py-2 px-6 rounded-lg self-center mb-10 self-start -mt-6`}
         >
           <Text style={tw`text-white text-base font-semibold `}>
-            Buy Ticket
+            View Tickets
           </Text>
         </TouchableOpacity>
       )}

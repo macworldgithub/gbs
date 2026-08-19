@@ -136,6 +136,7 @@ const AddBusinessModal = ({ visible, onClose, onBusinessAdded }) => {
       <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}>
         <ScrollView
           style={[tw`bg-white w-11/12 rounded-2xl p-5 `, { maxHeight: "85%" }]}
+          contentContainerStyle={{ paddingBottom: 20 }}
           keyboardShouldPersistTaps="handled"
         >
           <Text style={tw`text-lg font-bold mb-4 text-black-400 `}>Add Business</Text>

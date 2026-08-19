@@ -21,6 +21,7 @@ const BusinessDetail = ({ route, navigation }) => {
   const [offers, setOffers] = useState([]); // State for offers
   const [loading, setLoading] = useState(true);
   const [offersLoading, setOffersLoading] = useState(true); // Separate loading state for offers
+  const [avgRating, setAvgRating] = useState(null);
 
   const fetchBusinessDetail = async () => {
     try {
@@ -40,7 +41,7 @@ const BusinessDetail = ({ route, navigation }) => {
     } catch (err) {
       console.error(
         "Business detail error:",
-        err.response?.data || err.message
+        err.response?.data || err.message,
       );
       Alert.alert("Error", "Failed to fetch business details");
     } finally {
@@ -62,13 +63,33 @@ const BusinessDetail = ({ route, navigation }) => {
       });
 
       console.log("[Offers for Business]", id, res.data); // Debug log
-      setOffers(res.data); // Set offers from API response
+      setOffers(res.data);
+
+      const rating = calculateAverageRating(res.data);
+      setAvgRating(rating);
     } catch (err) {
       console.error("Offers fetch error:", err.response?.data || err.message);
       Alert.alert("Error", "Failed to fetch offers");
     } finally {
       setOffersLoading(false);
     }
+  };
+  const calculateAverageRating = (offersData) => {
+    let total = 0;
+    let count = 0;
+
+    offersData.forEach((offer) => {
+      if (offer.reviews && offer.reviews.length > 0) {
+        offer.reviews.forEach((review) => {
+          total += review.rating;
+          count++;
+        });
+      }
+    });
+
+    if (count === 0) return null;
+
+    return (total / count).toFixed(1); // 1 decimal like 4.5
   };
 
   useEffect(() => {
@@ -128,7 +149,7 @@ const BusinessDetail = ({ route, navigation }) => {
                   action: "remove",
                   fileKey: fileKey, // direct fileKey bhejna
                 }),
-              }
+              },
             );
 
             if (!response.ok) {
@@ -189,20 +210,14 @@ const BusinessDetail = ({ route, navigation }) => {
           </View>
 
           {/* Rating & Location */}
-          <View style={tw`flex-row items-center mb-4`}>
+          {/* <View style={tw`flex-row items-center mb-4`}>
             <View style={tw`flex-row items-center mr-4`}>
               <MaterialIcons name="star" size={16} color="#F59E0B" />
               <Text style={tw`text-sm text-gray-700 ml-1`}>
-                {business.rating || "N/A"}
+                {avgRating || "N/A"}
               </Text>
             </View>
-            {/* <View style={tw`flex-row items-center`}>
-              <MaterialIcons name="location-on" size={16} color="#6B7280" />
-              <Text style={tw`text-sm text-gray-700 ml-1`}>
-                {business.city}, {business.state}
-              </Text>
-            </View> */}
-          </View>
+          </View> */}
 
           {/* About */}
           <Text style={tw`text-base text-gray-700 leading-6`}>
@@ -299,7 +314,7 @@ const BusinessDetail = ({ route, navigation }) => {
                             if (!token) {
                               Alert.alert(
                                 "Error",
-                                "No authentication token found"
+                                "No authentication token found",
                               );
                               return;
                             }
@@ -312,7 +327,7 @@ const BusinessDetail = ({ route, navigation }) => {
                                   Authorization: `Bearer ${token}`,
                                   "Content-Type": "application/json",
                                 },
-                              }
+                              },
                             );
 
                             if (!response.ok) {
@@ -323,7 +338,7 @@ const BusinessDetail = ({ route, navigation }) => {
                             fetchBusinessDetail();
                             Alert.alert(
                               "Success",
-                              "Member deleted successfully!"
+                              "Member deleted successfully!",
                             );
                           } catch (error) {
                             console.error("Delete member error:", error);
@@ -331,7 +346,7 @@ const BusinessDetail = ({ route, navigation }) => {
                           }
                         },
                       },
-                    ]
+                    ],
                   );
                 }}
               >
@@ -427,7 +442,7 @@ const BusinessDetail = ({ route, navigation }) => {
                 } else {
                   Alert.alert(
                     "No phone available",
-                    "This business doesn't have a phone number listed."
+                    "This business doesn't have a phone number listed.",
                   );
                 }
               }}
@@ -443,7 +458,7 @@ const BusinessDetail = ({ route, navigation }) => {
                 } else {
                   Alert.alert(
                     "No email available",
-                    "This business doesn't have an email listed."
+                    "This business doesn't have an email listed.",
                   );
                 }
               }}

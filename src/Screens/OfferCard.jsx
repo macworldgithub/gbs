@@ -28,6 +28,19 @@ const OfferCard = ({ offer, onOfferUpdated, onOfferDeleted }) => {
     description: offer.description || "",
   });
 
+  const calculateOfferRating = () => {
+    if (!offer.reviews || offer.reviews.length === 0) return null;
+
+    let total = 0;
+
+    offer.reviews.forEach((review) => {
+      total += review.rating;
+    });
+
+    return (total / offer.reviews.length).toFixed(1);
+  };
+
+  const avgRating = calculateOfferRating();
   // 🔹 Update Offer
   const handleUpdate = async () => {
     try {
@@ -74,7 +87,7 @@ const OfferCard = ({ offer, onOfferUpdated, onOfferDeleted }) => {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -138,7 +151,7 @@ const OfferCard = ({ offer, onOfferUpdated, onOfferDeleted }) => {
                 Authorization: `Bearer ${token}`,
               },
               body: JSON.stringify({ fileKey: key }),
-            }
+            },
           );
 
           if (!patchRes.ok) throw new Error("Failed to update offer image");
@@ -163,15 +176,15 @@ const OfferCard = ({ offer, onOfferUpdated, onOfferDeleted }) => {
       >
         {/* Header */}
         <View style={tw`flex-row justify-between items-center mb-2`}>
-          <View style={tw`flex-row items-center`}>
+          <View style={tw`flex-row items-center flex-1 pr-2`}>
             <MaterialIcons name="card-giftcard" size={20} color="#DC2626" />
-            <Text style={tw`ml-2 text-base font-bold text-gray-900`}>
+            <Text style={tw`ml-2 text-base font-bold text-gray-900 flex-1`}>
               {offer.title}
             </Text>
           </View>
 
           {/* Update + Delete + Image Upload */}
-          <View style={tw`flex-row`}>
+          <View style={tw`flex-row flex-shrink-0`}>
             <TouchableOpacity
               onPress={() => setModalVisible(true)}
               style={tw`mr-2`}
@@ -186,11 +199,19 @@ const OfferCard = ({ offer, onOfferUpdated, onOfferDeleted }) => {
             </TouchableOpacity>
           </View>
         </View>
+        <View style={tw`flex-row items-center`}>
+          <MaterialIcons name="star" size={16} color="#F59E0B" />
+          <Text style={tw`text-sm text-gray-700 ml-1 font-medium`}>
+            {avgRating ? avgRating : "N/A"}
+          </Text>
+        </View>
 
-        {/* Discount */}
-        <Text style={tw`text-sm font-semibold text-red-600`}>
-          {offer.discount}
-        </Text>
+        {/* Discount + Rating */}
+        <View style={tw`flex-row justify-between items-center`}>
+          <Text style={tw`text-sm font-semibold text-red-600`}>
+            {offer.discount}
+          </Text>
+        </View>
 
         {/* Business */}
         <Text style={tw`text-sm text-gray-700 mb-1`}>
@@ -212,7 +233,9 @@ const OfferCard = ({ offer, onOfferUpdated, onOfferDeleted }) => {
         </View>
 
         {/* Description */}
-        <Text style={tw`text-sm text-gray-700 my-2`}>{offer.description}</Text>
+        <Text style={tw`text-sm text-gray-700 my-2`} numberOfLines={4}>
+          {offer.description}
+        </Text>
 
         {/* Expiry */}
         <Text style={tw`text-xs text-gray-500 mb-2`}>

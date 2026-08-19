@@ -11,7 +11,7 @@ import {
 import axios from "axios";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
-import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
+// import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Platform } from "react-native";
 import { getUserData } from "../utils/storage";
@@ -246,10 +246,10 @@ export default function CreateEvent({ navigation }) {
           Select Area (Polygon)
         </Text>
         <View style={{ height: 300, marginBottom: 20 }}>
-          <MapboxPolygonDrawer
+          {/* <MapboxPolygonDrawer
             coordinates={coordinates}
             setCoordinates={setCoordinates}
-          />
+          /> */}
         </View>
 
         <View style={tw`flex-row mt-4`}>

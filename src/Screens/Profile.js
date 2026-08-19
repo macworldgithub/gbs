@@ -24,13 +24,13 @@ import { useFocusEffect } from "@react-navigation/native";
 const menuItems = [
   {
     id: "1",
-    label: "View Profile",
+    label: "View and Edit Profile",
     icon: "user-edit",
     navigateTo: "ViewProfile",
   },
   {
     id: "2",
-    label: "Edit Profile",
+    label: "Change Password",
     icon: "user-edit",
     navigateTo: "EditProfile",
   },
@@ -66,7 +66,7 @@ const requestCameraPermission = async () => {
           buttonNeutral: "Ask Me Later",
           buttonNegative: "Cancel",
           buttonPositive: "OK",
-        }
+        },
       );
       return granted === PermissionsAndroid.RESULTS.GRANTED;
     } catch (err) {
@@ -120,7 +120,7 @@ const Profile = () => {
         if (fileKey) {
           try {
             const res = await axios.get(
-              `${API_BASE_URL}/user/${userData._id}/profile-picture`
+              `${API_BASE_URL}/user/${userData._id}/profile-picture`,
             );
             if (res.data && res.data.url) {
               setProfilePicUri(res.data.url);
@@ -149,7 +149,7 @@ const Profile = () => {
         }
       };
       fetchUser();
-    }, [])
+    }, []),
   );
 
   const handleImagePick = () => {
@@ -161,7 +161,7 @@ const Profile = () => {
         { text: "Gallery", onPress: () => openGallery() },
         { text: "Cancel", style: "cancel" },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 
@@ -204,7 +204,7 @@ const Profile = () => {
             fileType,
             userId,
           },
-        }
+        },
       );
 
       const { url: uploadUrl, key: fileKey } = res.data;
@@ -245,7 +245,7 @@ const Profile = () => {
 
       // STEP 5: Get fresh signed GET URL from backend for display
       const res2 = await axios.get(
-        `${API_BASE_URL}/user/${userId}/profile-picture`
+        `${API_BASE_URL}/user/${userId}/profile-picture`,
       );
       if (res2.data && res2.data.url) {
         setProfilePicUri(res2.data.url); // ✅ always use signed GET url

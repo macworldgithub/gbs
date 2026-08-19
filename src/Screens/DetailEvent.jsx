@@ -114,7 +114,7 @@ export default function EventDetailsScreen({ navigation }) {
                 <TouchableOpacity
                     style={tw`flex-1 bg-red-500 rounded-full py-3 mx-2 items-center`}
                 >
-                    <Text style={tw`text-white font-semibold`}>Buy Ticket</Text>
+                    <Text style={tw`text-white font-semibold`}>View Tickets</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity

@@ -138,12 +138,13 @@ const BusinessPage = ({ navigation }) => {
     }
   };
 
-  // Handle package selection and API call
+  // Handle package selection and API call (using stripe)
+
   const handlePackageSelection = (role) => {
     setPackagesModalVisible(false);
     setSelectedPackage(null);
 
-    navigation.navigate("StripeCheckout", {
+    navigation.navigate("UpgradePackage", {
       roleId: role._id,
       label: role.label,
       months: 12,
@@ -184,9 +185,73 @@ const BusinessPage = ({ navigation }) => {
   };
 
   // Check if user has an active package
+  // const checkUserPackage = async () => {
+  //   try {
+  //     let userData = await refreshUserData();
+  //     if (!userData) {
+  //       userData = await getUserData();
+  //     }
+
+  //     const token = userData?.token;
+
+  //     if (!token) {
+  //       setError("No token found, please login again.");
+  //       return false;
+  //     }
+
+  //     if (!userData.activatedPackage) {
+  //       console.log("No activated package found in user data");
+  //       setNoPackage(true);
+  //       setBusinessListings([]);
+  //       setLoading(false);
+  //       return false;
+  //     }
+
+  //     if (
+  //       !userData.activatedPackage.role ||
+  //       !userData.activatedPackage.endDate
+  //     ) {
+  //       console.log(
+  //         "Package missing required fields:",
+  //         userData.activatedPackage,
+  //       );
+  //       setNoPackage(true);
+  //       setBusinessListings([]);
+  //       setLoading(false);
+  //       return false;
+  //     }
+
+  //     const currentDate = new Date();
+  //     const packageEndDate = new Date(userData.activatedPackage.endDate);
+
+  //     if (currentDate > packageEndDate) {
+  //       console.log(
+  //         "Package has expired. Current date:",
+  //         currentDate,
+  //         "Package end date:",
+  //         packageEndDate,
+  //       );
+  //       setNoPackage(true);
+  //       setBusinessListings([]);
+  //       setLoading(false);
+  //       return false;
+  //     }
+
+  //     console.log(
+  //       "User has active package:",
+  //       userData.activatedPackage.role.label,
+  //     );
+  //     return true;
+  //   } catch (error) {
+  //     console.error("Error checking user package:", error);
+  //     setError("Failed to verify package status");
+  //     return false;
+  //   }
+  // };
+
+  // Check if user has an active package
   const checkUserPackage = async () => {
     try {
-      // First try to refresh user data to get the latest package information
       let userData = await refreshUserData();
       if (!userData) {
         userData = await getUserData();
@@ -199,44 +264,27 @@ const BusinessPage = ({ navigation }) => {
         return false;
       }
 
-      // Check if user has an activated package
       if (!userData.activatedPackage) {
-        console.log("No activated package found in user data");
+        console.log("No activated package found");
         setNoPackage(true);
-        setBusinessListings([]);
-        setLoading(false); // Ensure loading is set to false
         return false;
       }
 
-      // Check if package has required fields
       if (
         !userData.activatedPackage.role ||
         !userData.activatedPackage.endDate
       ) {
-        console.log(
-          "Package missing required fields:",
-          userData.activatedPackage,
-        );
+        console.log("Package missing required fields");
         setNoPackage(true);
-        setBusinessListings([]);
-        setLoading(false); // Ensure loading is set to false
         return false;
       }
 
-      // Additional check: verify package is still active
       const currentDate = new Date();
       const packageEndDate = new Date(userData.activatedPackage.endDate);
 
       if (currentDate > packageEndDate) {
-        console.log(
-          "Package has expired. Current date:",
-          currentDate,
-          "Package end date:",
-          packageEndDate,
-        );
+        console.log("Package has expired");
         setNoPackage(true);
-        setBusinessListings([]);
-        setLoading(false); // Ensure loading is set to false
         return false;
       }
 
@@ -267,6 +315,79 @@ const BusinessPage = ({ navigation }) => {
     setHasNext(false);
   }, [debouncedSearch, selectedState]);
 
+  // const fetchBusinesses = async (
+  //   pageNumber = 1,
+  //   isPagination = false,
+  //   scrollToTop = false,
+  // ) => {
+  //   try {
+  //     isPagination ? setPaginationLoading(true) : setLoading(true);
+
+  //     await refreshUserData();
+  //     const hasActivePackage = await checkUserPackage();
+  //     if (!hasActivePackage) {
+  //       setLoading(false);
+  //       setPaginationLoading(false);
+  //       return;
+  //     }
+
+  //     const userData = await getUserData();
+  //     const token = userData?.token;
+
+  //     if (!token) {
+  //       setError("No token found, please login again.");
+  //       setLoading(false);
+  //       setPaginationLoading(false);
+  //       return;
+  //     }
+
+  //     const response = await axios.get(API_URL, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //       params: {
+  //         keyword: debouncedSearch.trim(),
+  //         state: selectedState === "All" ? "" : selectedState,
+  //         page: pageNumber,
+  //         limit: LIMIT,
+  //       },
+  //     });
+
+  //     const businesses = response.data.businesses || [];
+
+  //     if (businesses.length > 0) {
+  //       setBusinessListings(businesses);
+  //       setHasNext(businesses.length === LIMIT);
+  //       setPage(pageNumber);
+  //       setNoResults(false);
+  //       if (scrollToTop && scrollViewRef.current) {
+  //         scrollViewRef.current.scrollTo({ y: 0, animated: true });
+  //       }
+  //     } else {
+  //       setBusinessListings([]);
+  //       setHasNext(false);
+  //       setNoResults(true);
+  //     }
+
+  //     setError(null);
+  //   } catch (error) {
+  //     console.error(
+  //       "Error fetching businesses:",
+  //       error.response?.data || error,
+  //     );
+  //     if (
+  //       error.response?.data?.message
+  //         ?.toLowerCase()
+  //         .includes("no active package")
+  //     ) {
+  //       setNoPackage(true);
+  //     } else {
+  //       setError("Failed to fetch business listings");
+  //     }
+  //   } finally {
+  //     setLoading(false);
+  //     setPaginationLoading(false);
+  //   }
+  // };
+
   const fetchBusinesses = async (
     pageNumber = 1,
     isPagination = false,
@@ -274,12 +395,13 @@ const BusinessPage = ({ navigation }) => {
   ) => {
     try {
       isPagination ? setPaginationLoading(true) : setLoading(true);
+      setError(null);
 
-      await refreshUserData(); // Refresh user data first
+      await refreshUserData();
       const hasActivePackage = await checkUserPackage();
+
       if (!hasActivePackage) {
-        setLoading(false);
-        setPaginationLoading(false);
+        setNoPackage(true);
         return;
       }
 
@@ -288,8 +410,6 @@ const BusinessPage = ({ navigation }) => {
 
       if (!token) {
         setError("No token found, please login again.");
-        setLoading(false);
-        setPaginationLoading(false);
         return;
       }
 
@@ -307,10 +427,10 @@ const BusinessPage = ({ navigation }) => {
 
       if (businesses.length > 0) {
         setBusinessListings(businesses);
-        setHasNext(businesses.length === LIMIT); // If we got full page → probably more
+        setHasNext(businesses.length === LIMIT);
         setPage(pageNumber);
         setNoResults(false);
-        // Auto-scroll to top if requested (pagination)
+
         if (scrollToTop && scrollViewRef.current) {
           scrollViewRef.current.scrollTo({ y: 0, animated: true });
         }
@@ -326,10 +446,14 @@ const BusinessPage = ({ navigation }) => {
         "Error fetching businesses:",
         error.response?.data || error,
       );
+
+      const status = error.response?.status;
+      const serverMessage = error.response?.data?.message?.toLowerCase() || "";
+
       if (
-        error.response?.data?.message
-          ?.toLowerCase()
-          .includes("no active package")
+        status === 403 ||
+        serverMessage.includes("no active package") ||
+        serverMessage.includes("forbidden")
       ) {
         setNoPackage(true);
       } else {
@@ -341,7 +465,6 @@ const BusinessPage = ({ navigation }) => {
     }
   };
 
-  // Initial fetch + refocus
   useEffect(() => {
     fetchBusinesses(1);
   }, [debouncedSearch, selectedState]);
@@ -489,6 +612,30 @@ const BusinessPage = ({ navigation }) => {
         </Text>
       )}
 
+      {/* {!loading && noPackage && (
+        <View style={tw`mt-20 items-center`}>
+          <MaterialIcons name="block" size={48} color="#DC2626" />
+          <Text style={tw`text-lg font-bold text-gray-800 mt-2`}>
+            No Active Package Found
+          </Text>
+          <Text style={tw`text-sm text-gray-600 mt-1 text-center px-6`}>
+            You don't have an active package. Please purchase a package to view
+            business listings.
+          </Text>
+
+          <TouchableOpacity
+            style={tw`mt-4 bg-red-500 px-6 py-2 rounded-lg`}
+            onPress={() => {
+              setPackagesModalVisible(true);
+              fetchRoles(); 
+            }}
+          >
+            <Text style={tw`text-white font-bold`}>View Packages</Text>
+          </TouchableOpacity>
+        </View>
+      )} */}
+
+      {/* No Package Screen - Hide when Error Modal is visible */}
       {!loading && noPackage && (
         <View style={tw`mt-20 items-center`}>
           <MaterialIcons name="block" size={48} color="#DC2626" />
@@ -504,13 +651,14 @@ const BusinessPage = ({ navigation }) => {
             style={tw`mt-4 bg-red-500 px-6 py-2 rounded-lg`}
             onPress={() => {
               setPackagesModalVisible(true);
-              fetchRoles(); // Fetch roles when modal opens
+              fetchRoles();
             }}
           >
             <Text style={tw`text-white font-bold`}>View Packages</Text>
           </TouchableOpacity>
         </View>
       )}
+
       {!loading && noResults && (
         <View style={tw`mt-20 items-center`}>
           <MaterialIcons name="search-off" size={48} color="#9CA3AF" />
@@ -545,8 +693,8 @@ const BusinessPage = ({ navigation }) => {
                       ? { uri: business.logo }
                       : require("../../assets/profile.png")
                   }
-                  style={tw`w-12 h-12 rounded-full mr-3 `}
-                  resizeMode="contain"
+                  style={tw`w-12 h-12 rounded-full mr-3`}
+                  resizeMode="cover"
                 />
                 <View>
                   <Text style={tw`text-lg font-bold text-gray-800`}>
@@ -559,7 +707,7 @@ const BusinessPage = ({ navigation }) => {
               </View>
 
               {/* Rating & Location */}
-              <View style={tw`flex-row items-center`}>
+              {/* <View style={tw`flex-row items-center`}>
                 <MaterialIcons name="star" size={16} color="#F59E0B" />
                 <Text style={tw`text-xs text-gray-700 ml-1`}>
                   {business.rating}
@@ -567,7 +715,7 @@ const BusinessPage = ({ navigation }) => {
                 <Text style={tw`text-xs text-gray-500 ml-2`}>
                   {business.city}, {business.state}
                 </Text>
-              </View>
+              </View> */}
 
               {/* About */}
               <Text style={tw`text-sm text-gray-600 mb-3`}>
@@ -777,11 +925,89 @@ const BusinessPage = ({ navigation }) => {
         </View>
       )}
 
+      {/* {packagesModalVisible && (
+        <Modal
+          visible={packagesModalVisible}
+          animationType="fade"
+          transparent={true} 
+        >
+          <View
+            style={tw`flex-1 bg-black bg-opacity-50 justify-center items-center`}
+          >
+            <View style={tw`bg-white rounded-2xl w-11/12 max-w-md p-6`}>
+          
+              <Text
+                style={tw`text-lg font-bold text-gray-800 mb-4 text-center`}
+              >
+                Upgrade Your Business
+              </Text>
+
+              {selectedPackage && (
+                <Text style={tw`text-sm text-green-600 mb-4 text-center`}>
+                  Selected Package: {selectedPackage.label}
+                </Text>
+              )}
+
+              {packageLoading && (
+                <Text style={tw`text-sm text-blue-600 mb-4 text-center`}>
+                  Processing package selection...
+                </Text>
+              )}
+
+              {rolesLoading ? (
+                <Text style={tw`text-center text-gray-500`}>
+                  Loading packages...
+                </Text>
+              ) : roles.length === 0 ? (
+                <Text style={tw`text-center text-gray-500`}>
+                  No package options available.
+                </Text>
+              ) : (
+                roles.map((role) => (
+                  <TouchableOpacity
+                    key={role._id}
+                    style={tw`rounded-lg p-3 mb-3 ${
+                      selectedPackage?._id === role._id
+                        ? "bg-red-500"
+                        : "bg-gray-200"
+                    }`}
+                    onPress={() => handlePackageSelection(role)}
+                    disabled={packageLoading}
+                  >
+                    <Text
+                      style={tw`font-medium text-center ${
+                        selectedPackage?._id === role._id
+                          ? "text-white"
+                          : "text-gray-800"
+                      }`}
+                    >
+                      {role.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              )}
+
+              <TouchableOpacity
+                style={tw`mt-4`}
+                onPress={() => {
+                  setPackagesModalVisible(false);
+                  setSelectedPackage(null);
+                }}
+              >
+                <Text style={tw`text-red-500 text-center font-medium`}>
+                  Close
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )} */}
+
       {packagesModalVisible && (
         <Modal
           visible={packagesModalVisible}
           animationType="fade"
-          transparent={true} // 👈 Important: so it won't take full screen solid white
+          transparent={true}
         >
           <View
             style={tw`flex-1 bg-black bg-opacity-50 justify-center items-center`}

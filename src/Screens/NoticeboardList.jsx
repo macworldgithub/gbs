@@ -6,22 +6,103 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Linking,
+  TextInput,
+  Modal,
+  Platform,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { getUserData } from "../utils/storage";
 
 const NOTICEBOARD_API = "https://gbs.westsidecarcare.com.au/noticeboard";
 
+// Helper function to parse text and render clickable links
+const renderTextWithLinks = (text) => {
+  // URL regex pattern
+  const urlPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+
+  const regex = new RegExp(urlPattern);
+
+  while ((match = regex.exec(text)) !== null) {
+    // Add text before the URL
+    if (match.index > lastIndex) {
+      parts.push({
+        type: "text",
+        content: text.substring(lastIndex, match.index),
+      });
+    }
+
+    // Add the URL
+    let url = match[0];
+    if (!url.startsWith("http")) {
+      url = "https://" + url;
+    }
+
+    parts.push({
+      type: "url",
+      content: match[0],
+      href: url,
+    });
+
+    lastIndex = regex.lastIndex;
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push({
+      type: "text",
+      content: text.substring(lastIndex),
+    });
+  }
+
+  return (
+    <Text style={tw`text-gray-700 leading-7 mb-4 text-base`}>
+      {parts.map((part, idx) =>
+        part.type === "url" ? (
+          <Text
+            key={idx}
+            style={tw`text-blue-600 underline`}
+            onPress={() => {
+              Linking.openURL(part.href).catch((err) =>
+                Alert.alert("Error", "Failed to open link"),
+              );
+            }}
+          >
+            {part.content}
+          </Text>
+        ) : (
+          <Text key={idx}>{part.content}</Text>
+        ),
+      )}
+    </Text>
+  );
+};
+
 const NoticeboardList = () => {
   const [notices, setNotices] = useState([]);
-  const [loading, setLoading] = useState(true); // start with true
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [currentUserId, setCurrentUserId] = useState(null);
   const limit = 10;
+
+  // Create notice modal state
+  const [modalVisible, setModalVisible] = useState(false);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [isPinned, setIsPinned] = useState(false);
+  const [expiryDate, setExpiryDate] = useState(null);
+  const [tempDate, setTempDate] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Get current user once
   useEffect(() => {
@@ -53,7 +134,6 @@ const NoticeboardList = () => {
         params: {
           page,
           limit,
-          pinned: true,
         },
         headers: {
           Authorization: `Bearer ${token}`,
@@ -82,6 +162,56 @@ const NoticeboardList = () => {
   useEffect(() => {
     fetchNotices(1);
   }, [fetchNotices]);
+
+  const submitNotice = async () => {
+    if (!title.trim() || !content.trim()) {
+      Alert.alert("Error", "Please fill all required fields.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const userData = await getUserData();
+      const token = userData?.token;
+
+      await axios.post(
+        NOTICEBOARD_API,
+        {
+          title,
+          content,
+          isPinned,
+          expiresAt: expiryDate ? expiryDate.toISOString() : null,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        },
+      );
+
+      Alert.alert("Success", "Notice created successfully!");
+
+      // Reset form
+      setTitle("");
+      setContent("");
+      setIsPinned(false);
+      setExpiryDate(null);
+      setTempDate(new Date());
+      setModalVisible(false);
+
+      // Refresh notices
+      fetchNotices(1);
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        error?.response?.data?.message || "Failed to create notice.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleDelete = async (noticeId) => {
     Alert.alert("Delete Notice", "Are you sure?", [
@@ -146,10 +276,22 @@ const NoticeboardList = () => {
     <ScrollView style={tw`flex-1 bg-gray-50`}>
       {/* Header */}
       <View style={tw`px-5 pt-6 pb-4 bg-white border-b border-gray-200`}>
-        <Text style={tw`text-2xl font-bold text-gray-800`}>Pinned Notices</Text>
-        <Text style={tw`text-gray-600 mt-1`}>
-          Important announcements & updates
-        </Text>
+        <View style={tw`flex-row justify-between items-center`}>
+          <View>
+            <Text style={tw`text-2xl font-bold text-gray-800`}>
+              All Notices
+            </Text>
+            <Text style={tw`text-gray-600 mt-1`}>
+              All announcements & updates
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            style={tw`bg-red-500 px-2 py-2 rounded-lg`}
+          >
+            <Text style={tw`text-white font-bold`}>+ Create Notice</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loading ? (
@@ -197,9 +339,7 @@ const NoticeboardList = () => {
                 )}
               </View>
 
-              <Text style={tw`text-gray-700 leading-7 mb-4 text-base`}>
-                {item.content}
-              </Text>
+              {renderTextWithLinks(item.content)}
 
               <View
                 style={tw`flex-row justify-between border-t border-gray-100 pt-3`}
@@ -230,6 +370,144 @@ const NoticeboardList = () => {
           <PaginationControls />
         </View>
       )}
+
+      {/* Create Notice Modal */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <ScrollView style={tw`flex-1 bg-gray-50 mt-32`}>
+          {/* Modal Header */}
+          <View
+            style={tw`px-5 pt-6 pb-4 bg-white border-b border-gray-200 flex-row justify-between items-center`}
+          >
+            <Text style={tw`text-xl font-bold text-gray-800`}>
+              Create Notice
+            </Text>
+            <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <Ionicons name="close" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={tw`px-5 py-4`}>
+            {/* Title */}
+            <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>
+              Title
+            </Text>
+            <TextInput
+              style={tw`border border-gray-300 rounded-lg p-3 mb-3`}
+              placeholder="Enter title"
+              placeholderTextColor="black"
+              value={title}
+              onChangeText={setTitle}
+            />
+
+            {/* Content */}
+            <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>
+              Content
+            </Text>
+            <TextInput
+              multiline
+              numberOfLines={5}
+              style={tw`border border-gray-300 rounded-lg p-3 mb-3 text-gray-700`}
+              placeholder="Write announcement content..."
+              placeholderTextColor="black"
+              value={content}
+              onChangeText={setContent}
+            />
+
+            {/* Pin Toggle */}
+            <TouchableOpacity
+              onPress={() => setIsPinned(!isPinned)}
+              style={tw`flex-row items-center mb-4`}
+            >
+              <View
+                style={tw`w-5 h-5 mr-2 rounded border ${
+                  isPinned ? "bg-red-500 border-red-500" : "border-gray-400"
+                }`}
+              />
+              <Text style={tw`text-gray-700`}>Pin this announcement</Text>
+            </TouchableOpacity>
+
+            {/* Expiry Date */}
+            <Text style={tw`text-sm font-medium text-gray-700 mb-1`}>
+              Expiry Date
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => {
+                setTempDate(expiryDate || new Date());
+                setShowPicker(true);
+              }}
+              style={tw`border border-gray-300 rounded-lg p-3 mb-4`}
+            >
+              <Text style={tw`text-gray-700`}>
+                {expiryDate ? expiryDate.toDateString() : "Select expiry date"}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Date Picker Modal */}
+            <Modal transparent animationType="slide" visible={showPicker}>
+              <View style={tw`flex-1 justify-end bg-black bg-opacity-40`}>
+                <View style={tw`bg-white rounded-t-2xl p-4`}>
+                  <DateTimePicker
+                    value={tempDate}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "calendar"}
+                    minimumDate={new Date()}
+                    onChange={(event, selectedDate) => {
+                      if (Platform.OS === "android") {
+                        if (event.type === "set") {
+                          const currentDate = selectedDate || tempDate;
+                          setTempDate(currentDate);
+                          setExpiryDate(currentDate);
+                        }
+                        setShowPicker(false);
+                      } else {
+                        if (selectedDate) setTempDate(selectedDate);
+                      }
+                    }}
+                  />
+
+                  <View style={tw`flex-row justify-end mt-4`}>
+                    <TouchableOpacity
+                      onPress={() => setShowPicker(false)}
+                      style={tw`px-4 py-2 mr-2`}
+                    >
+                      <Text style={tw`text-gray-600 font-medium`}>Cancel</Text>
+                    </TouchableOpacity>
+
+                    {Platform.OS === "ios" && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setExpiryDate(tempDate);
+                          setShowPicker(false);
+                        }}
+                        style={tw`px-4 py-2`}
+                      >
+                        <Text style={tw`text-red-500 font-bold`}>Done</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              </View>
+            </Modal>
+
+            {/* Submit Button */}
+            <TouchableOpacity
+              style={tw`bg-red-500 py-3 rounded-lg ${submitting ? "opacity-50" : ""}`}
+              onPress={submitNotice}
+              disabled={submitting}
+            >
+              <Text style={tw`text-center text-white font-bold`}>
+                {submitting ? "Submitting..." : "Submit Notice"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </Modal>
     </ScrollView>
   );
 };
