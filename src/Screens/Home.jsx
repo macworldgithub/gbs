@@ -736,7 +736,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Drawer from "../../components/Drawer";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/config";
-// import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
+import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
 import { checkForPackageUpgrade } from "../utils/packageTracker";
 
 const newsData = [

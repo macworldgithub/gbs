@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-// import MapboxSquareSelector from "./MapboxPolygonDrawer";
+import MapboxSquareSelector from "./MapboxPolygonDrawer";
 import tw from "tailwind-react-native-classnames";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -81,42 +81,45 @@ export default function NotificationForm({
     }
   }, [formData.startDate, notification, endDateTouched]);
 
-
   useEffect(() => {
     loadRoles();
   }, []);
 
   useEffect(() => {
-  const loadUser = async () => {
-    try {
-      const user = await getUserData();
-      console.log("[NotificationForm] Full user object:", user);
+    const loadUser = async () => {
+      try {
+        const user = await getUserData();
+        console.log("[NotificationForm] Full user object:", user);
 
-      if (!user) {
-        console.log("[NotificationForm] No user found");
-        return;
+        if (!user) {
+          console.log("[NotificationForm] No user found");
+          return;
+        }
+
+        setAuthToken(user.token || null);
+        console.log("[NotificationForm] Token exists:", !!user.token);
+
+        const permissions = Array.isArray(user.permissions)
+          ? user.permissions
+          : [];
+        console.log("[NotificationForm] Permissions array:", permissions);
+
+        const hasCustomNotifPerm = permissions.some(
+          (p) => p.name === "notification_custom" && p.value === true,
+        );
+        console.log(
+          "[NotificationForm] Has notification_custom permission?",
+          hasCustomNotifPerm,
+        );
+
+        setIsAdmin(hasCustomNotifPerm);
+      } catch (e) {
+        console.error("[NotificationForm] User load error", e);
       }
+    };
 
-      setAuthToken(user.token || null);
-      console.log("[NotificationForm] Token exists:", !!user.token);
-
-      const permissions = Array.isArray(user.permissions) ? user.permissions : [];
-      console.log("[NotificationForm] Permissions array:", permissions);
-
-      const hasCustomNotifPerm = permissions.some(
-        (p) => p.name === "notification_custom" && p.value === true
-      );
-      console.log("[NotificationForm] Has notification_custom permission?", hasCustomNotifPerm);
-
-      setIsAdmin(hasCustomNotifPerm);
-    } catch (e) {
-      console.error("[NotificationForm] User load error", e);
-    }
-  };
-
-  loadUser();
-}, []);
-
+    loadUser();
+  }, []);
 
   const loadRoles = async () => {
     try {
@@ -152,18 +155,17 @@ export default function NotificationForm({
       return {
         ...prev,
         roles: alreadySelected
-          ? prev.roles.filter((id) => id !== roleId) 
-          : [...prev.roles, roleId], 
+          ? prev.roles.filter((id) => id !== roleId)
+          : [...prev.roles, roleId],
       };
     });
   };
 
   const handleSubmit = async () => {
-   
-   if (!authToken) {
-    Alert.alert("Error", "Authentication required. Please login again.");
-    return;
-  }
+    if (!authToken) {
+      Alert.alert("Error", "Authentication required. Please login again.");
+      return;
+    }
     try {
       let fixedCoords = [];
 
@@ -194,14 +196,13 @@ export default function NotificationForm({
       const payload = {
         ...formData,
         SendToAll: false,
-        area: formData.area, 
+        area: formData.area,
         startDate: formData.startDate.toISOString(),
         endDate: formData.endDate.toISOString(),
       };
 
       console.log("📦 Payload:", JSON.stringify(payload, null, 2));
 
-   
       let res;
       if (notification?._id) {
         // UPDATE
@@ -237,7 +238,7 @@ export default function NotificationForm({
             text: "OK",
             onPress: () => {
               if (onSubmit) onSubmit(payload);
-              navigation.goBack(); 
+              navigation.goBack();
             },
           },
         ],
@@ -306,7 +307,7 @@ export default function NotificationForm({
           }}
         />
       )}
-     
+
       <Text style={tw`text-sm text-gray-700 mt-4 mb-1`}>End Date</Text>
       <TouchableOpacity
         onPress={() => setShowEndPicker(true)}
@@ -332,7 +333,7 @@ export default function NotificationForm({
           }}
         />
       )}
-      
+
       {/* Roles */}
       <View style={tw`mt-6`}>
         <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>Roles *</Text>
@@ -375,14 +376,14 @@ export default function NotificationForm({
           <Text style={tw`text-sm font-medium text-gray-700 mb-2`}>
             Select Area (Tap to set center - 10km square)
           </Text>
-          {/* <MapboxSquareSelector
+          <MapboxSquareSelector
             setCoordinates={(coords) => {
               setFormData((prev) => ({
                 ...prev,
                 area: { type: "MultiPolygon", coordinates: coords },
               }));
             }}
-          /> */}
+          />
         </View>
       )}
       {/* Actions */}

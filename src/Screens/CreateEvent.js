@@ -11,7 +11,7 @@ import {
 import axios from "axios";
 import tw from "tailwind-react-native-classnames";
 import { API_BASE_URL } from "../utils/config";
-// import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
+import MapboxPolygonDrawer from "./MapboxPolygonDrawer";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Platform } from "react-native";
 import { getUserData } from "../utils/storage";
@@ -171,14 +171,14 @@ export default function CreateEvent({ navigation }) {
               key={state}
               style={tw.style(
                 `px-3 py-1 rounded-full mr-2`,
-                eventForm.state === state ? "bg-red-500" : "bg-gray-200"
+                eventForm.state === state ? "bg-red-500" : "bg-gray-200",
               )}
               onPress={() => setEventForm({ ...eventForm, state })}
             >
               <Text
                 style={tw.style(
                   `text-xs font-medium`,
-                  eventForm.state === state ? "text-white" : "text-gray-700"
+                  eventForm.state === state ? "text-white" : "text-gray-700",
                 )}
               >
                 {state}
@@ -220,7 +220,7 @@ export default function CreateEvent({ navigation }) {
                   `px-3 py-1 rounded-full mr-2 mb-4`,
                   eventForm.selectedRoleId === role._id
                     ? "bg-red-500"
-                    : "bg-gray-200"
+                    : "bg-gray-200",
                 )}
                 onPress={() =>
                   setEventForm({ ...eventForm, selectedRoleId: role._id })
@@ -231,7 +231,7 @@ export default function CreateEvent({ navigation }) {
                     `text-xs font-medium`,
                     eventForm.selectedRoleId === role._id
                       ? "text-white"
-                      : "text-gray-700"
+                      : "text-gray-700",
                   )}
                 >
                   {role.label}
@@ -246,10 +246,10 @@ export default function CreateEvent({ navigation }) {
           Select Area (Polygon)
         </Text>
         <View style={{ height: 300, marginBottom: 20 }}>
-          {/* <MapboxPolygonDrawer
+          <MapboxPolygonDrawer
             coordinates={coordinates}
             setCoordinates={setCoordinates}
-          /> */}
+          />
         </View>
 
         <View style={tw`flex-row mt-4`}>
