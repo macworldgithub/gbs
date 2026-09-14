@@ -362,7 +362,7 @@ dependencies {
         if (isWebpAnimatedEnabled) {
             // Animated webp support
             implementation("com.facebook.fresco:animated-webp:${expoLibs.versions.fresco.get()}")
-        }
+        } +
     }
 
     if (hermesEnabled.toBoolean()) {
