@@ -211,7 +211,7 @@ react {
     bundleCommand = "export:embed"
 
     /* Folders */
-     //   The root of your project, i.e. where "package.json" lives. Default is '../..'
+    //   The root of your project, i.e. where "package.json" lives. Default is '../..'
     // root = file("../../")
     //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
     // reactNativeDir = file("../../node_modules/react-native")
@@ -292,16 +292,16 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
-            release {
-      storeFile file('upload-keystore.jks')
-    storePassword 'android'
-    keyAlias 'upload'
-    keyPassword 'android'
+        release {
+            storeFile file('upload-keystore.jks')
+            storePassword 'android'
+            keyAlias 'upload'
+            keyPassword 'android'
+        }
     }
-    }   
     buildTypes {
         debug {
-               signingConfig signingConfigs.debug
+            signingConfig signingConfigs.debug
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
